@@ -88,7 +88,9 @@ export async function savePropertyRemote(property: Property): Promise<void> {
         img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
       ),
     };
-    await supabase.from('properties').upsert({ id: property.id, data: safeProperty });
+    await supabase
+      .from('properties')
+      .upsert({ id: property.id, data: safeProperty }, { onConflict: 'id' });
   } catch {}
 }
 
@@ -107,7 +109,9 @@ export async function pushLocalPropertiesToRemote(): Promise<{ count: number; er
           img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
         ),
       };
-      const { error } = await supabase.from('properties').upsert({ id: property.id, data: safeProperty });
+      const { error } = await supabase
+        .from('properties')
+        .upsert({ id: property.id, data: safeProperty }, { onConflict: 'id' });
       if (error) { lastError = error.message; } else { count++; }
     } catch (e) {
       lastError = String(e);
