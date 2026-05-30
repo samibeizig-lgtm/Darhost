@@ -71,7 +71,7 @@ export default function Home() {
           src="https://picsum.photos/seed/sidi1/1600/900"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover opacity-[0.22] mix-blend-overlay pointer-events-none select-none"
+          className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay pointer-events-none select-none"
         />
 
         {/* Decorative arches */}
@@ -191,19 +191,19 @@ export default function Home() {
       {/* ── Categories ── */}
       <section className="border-b border-gray-200 bg-white sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-2 overflow-x-auto py-4 scrollbar-hide">
+          <div className="flex items-center justify-center gap-1 overflow-x-auto py-3 scrollbar-hide">
             {categories.map((cat) => (
               <button
                 key={cat.value}
                 onClick={() => handleCategoryClick(cat.value)}
-                className={`flex flex-col items-center gap-1.5 px-5 py-2 rounded-full shrink-0 transition-all text-sm font-medium border ${
+                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-full shrink-0 transition-all text-xs font-medium border ${
                   activeCategory === cat.value
                     ? 'bg-[#0F4C8A] text-white border-[#0F4C8A]'
                     : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
                 }`}
               >
                 <cat.Icon
-                  size={20}
+                  size={15}
                   className={activeCategory === cat.value ? 'text-white' : 'text-[#5B8AC5]'}
                 />
                 <span>{cat.label}</span>
