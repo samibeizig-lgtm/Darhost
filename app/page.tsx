@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties, localitesTunisie } from '@/lib/data';
-import { getSubmittedProperties } from '@/lib/store';
+import { syncPropertiesFromRemote } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 const categories = [
@@ -41,8 +41,9 @@ export default function Home() {
   const [featured, setFeatured] = useState<Property[]>(mockProperties.slice(0, 8));
 
   useEffect(() => {
-    const submitted = getSubmittedProperties();
-    setFeatured([...submitted, ...mockProperties].slice(0, 8));
+    syncPropertiesFromRemote().then((submitted) => {
+      setFeatured([...submitted, ...mockProperties].slice(0, 8));
+    });
   }, []);
 
   function handleSearch(e: React.FormEvent) {

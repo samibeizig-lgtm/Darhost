@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
-import { getUser, addSubmittedProperty, StoredUser } from '@/lib/store';
+import { getUser, addSubmittedProperty, savePropertyRemote, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
 const STEPS = [
@@ -226,6 +226,7 @@ export default function HostSubmitPage() {
       available: true,
     };
     addSubmittedProperty(newProperty);
+    await savePropertyRemote(newProperty);
 
     // Build a shareable link that embeds property metadata (no base64 photos)
     // so the listing can be viewed on any device via the share URL

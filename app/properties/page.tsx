@@ -9,7 +9,7 @@ import {
 import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties, CATEGORIES } from '@/lib/data';
 import { PropertyType } from '@/lib/types';
-import { getSubmittedProperties, importSharedProperty } from '@/lib/store';
+import { syncPropertiesFromRemote, importSharedProperty } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 const AMENITIES_LIST = [
@@ -41,8 +41,9 @@ function PropertiesPage() {
   const [showImport, setShowImport] = useState(false);
 
   function refreshProperties() {
-    const submitted = getSubmittedProperties();
-    setAllProperties([...submitted, ...mockProperties]);
+    syncPropertiesFromRemote().then((submitted) => {
+      setAllProperties([...submitted, ...mockProperties]);
+    });
   }
 
   useEffect(() => { refreshProperties(); }, []);

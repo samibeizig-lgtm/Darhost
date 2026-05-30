@@ -1,4 +1,5 @@
 import { Property } from './types';
+import { supabase } from './supabase';
 
 export interface StoredUser {
   id: string;
@@ -69,6 +70,38 @@ export function importSharedProperty(property: Property): void {
     addSubmittedProperty(property);
   }
 }
+
+// ── Supabase sync ────────────────────────────────────────────────────────────
+
+export async function savePropertyRemote(property: Property): Promise<void> {
+  if (!supabase) return;
+  try {
+    await supabase.from('properties').upsert({ id: property.id, data: property });
+  } catch {}
+}
+
+export async function syncPropertiesFromRemote(): Promise<Property[]> {
+  const local = getSubmittedProperties();
+  if (!supabase) return local;
+  try {
+    const { data, error } = await supabase
+      .from('properties')
+      .select('data')
+      .order('created_at', { ascending: false });
+    if (error || !data) return local;
+    const remote: Property[] = data.map((row) => (row as { data: Property }).data);
+    const remoteIds = new Set(remote.map((p) => p.id));
+    const merged = [...remote, ...local.filter((p) => !remoteIds.has(p.id))];
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('darhost_submitted_properties', JSON.stringify(merged));
+    }
+    return merged;
+  } catch {
+    return local;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function generateShareLink(property: Property): string {
   if (typeof window === 'undefined') return '';

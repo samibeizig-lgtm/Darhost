@@ -8,7 +8,7 @@ import { properties as mockProperties } from '@/lib/data';
 import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
-  getSubmittedProperties,
+  syncPropertiesFromRemote,
   generateShareLink,
   StoredUser,
 } from '@/lib/store';
@@ -98,7 +98,7 @@ export default function ProfilePage() {
     setSelectedHobbies(
       p.hobbies ? p.hobbies.split(',').map((h) => h.trim()).filter(Boolean) : []
     );
-    setMyProperties(getSubmittedProperties());
+    syncPropertiesFromRemote().then(setMyProperties);
   }, [router]);
 
   function toggleHobby(hobby: string) {
