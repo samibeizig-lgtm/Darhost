@@ -77,42 +77,51 @@ export function isSupabaseConnected(): boolean {
   return supabase !== null;
 }
 
+function stripBase64Images(property: Property): Property {
+  const seed = property.id.replace('user-', '');
+  return {
+    ...property,
+    images: property.images.map((img, i) =>
+      img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
+    ),
+  };
+}
+
+async function insertOrUpdate(property: Property): Promise<string | null> {
+  if (!supabase) return 'Supabase non connecté';
+  const safe = stripBase64Images(property);
+  const row = { id: property.id, data: safe };
+
+  const { error: insertError } = await supabase.from('properties').insert(row);
+  if (!insertError) return null;
+
+  // Unique violation — row already exists, update it
+  if (insertError.code === '23505' || insertError.message?.includes('duplicate')) {
+    const { error: updateError } = await supabase
+      .from('properties')
+      .update({ data: safe })
+      .eq('id', property.id);
+    return updateError ? updateError.message : null;
+  }
+
+  return insertError.message;
+}
+
 export async function savePropertyRemote(property: Property): Promise<void> {
   if (!supabase) return;
-  try {
-    const seed = property.id.replace('user-', '');
-    // Strip base64 images — too large for Supabase JSONB rows; use picsum placeholders instead
-    const safeProperty: Property = {
-      ...property,
-      images: property.images.map((img, i) =>
-        img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
-      ),
-    };
-    await supabase
-      .from('properties')
-      .upsert({ id: property.id, data: safeProperty }, { onConflict: 'id' });
-  } catch {}
+  try { await insertOrUpdate(property); } catch {}
 }
 
 export async function pushLocalPropertiesToRemote(): Promise<{ count: number; error: string | null }> {
-  if (!supabase) return { count: 0, error: 'Supabase non connecté — vérifie les variables d\'environnement et redéploie.' };
+  if (!supabase) return { count: 0, error: "Supabase non connecté — vérifiez les variables d'environnement et redéployez." };
   const local = getSubmittedProperties();
   if (local.length === 0) return { count: 0, error: null };
   let count = 0;
   let lastError: string | null = null;
   for (const property of local) {
     try {
-      const seed = property.id.replace('user-', '');
-      const safeProperty: Property = {
-        ...property,
-        images: property.images.map((img, i) =>
-          img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
-        ),
-      };
-      const { error } = await supabase
-        .from('properties')
-        .upsert({ id: property.id, data: safeProperty }, { onConflict: 'id' });
-      if (error) { lastError = error.message; } else { count++; }
+      const err = await insertOrUpdate(property);
+      if (err) { lastError = err; } else { count++; }
     } catch (e) {
       lastError = String(e);
     }
