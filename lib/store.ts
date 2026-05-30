@@ -121,7 +121,7 @@ async function insertOrUpdate(property: Property): Promise<string | null> {
   }
 
   const errText = await insertRes.text().catch(() => String(insertRes.status));
-  return `INSERT échoué (${insertRes.status}): ${errText}`;
+  return `INSERT (${insertRes.status}) [${base.replace(/^https?:\/\//, '').slice(0, 40)}]: ${errText}`;
 }
 
 export async function savePropertyRemote(property: Property): Promise<void> {
