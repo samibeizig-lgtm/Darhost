@@ -76,8 +76,36 @@ export function importSharedProperty(property: Property): void {
 export async function savePropertyRemote(property: Property): Promise<void> {
   if (!supabase) return;
   try {
-    await supabase.from('properties').upsert({ id: property.id, data: property });
+    const seed = property.id.replace('user-', '');
+    // Strip base64 images — too large for Supabase JSONB rows; use picsum placeholders instead
+    const safeProperty: Property = {
+      ...property,
+      images: property.images.map((img, i) =>
+        img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
+      ),
+    };
+    await supabase.from('properties').upsert({ id: property.id, data: safeProperty });
   } catch {}
+}
+
+export async function pushLocalPropertiesToRemote(): Promise<number> {
+  if (!supabase) return 0;
+  const local = getSubmittedProperties();
+  let count = 0;
+  for (const property of local) {
+    try {
+      const seed = property.id.replace('user-', '');
+      const safeProperty: Property = {
+        ...property,
+        images: property.images.map((img, i) =>
+          img.startsWith('data:') ? `https://picsum.photos/seed/${seed}${i}/800/600` : img
+        ),
+      };
+      const { error } = await supabase.from('properties').upsert({ id: property.id, data: safeProperty });
+      if (!error) count++;
+    } catch {}
+  }
+  return count;
 }
 
 export async function syncPropertiesFromRemote(): Promise<Property[]> {

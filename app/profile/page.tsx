@@ -9,6 +9,7 @@ import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
   syncPropertiesFromRemote,
+  pushLocalPropertiesToRemote,
   generateShareLink,
   StoredUser,
 } from '@/lib/store';
@@ -66,6 +67,8 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState('');
 
   const [form, setForm] = useState({
     firstName: '',
@@ -408,6 +411,30 @@ export default function ProfilePage() {
       {/* ── Tab: Mes logements ── */}
       {activeTab === 'properties' && (
         <div>
+          {myProperties.length > 0 && (
+            <div className="flex items-center justify-between mb-4">
+              <p className="text-sm text-gray-500">{myProperties.length} logement{myProperties.length !== 1 ? 's' : ''}</p>
+              <button
+                onClick={async () => {
+                  setSyncing(true);
+                  setSyncMsg('');
+                  const count = await pushLocalPropertiesToRemote();
+                  setSyncing(false);
+                  setSyncMsg(count > 0 ? `${count} annonce${count !== 1 ? 's' : ''} synchronisée${count !== 1 ? 's' : ''} !` : 'Déjà à jour.');
+                  setTimeout(() => setSyncMsg(''), 3000);
+                  syncPropertiesFromRemote().then(setMyProperties);
+                }}
+                disabled={syncing}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-[#0F4C8A] border border-[#0F4C8A] rounded-full hover:bg-[#E8F0FB] disabled:opacity-50 transition-colors"
+              >
+                {syncing ? <div className="w-3.5 h-3.5 border-2 border-[#0F4C8A] border-t-transparent rounded-full animate-spin" /> : null}
+                {syncing ? 'Synchronisation...' : 'Synchroniser sur tous les appareils'}
+              </button>
+            </div>
+          )}
+          {syncMsg && (
+            <p className="text-sm text-green-600 font-medium mb-3">{syncMsg}</p>
+          )}
           {myProperties.length === 0 ? (
             <div className="text-center py-20 bg-white border border-gray-200 rounded-2xl shadow-sm">
               <div className="w-16 h-16 bg-[#E8F0FB] rounded-full flex items-center justify-center mx-auto mb-4">
