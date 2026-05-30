@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu, X, MessageSquare, User, Home, Search,
-  LogOut, ChevronDown, Calendar, BookOpen, Plus,
+  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight,
 } from 'lucide-react';
-import { getUser, clearUser, StoredUser } from '@/lib/store';
+import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
 
 function DarHostLogo() {
@@ -73,6 +73,16 @@ export default function Header() {
   function handleLogout() {
     clearUser();
     setUser(null);
+    setDropdownOpen(false);
+    setMenuOpen(false);
+    router.push('/');
+  }
+
+  function handleSwitchRole() {
+    if (!user) return;
+    const updated = { ...user, role: user.role === 'host' ? 'guest' as const : 'host' as const };
+    persistUser(updated);
+    setUser(updated);
     setDropdownOpen(false);
     setMenuOpen(false);
     router.push('/');
@@ -189,6 +199,10 @@ export default function Header() {
                         <Plus size={15} className="text-[#0F4C8A]" /> Publier un logement
                       </Link>
                     )}
+                    <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                      <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
+                      Passer en mode {user.role === 'host' ? 'Voyageur' : 'Hôte'}
+                    </button>
                     <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t border-gray-100 transition-colors">
                       <LogOut size={15} /> Se déconnecter
                     </button>
@@ -276,7 +290,11 @@ export default function Header() {
           </nav>
 
           {user ? (
-            <div className="mt-4 pt-4 border-t border-gray-200">
+            <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
+              <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors w-full">
+                <ArrowLeftRight size={18} className="text-[#0F4C8A]" />
+                Passer en mode {user.role === 'host' ? 'Voyageur' : 'Hôte'}
+              </button>
               <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 font-medium hover:bg-red-50 transition-colors w-full">
                 <LogOut size={18} /> Se déconnecter
               </button>
