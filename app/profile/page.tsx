@@ -419,7 +419,7 @@ export default function ProfilePage() {
               : 'bg-red-100 text-red-600'
           }`}>
             <span className={`w-2 h-2 rounded-full ${isSupabaseConnected() ? 'bg-green-500' : 'bg-red-500'}`} />
-            {isSupabaseConnected() ? 'Supabase connecté — synchronisation activée' : 'Supabase non connecté — vérifiez les variables d\'environnement dans Cloudflare Pages'}
+            {isSupabaseConnected() ? 'Synchronisation activée' : 'Synchronisation désactivée — ajoutez NEXT_PUBLIC_FIREBASE_DB_URL dans Cloudflare Pages'}
           </div>
 
           {myProperties.length > 0 && (
