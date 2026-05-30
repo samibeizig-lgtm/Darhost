@@ -97,7 +97,7 @@ async function insertOrUpdate(property: Property): Promise<string | null> {
   if (!supabaseUrl || !supabaseKey) return 'Supabase non connecté';
   const safe = stripBase64Images(property);
   const body = JSON.stringify({ id: property.id, data: safe });
-  const base = `${supabaseUrl}/rest/v1/properties`;
+  const base = `${supabaseUrl}/rest/v1/annonces`;
 
   // Try INSERT
   const insertRes = await fetch(base, {
@@ -151,7 +151,7 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
   if (!supabaseUrl || !supabaseKey) return local;
   try {
     const res = await fetch(
-      `${supabaseUrl}/rest/v1/properties?select=data&order=created_at.desc`,
+      `${supabaseUrl}/rest/v1/annonces?select=data&order=created_at.desc`,
       { headers: supabaseHeaders() }
     );
     if (!res.ok) return local;
