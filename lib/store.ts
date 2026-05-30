@@ -1,5 +1,5 @@
 import { Property } from './types';
-import { supabase } from './supabase';
+import { supabaseUrl, supabaseKey } from './supabase';
 
 export interface StoredUser {
   id: string;
@@ -71,11 +71,17 @@ export function importSharedProperty(property: Property): void {
   }
 }
 
-// ── Supabase sync ────────────────────────────────────────────────────────────
+// ── Supabase sync (raw fetch — bypasses JS client path handling) ─────────────
 
 export function isSupabaseConnected(): boolean {
-  return supabase !== null;
+  return !!(supabaseUrl && supabaseKey);
 }
+
+const supabaseHeaders = () => ({
+  'Content-Type': 'application/json',
+  'apikey': supabaseKey,
+  'Authorization': `Bearer ${supabaseKey}`,
+});
 
 function stripBase64Images(property: Property): Property {
   const seed = property.id.replace('user-', '');
@@ -88,32 +94,43 @@ function stripBase64Images(property: Property): Property {
 }
 
 async function insertOrUpdate(property: Property): Promise<string | null> {
-  if (!supabase) return 'Supabase non connecté';
+  if (!supabaseUrl || !supabaseKey) return 'Supabase non connecté';
   const safe = stripBase64Images(property);
-  const row = { id: property.id, data: safe };
+  const body = JSON.stringify({ id: property.id, data: safe });
+  const base = `${supabaseUrl}/rest/v1/properties`;
 
-  const { error: insertError } = await supabase.from('properties').insert(row);
-  if (!insertError) return null;
+  // Try INSERT
+  const insertRes = await fetch(base, {
+    method: 'POST',
+    headers: { ...supabaseHeaders(), 'Prefer': 'return=minimal' },
+    body,
+  });
 
-  // Unique violation — row already exists, update it
-  if (insertError.code === '23505' || insertError.message?.includes('duplicate')) {
-    const { error: updateError } = await supabase
-      .from('properties')
-      .update({ data: safe })
-      .eq('id', property.id);
-    return updateError ? updateError.message : null;
+  if (insertRes.ok || insertRes.status === 201) return null;
+
+  // If duplicate key, UPDATE instead
+  if (insertRes.status === 409 || insertRes.status === 400) {
+    const updateRes = await fetch(`${base}?id=eq.${encodeURIComponent(property.id)}`, {
+      method: 'PATCH',
+      headers: { ...supabaseHeaders(), 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ data: safe }),
+    });
+    if (updateRes.ok) return null;
+    const errText = await updateRes.text().catch(() => String(updateRes.status));
+    return `UPDATE échoué (${updateRes.status}): ${errText}`;
   }
 
-  return insertError.message;
+  const errText = await insertRes.text().catch(() => String(insertRes.status));
+  return `INSERT échoué (${insertRes.status}): ${errText}`;
 }
 
 export async function savePropertyRemote(property: Property): Promise<void> {
-  if (!supabase) return;
+  if (!supabaseUrl || !supabaseKey) return;
   try { await insertOrUpdate(property); } catch {}
 }
 
 export async function pushLocalPropertiesToRemote(): Promise<{ count: number; error: string | null }> {
-  if (!supabase) return { count: 0, error: "Supabase non connecté — vérifiez les variables d'environnement et redéployez." };
+  if (!supabaseUrl || !supabaseKey) return { count: 0, error: "Supabase non connecté — vérifiez les variables d'environnement et redéployez." };
   const local = getSubmittedProperties();
   if (local.length === 0) return { count: 0, error: null };
   let count = 0;
@@ -131,14 +148,15 @@ export async function pushLocalPropertiesToRemote(): Promise<{ count: number; er
 
 export async function syncPropertiesFromRemote(): Promise<Property[]> {
   const local = getSubmittedProperties();
-  if (!supabase) return local;
+  if (!supabaseUrl || !supabaseKey) return local;
   try {
-    const { data, error } = await supabase
-      .from('properties')
-      .select('data')
-      .order('created_at', { ascending: false });
-    if (error || !data) return local;
-    const remote: Property[] = data.map((row) => (row as { data: Property }).data);
+    const res = await fetch(
+      `${supabaseUrl}/rest/v1/properties?select=data&order=created_at.desc`,
+      { headers: supabaseHeaders() }
+    );
+    if (!res.ok) return local;
+    const rows: { data: Property }[] = await res.json();
+    const remote = rows.map((r) => r.data);
     const remoteIds = new Set(remote.map((p) => p.id));
     const merged = [...remote, ...local.filter((p) => !remoteIds.has(p.id))];
     if (typeof window !== 'undefined') {
