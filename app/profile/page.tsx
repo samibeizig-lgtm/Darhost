@@ -10,6 +10,7 @@ import {
   getProfileData, setProfileData,
   syncPropertiesFromRemote,
   pushLocalPropertiesToRemote,
+  isSupabaseConnected,
   generateShareLink,
   StoredUser,
 } from '@/lib/store';
@@ -411,6 +412,16 @@ export default function ProfilePage() {
       {/* ── Tab: Mes logements ── */}
       {activeTab === 'properties' && (
         <div>
+          {/* Supabase connection status */}
+          <div className={`flex items-center gap-2 text-xs font-medium px-3 py-2 rounded-full mb-4 w-fit ${
+            isSupabaseConnected()
+              ? 'bg-green-100 text-green-700'
+              : 'bg-red-100 text-red-600'
+          }`}>
+            <span className={`w-2 h-2 rounded-full ${isSupabaseConnected() ? 'bg-green-500' : 'bg-red-500'}`} />
+            {isSupabaseConnected() ? 'Supabase connecté — synchronisation activée' : 'Supabase non connecté — vérifiez les variables d\'environnement dans Cloudflare Pages'}
+          </div>
+
           {myProperties.length > 0 && (
             <div className="flex items-center justify-between mb-4">
               <p className="text-sm text-gray-500">{myProperties.length} logement{myProperties.length !== 1 ? 's' : ''}</p>
@@ -418,10 +429,14 @@ export default function ProfilePage() {
                 onClick={async () => {
                   setSyncing(true);
                   setSyncMsg('');
-                  const count = await pushLocalPropertiesToRemote();
+                  const { count, error } = await pushLocalPropertiesToRemote();
                   setSyncing(false);
-                  setSyncMsg(count > 0 ? `${count} annonce${count !== 1 ? 's' : ''} synchronisée${count !== 1 ? 's' : ''} !` : 'Déjà à jour.');
-                  setTimeout(() => setSyncMsg(''), 3000);
+                  if (error) {
+                    setSyncMsg(`Erreur : ${error}`);
+                  } else {
+                    setSyncMsg(count > 0 ? `${count} annonce${count !== 1 ? 's' : ''} synchronisée${count !== 1 ? 's' : ''} !` : 'Déjà à jour.');
+                  }
+                  setTimeout(() => setSyncMsg(''), 6000);
                   syncPropertiesFromRemote().then(setMyProperties);
                 }}
                 disabled={syncing}
@@ -433,7 +448,7 @@ export default function ProfilePage() {
             </div>
           )}
           {syncMsg && (
-            <p className="text-sm text-green-600 font-medium mb-3">{syncMsg}</p>
+            <p className={`text-sm font-medium mb-3 ${syncMsg.startsWith('Erreur') ? 'text-red-600' : 'text-green-600'}`}>{syncMsg}</p>
           )}
           {myProperties.length === 0 ? (
             <div className="text-center py-20 bg-white border border-gray-200 rounded-2xl shadow-sm">

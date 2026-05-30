@@ -73,6 +73,10 @@ export function importSharedProperty(property: Property): void {
 
 // ── Supabase sync ────────────────────────────────────────────────────────────
 
+export function isSupabaseConnected(): boolean {
+  return supabase !== null;
+}
+
 export async function savePropertyRemote(property: Property): Promise<void> {
   if (!supabase) return;
   try {
@@ -88,10 +92,12 @@ export async function savePropertyRemote(property: Property): Promise<void> {
   } catch {}
 }
 
-export async function pushLocalPropertiesToRemote(): Promise<number> {
-  if (!supabase) return 0;
+export async function pushLocalPropertiesToRemote(): Promise<{ count: number; error: string | null }> {
+  if (!supabase) return { count: 0, error: 'Supabase non connecté — vérifie les variables d\'environnement et redéploie.' };
   const local = getSubmittedProperties();
+  if (local.length === 0) return { count: 0, error: null };
   let count = 0;
+  let lastError: string | null = null;
   for (const property of local) {
     try {
       const seed = property.id.replace('user-', '');
@@ -102,10 +108,12 @@ export async function pushLocalPropertiesToRemote(): Promise<number> {
         ),
       };
       const { error } = await supabase.from('properties').upsert({ id: property.id, data: safeProperty });
-      if (!error) count++;
-    } catch {}
+      if (error) { lastError = error.message; } else { count++; }
+    } catch (e) {
+      lastError = String(e);
+    }
   }
-  return count;
+  return { count, error: count === 0 && lastError ? lastError : null };
 }
 
 export async function syncPropertiesFromRemote(): Promise<Property[]> {
