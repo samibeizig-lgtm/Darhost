@@ -47,6 +47,7 @@ export interface Property {
   host: Host;
   reviews: Review[];
   categories?: string[];
+  createdAt?: number;
   minNights: number;
   available: boolean;
   lat?: number;
