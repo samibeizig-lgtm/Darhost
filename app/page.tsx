@@ -68,10 +68,10 @@ export default function Home() {
       <section className="relative overflow-hidden bg-gradient-to-br from-[#051C44] via-[#0F4C8A] to-[#1B6FBF] text-white">
         {/* Sidi Bou Said photo fused with the blue gradient */}
         <img
-          src="https://picsum.photos/seed/sidi1/1600/900"
+          src="https://images.unsplash.com/photo-1607869861980-da5f9b8b4969?q=80&w=1170&auto=format&fit=crop"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover opacity-50 mix-blend-overlay pointer-events-none select-none"
+          className="absolute inset-0 w-full h-full object-cover opacity-75 mix-blend-overlay pointer-events-none select-none"
         />
 
         {/* Decorative arches */}
