@@ -237,9 +237,7 @@ export default function HostSubmitPage() {
         ),
       };
       const json = JSON.stringify(shareable);
-      const bytes = new TextEncoder().encode(json);
-      const binString = String.fromCodePoint(...bytes);
-      const encoded = btoa(binString);
+      const encoded = btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p) => String.fromCharCode(parseInt(p, 16))));
       setShareLink(`${window.location.origin}/properties/${newProperty.id}#share=${encoded}`);
     } catch {}
 

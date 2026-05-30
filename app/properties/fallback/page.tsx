@@ -7,9 +7,10 @@ import { Property } from '@/lib/types';
 
 function decodeShareData(encoded: string): Property | null {
   try {
-    const binString = atob(encoded);
-    const bytes = Uint8Array.from(binString, (m) => m.codePointAt(0)!);
-    return JSON.parse(new TextDecoder().decode(bytes)) as Property;
+    const json = decodeURIComponent(
+      atob(encoded).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+    );
+    return JSON.parse(json) as Property;
   } catch {
     return null;
   }
