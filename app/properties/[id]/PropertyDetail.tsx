@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import {
   Star, MapPin, Users, BedDouble, Bath, Wifi, Waves, Wind,
@@ -140,11 +139,16 @@ function BookingWidget({ price, cleaningFee, minNights }: {
 }
 
 export default function PropertyDetail({ id }: { id: string }) {
-  const property = properties.find((p) => p.id === id);
-  if (!property) notFound();
-
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [liked, setLiked] = useState(false);
+
+  const property = properties.find((p) => p.id === id);
+  if (!property) return (
+    <div className="max-w-7xl mx-auto px-4 py-20 text-center">
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">Logement introuvable</h1>
+      <Link href="/properties" className="text-[#0F4C8A] underline">Voir tous les logements</Link>
+    </div>
+  );
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
