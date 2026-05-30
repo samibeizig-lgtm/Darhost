@@ -9,6 +9,7 @@ import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
   getSubmittedProperties,
+  generateShareLink,
   StoredUser,
 } from '@/lib/store';
 import { Property } from '@/lib/types';
@@ -64,6 +65,7 @@ export default function ProfilePage() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     firstName: '',
@@ -455,8 +457,16 @@ export default function ProfilePage() {
                       >
                         Voir
                       </Link>
-                      <button className="flex-1 py-2 bg-[#0F4C8A] text-white rounded-xl text-sm font-medium hover:bg-[#0A3566] transition-colors">
-                        Modifier
+                      <button
+                        onClick={() => {
+                          const link = generateShareLink(property);
+                          navigator.clipboard.writeText(link);
+                          setCopiedId(property.id);
+                          setTimeout(() => setCopiedId(null), 2000);
+                        }}
+                        className="flex-1 py-2 bg-[#0F4C8A] text-white rounded-xl text-sm font-medium hover:bg-[#0A3566] transition-colors"
+                      >
+                        {copiedId === property.id ? '✓ Copié !' : 'Partager'}
                       </button>
                     </div>
                   </div>

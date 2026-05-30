@@ -69,3 +69,21 @@ export function importSharedProperty(property: Property): void {
     addSubmittedProperty(property);
   }
 }
+
+export function generateShareLink(property: Property): string {
+  if (typeof window === 'undefined') return '';
+  const seed = property.id.replace('user-', '');
+  const shareable = {
+    ...property,
+    images: Array.from({ length: 5 }, (_, i) =>
+      `https://picsum.photos/seed/${seed}${i}/800/600`
+    ),
+  };
+  const json = JSON.stringify(shareable);
+  const encoded = btoa(
+    encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p) =>
+      String.fromCharCode(parseInt(p, 16))
+    )
+  );
+  return `${window.location.origin}/properties/${property.id}#share=${encoded}`;
+}

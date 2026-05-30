@@ -8,8 +8,9 @@ import {
 } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties, CATEGORIES } from '@/lib/data';
-import { Property, PropertyType } from '@/lib/types';
-import { getSubmittedProperties } from '@/lib/store';
+import { PropertyType } from '@/lib/types';
+import { getSubmittedProperties, importSharedProperty } from '@/lib/store';
+import { Property } from '@/lib/types';
 
 const AMENITIES_LIST = [
   'WiFi', 'Piscine', 'Climatisation', 'Cuisine équipée',
@@ -35,11 +36,34 @@ function PropertiesPage() {
   const categoryParam = searchParams.get('category') ?? '';
 
   const [allProperties, setAllProperties] = useState<Property[]>(mockProperties);
+  const [importLink, setImportLink] = useState('');
+  const [importMsg, setImportMsg] = useState('');
+  const [showImport, setShowImport] = useState(false);
 
-  useEffect(() => {
+  function refreshProperties() {
     const submitted = getSubmittedProperties();
     setAllProperties([...submitted, ...mockProperties]);
-  }, []);
+  }
+
+  useEffect(() => { refreshProperties(); }, []);
+
+  function handleImport() {
+    try {
+      const hash = importLink.includes('#share=') ? importLink.split('#share=')[1] : '';
+      if (!hash) { setImportMsg('Lien invalide.'); return; }
+      const json = decodeURIComponent(
+        atob(hash).split('').map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+      );
+      const property = JSON.parse(json) as Property;
+      importSharedProperty(property);
+      refreshProperties();
+      setImportLink('');
+      setImportMsg('Annonce importée avec succès !');
+      setTimeout(() => { setImportMsg(''); setShowImport(false); }, 2500);
+    } catch {
+      setImportMsg('Lien invalide ou corrompu.');
+    }
+  }
 
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<PropertyType[]>([]);
@@ -180,6 +204,47 @@ function PropertiesPage() {
             )}
           </button>
         </div>
+      </div>
+
+      {/* Import panel */}
+      <div className="mb-4">
+        {!showImport ? (
+          <button
+            onClick={() => setShowImport(true)}
+            className="text-xs text-[#0F4C8A] hover:underline"
+          >
+            + Importer une annonce depuis un autre appareil
+          </button>
+        ) : (
+          <div className="bg-[#E8F0FB] border border-[#B8D0F0] rounded-xl p-4">
+            <p className="text-sm font-semibold text-[#0F4C8A] mb-2">Importer une annonce partagée</p>
+            <div className="flex gap-2">
+              <input
+                value={importLink}
+                onChange={(e) => setImportLink(e.target.value)}
+                placeholder="Collez le lien de partage ici…"
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
+              />
+              <button
+                onClick={handleImport}
+                className="px-4 py-2 bg-[#0F4C8A] text-white rounded-xl text-sm font-semibold hover:bg-[#0A3566] transition-colors"
+              >
+                Importer
+              </button>
+              <button
+                onClick={() => { setShowImport(false); setImportMsg(''); }}
+                className="px-3 py-2 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50"
+              >
+                ✕
+              </button>
+            </div>
+            {importMsg && (
+              <p className={`text-xs mt-2 font-medium ${importMsg.includes('succès') ? 'text-green-600' : 'text-red-500'}`}>
+                {importMsg}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Filter panel */}
