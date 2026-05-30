@@ -97,7 +97,7 @@ export default function ProfilePage() {
       p.hobbies ? p.hobbies.split(',').map((h) => h.trim()).filter(Boolean) : []
     );
     setMyProperties(getSubmittedProperties());
-  }, []);
+  }, [router]);
 
   function toggleHobby(hobby: string) {
     setSelectedHobbies((prev) =>

@@ -447,7 +447,7 @@ export default function HostSubmitPage() {
                   placeholder="https://maps.google.com/..."
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
                 />
-                <p className="text-xs text-gray-400 mt-1">Depuis Google Maps : clic droit sur la localisation → "Partager ou intégrer la carte" → copier le lien</p>
+                <p className="text-xs text-gray-400 mt-1">Depuis Google Maps : clic droit sur la localisation → &quot;Partager ou intégrer la carte&quot; → copier le lien</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
