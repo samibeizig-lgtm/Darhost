@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, MessageSquare, User, Home, Search } from 'lucide-react';
 
 function DarHostLogo() {
@@ -34,7 +34,15 @@ const navLinks = [
 
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const pathname = usePathname();
+  const router = useRouter();
+
+  function handleSearch(e: React.FormEvent) {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    router.push(q ? `/properties?location=${encodeURIComponent(q)}` : '/properties');
+  }
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
@@ -43,19 +51,26 @@ export default function Header() {
           <DarHostLogo />
 
           {/* Desktop search pill */}
-          <Link
-            href="/properties"
-            className="hidden lg:flex items-center gap-3 border border-gray-300 rounded-full px-5 py-2 shadow-sm hover:shadow-md transition-shadow"
+          <form
+            onSubmit={handleSearch}
+            className="hidden lg:flex items-center gap-3 border border-gray-300 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow flex-1 max-w-md"
           >
-            <span className="text-sm font-medium text-gray-700">Où allez-vous ?</span>
-            <span className="w-px h-4 bg-gray-300" />
-            <span className="text-sm text-gray-500">Dates</span>
-            <span className="w-px h-4 bg-gray-300" />
-            <span className="text-sm text-gray-500">Voyageurs</span>
-            <div className="w-8 h-8 bg-[#0F4C8A] rounded-full flex items-center justify-center ml-1">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Où allez-vous ?"
+              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent min-w-0"
+            />
+            <span className="w-px h-4 bg-gray-300 shrink-0" />
+            <span className="text-sm text-gray-400 shrink-0 hidden xl:block">Tunisie</span>
+            <button
+              type="submit"
+              className="w-8 h-8 bg-[#0F4C8A] rounded-full flex items-center justify-center hover:bg-[#0A3566] transition-colors shrink-0"
+            >
               <Search size={14} className="text-white" />
-            </div>
-          </Link>
+            </button>
+          </form>
 
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
@@ -115,14 +130,19 @@ export default function Header() {
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
           {/* Mobile search */}
-          <Link
-            href="/properties"
-            onClick={() => setMenuOpen(false)}
+          <form
+            onSubmit={(e) => { handleSearch(e); setMenuOpen(false); }}
             className="flex items-center gap-3 border border-gray-300 rounded-full px-4 py-3 mb-4 shadow-sm"
           >
-            <Search size={18} className="text-[#0F4C8A]" />
-            <span className="text-sm text-gray-500">Rechercher un logement...</span>
-          </Link>
+            <Search size={18} className="text-[#0F4C8A] shrink-0" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Rechercher un logement..."
+              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
+            />
+          </form>
 
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
