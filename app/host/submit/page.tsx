@@ -1,8 +1,11 @@
 'use client';
 
-import { useState } from 'react';
-import { Check, ChevronRight, ChevronLeft, Upload, X, Plus } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Check, ChevronRight, ChevronLeft, Upload, X, Plus, LogIn } from 'lucide-react';
+import Link from 'next/link';
 import { wilayasTunisie } from '@/lib/data';
+import { getUser, addSubmittedProperty, StoredUser } from '@/lib/store';
+import { Property, PropertyType } from '@/lib/types';
 
 const STEPS = [
   { n: 1, label: 'Type de bien' },
@@ -91,6 +94,13 @@ export default function HostSubmitPage() {
   const [form, setForm] = useState<FormData>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
   const [newRule, setNewRule] = useState('');
+  const [user, setUser] = useState<StoredUser | null>(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    setUser(getUser());
+    setAuthChecked(true);
+  }, []);
 
   const set = (key: keyof FormData, value: unknown) =>
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -111,6 +121,89 @@ export default function HostSubmitPage() {
 
   function removeCustomRule(i: number) {
     set('customRules', form.customRules.filter((_, idx) => idx !== i));
+  }
+
+  function handleSubmit() {
+    const newProperty: Property = {
+      id: `user-${Date.now()}`,
+      title: form.title || form.name,
+      type: (form.type as PropertyType) || 'Maison',
+      location: form.address,
+      wilaya: form.wilaya,
+      description: form.description,
+      shortDescription: form.description.slice(0, 100) + '…',
+      images: [
+        `https://picsum.photos/seed/${Date.now()}/800/600`,
+        `https://picsum.photos/seed/${Date.now() + 1}/800/600`,
+        `https://picsum.photos/seed/${Date.now() + 2}/800/600`,
+        `https://picsum.photos/seed/${Date.now() + 3}/800/600`,
+        `https://picsum.photos/seed/${Date.now() + 4}/800/600`,
+      ],
+      price: Number(form.pricePerNight) || 0,
+      cleaningFee: Number(form.cleaningFee) || 0,
+      guests: Number(form.guests) || 1,
+      bedrooms: Number(form.bedrooms) || 1,
+      bathrooms: Number(form.bathrooms) || 1,
+      beds: Number(form.beds) || 1,
+      rating: 0,
+      reviewCount: 0,
+      amenities: form.amenities,
+      houseRules: [
+        { title: 'Arrivée', description: `Après ${form.checkIn}` },
+        { title: 'Départ', description: `Avant ${form.checkOut}` },
+        ...(form.noSmoking ? [{ title: 'Pas de cigarette', description: 'Interdit de fumer' }] : []),
+        ...(form.noParties ? [{ title: 'Pas de fêtes', description: "Pas d'événements" }] : []),
+        ...(form.noPets ? [{ title: 'Animaux non admis', description: 'Pas d\'animaux' }] : []),
+        ...(form.noNoise ? [{ title: 'Calme nocturne', description: 'Silence après 22h' }] : []),
+        ...form.customRules.map((r) => ({ title: r, description: '' })),
+      ],
+      host: {
+        id: user?.id ?? 'u-new',
+        name: user?.name ?? 'Hôte DarHost',
+        avatar: user?.avatar ?? 'https://i.pravatar.cc/150?img=12',
+        joinDate: new Date().toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' }),
+        responseRate: 100,
+        responseTime: "Dans l'heure",
+        isSuperhost: false,
+        bio: '',
+      },
+      reviews: [],
+      minNights: Number(form.minNights) || 1,
+      available: true,
+    };
+    addSubmittedProperty(newProperty);
+    setSubmitted(true);
+  }
+
+  if (!authChecked) return null;
+
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="text-center max-w-md">
+          <div className="text-6xl mb-6">🔐</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-3">Connexion requise</h1>
+          <p className="text-gray-500 mb-8">
+            Vous devez être connecté pour soumettre un logement sur DarHost.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/register?redirect=/host/submit"
+              className="flex items-center justify-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-full font-semibold hover:bg-[#0A3566] transition-colors"
+            >
+              <LogIn size={18} />
+              Créer un compte hôte
+            </Link>
+            <Link
+              href="/login?redirect=/host/submit"
+              className="px-6 py-3 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Se connecter
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (submitted) {
@@ -767,7 +860,7 @@ export default function HostSubmitPage() {
           </button>
         ) : (
           <button
-            onClick={() => setSubmitted(true)}
+            onClick={handleSubmit}
             className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors"
           >
             <Check size={18} />

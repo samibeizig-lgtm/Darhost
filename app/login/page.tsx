@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
+import { setUser } from '@/lib/store';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -10,6 +11,12 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [redirect, setRedirect] = useState('/');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    setRedirect(params.get('redirect') ?? '/');
+  }, []);
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -19,17 +26,21 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    // Simulate login
     setTimeout(() => {
-      setLoading(false);
-      window.location.href = '/';
-    }, 1200);
+      setUser({
+        id: `u-${Date.now()}`,
+        name: email.split('@')[0],
+        email,
+        role: 'host',
+        avatar: 'https://i.pravatar.cc/150?img=12',
+      });
+      window.location.href = redirect;
+    }, 900);
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <svg width="40" height="48" viewBox="0 0 34 42" fill="none">
@@ -51,11 +62,8 @@ export default function LoginPage() {
               </div>
             )}
 
-            {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                Adresse e-mail
-              </label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Adresse e-mail</label>
               <div className="relative">
                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -69,7 +77,6 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Password */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-sm font-semibold text-gray-700">Mot de passe</label>
@@ -116,13 +123,12 @@ export default function LoginPage() {
           <div className="mt-5 text-center">
             <p className="text-sm text-gray-600">
               Pas encore de compte ?{' '}
-              <Link href="/register" className="text-[#0F4C8A] font-semibold hover:underline">
+              <Link href={`/register?redirect=${encodeURIComponent(redirect)}`} className="text-[#0F4C8A] font-semibold hover:underline">
                 S&apos;inscrire gratuitement
               </Link>
             </p>
           </div>
 
-          {/* Social login divider */}
           <div className="mt-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="flex-1 h-px bg-gray-200" />

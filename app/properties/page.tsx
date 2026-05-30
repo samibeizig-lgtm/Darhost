@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useMemo, Suspense } from 'react';
+import { useState, useMemo, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { SlidersHorizontal, X, MapPin, ChevronDown } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
-import { properties } from '@/lib/data';
-import { PropertyType } from '@/lib/types';
+import { properties as mockProperties } from '@/lib/data';
+import { Property, PropertyType } from '@/lib/types';
+import { getSubmittedProperties } from '@/lib/store';
 
 const AMENITIES_LIST = [
   'WiFi', 'Piscine', 'Climatisation', 'Cuisine équipée',
@@ -17,6 +18,13 @@ const TYPES: PropertyType[] = ['Villa', 'Appartement', 'Riad', 'Maison', 'Chambr
 function PropertiesPage() {
   const searchParams = useSearchParams();
   const locationParam = searchParams.get('location') ?? '';
+
+  const [allProperties, setAllProperties] = useState<Property[]>(mockProperties);
+
+  useEffect(() => {
+    const submitted = getSubmittedProperties();
+    setAllProperties([...submitted, ...mockProperties]);
+  }, []);
 
   const [showFilters, setShowFilters] = useState(false);
   const [selectedTypes, setSelectedTypes] = useState<PropertyType[]>([]);
@@ -48,7 +56,7 @@ function PropertiesPage() {
   }
 
   const filtered = useMemo(() => {
-    let result = [...properties];
+    let result = [...allProperties];
 
     if (location) {
       const q = location.toLowerCase();

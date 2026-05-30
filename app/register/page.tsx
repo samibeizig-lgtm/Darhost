@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { setUser } from '@/lib/store';
 
 export default function RegisterPage() {
   const [role, setRole] = useState<'guest' | 'host'>('guest');
@@ -13,6 +14,15 @@ export default function RegisterPage() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [redirect, setRedirect] = useState('/');
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const r = params.get('redirect') ?? '/';
+    setRedirect(r);
+    // Pre-select host role if coming from /host/submit
+    if (r.includes('host')) setRole('host');
+  }, []);
 
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
 
@@ -32,20 +42,25 @@ export default function RegisterPage() {
       return;
     }
     if (!agreed) {
-      setError('Vous devez accepter les conditions d\'utilisation.');
+      setError("Vous devez accepter les conditions d'utilisation.");
       return;
     }
     setLoading(true);
     setTimeout(() => {
-      setLoading(false);
-      window.location.href = role === 'host' ? '/host/submit' : '/';
-    }, 1200);
+      setUser({
+        id: `u-${Date.now()}`,
+        name: `${form.firstName} ${form.lastName}`,
+        email: form.email,
+        role,
+        avatar: `https://i.pravatar.cc/150?u=${form.email}`,
+      });
+      window.location.href = redirect;
+    }, 900);
   }
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2 mb-6">
             <svg width="40" height="48" viewBox="0 0 34 42" fill="none">
@@ -60,7 +75,6 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-          {/* Role selector */}
           <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
             <button
               onClick={() => setRole('guest')}
@@ -133,7 +147,7 @@ export default function RegisterPage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1.5">Téléphone</label>
-              <div className="relative flex">
+              <div className="flex">
                 <span className="flex items-center px-3 py-3 bg-gray-100 border border-r-0 border-gray-300 rounded-l-xl text-sm text-gray-600 font-medium whitespace-nowrap">
                   🇹🇳 +216
                 </span>
@@ -176,11 +190,8 @@ export default function RegisterPage() {
                       key={i}
                       className={`h-1 flex-1 rounded-full ${
                         form.password.length > i * 3
-                          ? form.password.length < 6
-                            ? 'bg-red-400'
-                            : form.password.length < 10
-                            ? 'bg-yellow-400'
-                            : 'bg-green-500'
+                          ? form.password.length < 6 ? 'bg-red-400'
+                            : form.password.length < 10 ? 'bg-yellow-400' : 'bg-green-500'
                           : 'bg-gray-200'
                       }`}
                     />
@@ -190,9 +201,7 @@ export default function RegisterPage() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                Confirmer le mot de passe *
-              </label>
+              <label className="block text-xs font-semibold text-gray-700 mb-1.5">Confirmer le mot de passe *</label>
               <div className="relative">
                 <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -214,13 +223,9 @@ export default function RegisterPage() {
               />
               <span className="text-sm text-gray-600">
                 J&apos;accepte les{' '}
-                <Link href="#" className="text-[#0F4C8A] underline">
-                  Conditions d&apos;utilisation
-                </Link>{' '}
+                <Link href="#" className="text-[#0F4C8A] underline">Conditions d&apos;utilisation</Link>{' '}
                 et la{' '}
-                <Link href="#" className="text-[#0F4C8A] underline">
-                  Politique de confidentialité
-                </Link>
+                <Link href="#" className="text-[#0F4C8A] underline">Politique de confidentialité</Link>
               </span>
             </label>
 
@@ -243,7 +248,7 @@ export default function RegisterPage() {
           <div className="mt-5 text-center">
             <p className="text-sm text-gray-600">
               Déjà un compte ?{' '}
-              <Link href="/login" className="text-[#0F4C8A] font-semibold hover:underline">
+              <Link href={`/login?redirect=${encodeURIComponent(redirect)}`} className="text-[#0F4C8A] font-semibold hover:underline">
                 Se connecter
               </Link>
             </p>

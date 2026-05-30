@@ -1,11 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Search, MapPin, Calendar, Users, Star, Shield, Clock, Award } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
-import { properties } from '@/lib/data';
+import { properties as mockProperties } from '@/lib/data';
+import { getSubmittedProperties } from '@/lib/store';
+import { Property } from '@/lib/types';
 
 const categories = [
   { icon: '🏖️', label: 'Plage', value: 'plage' },
@@ -32,6 +34,12 @@ export default function Home() {
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState('1');
   const [activeCategory, setActiveCategory] = useState('');
+  const [featured, setFeatured] = useState<Property[]>(mockProperties.slice(0, 8));
+
+  useEffect(() => {
+    const submitted = getSubmittedProperties();
+    setFeatured([...submitted, ...mockProperties].slice(0, 8));
+  }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
@@ -40,8 +48,6 @@ export default function Home() {
     if (guests) params.set('guests', guests);
     router.push(`/properties?${params.toString()}`);
   }
-
-  const featured = properties.slice(0, 8);
 
   return (
     <div>
