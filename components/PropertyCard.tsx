@@ -31,6 +31,13 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             </span>
           )}
 
+          {/* New listing badge */}
+          {!property.host.isSuperhost && property.createdAt && Date.now() - property.createdAt < 7 * 24 * 60 * 60 * 1000 && (
+            <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#0F4C8A] text-white text-xs font-bold rounded-full shadow-sm">
+              Nouveau
+            </span>
+          )}
+
           {/* Favorite button */}
           <button
             onClick={(e) => {

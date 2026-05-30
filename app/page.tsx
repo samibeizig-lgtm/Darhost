@@ -9,7 +9,7 @@ import {
   Home as HomeIcon,
 } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
-import { properties as mockProperties } from '@/lib/data';
+import { properties as mockProperties, localitesTunisie } from '@/lib/data';
 import { getSubmittedProperties } from '@/lib/store';
 import { Property } from '@/lib/types';
 
@@ -126,8 +126,12 @@ export default function Home() {
                     value={location}
                     onChange={(e) => setLocation(e.target.value)}
                     placeholder="Où allez-vous ?"
+                    list="localities-hero"
                     className="w-full text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
                   />
+                  <datalist id="localities-hero">
+                    {localitesTunisie.map((l) => <option key={l} value={l} />)}
+                  </datalist>
                 </div>
               </div>
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import {
   Star, MapPin, Users, BedDouble, Bath, Wifi, Waves, Wind,
@@ -8,6 +8,8 @@ import {
   Share, Heart, Shield, Clock, MessageSquare, Award
 } from 'lucide-react';
 import { properties } from '@/lib/data';
+import { getSubmittedProperties } from '@/lib/store';
+import { Property } from '@/lib/types';
 
 const amenityIcons: Record<string, React.ReactNode> = {
   'WiFi': <Wifi size={20} />,
@@ -141,8 +143,17 @@ function BookingWidget({ price, cleaningFee, minNights }: {
 export default function PropertyDetail({ id }: { id: string }) {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [liked, setLiked] = useState(false);
+  const [property, setProperty] = useState<Property | null | undefined>(undefined);
 
-  const property = properties.find((p) => p.id === id);
+  useEffect(() => {
+    const mock = properties.find((p) => p.id === id);
+    if (mock) { setProperty(mock); return; }
+    const submitted = getSubmittedProperties();
+    const found = submitted.find((p) => p.id === id);
+    setProperty(found ?? null);
+  }, [id]);
+
+  if (property === undefined) return null;
   if (!property) return (
     <div className="max-w-7xl mx-auto px-4 py-20 text-center">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">Logement introuvable</h1>

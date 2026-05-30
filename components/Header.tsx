@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, MessageSquare, User, Home, Search, LogOut, ChevronDown } from 'lucide-react';
 import { getUser, clearUser, StoredUser } from '@/lib/store';
+import { localitesTunisie } from '@/lib/data';
 
 function DarHostLogo() {
   return (
@@ -15,7 +16,7 @@ function DarHostLogo() {
         <circle cx="21" cy="32" r="1.8" fill="#0F4C8A" />
         <circle cx="17" cy="6" r="2" fill="white" opacity="0.5" />
       </svg>
-      <span className="text-2xl font-bold text-[#0F4C8A] tracking-tight hidden sm:block">
+      <span className="text-2xl font-bold text-[#0F4C8A] tracking-tight">
         DarHost
       </span>
     </Link>
@@ -79,8 +80,12 @@ export default function Header() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Où allez-vous ?"
-              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent min-w-0"
+              list="localities-desktop"
+            className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent min-w-0"
             />
+            <datalist id="localities-desktop">
+              {localitesTunisie.map((l) => <option key={l} value={l} />)}
+            </datalist>
             <span className="w-px h-4 bg-gray-300 shrink-0" />
             <span className="text-sm text-gray-400 shrink-0 hidden xl:block">Tunisie</span>
             <button
@@ -234,8 +239,12 @@ export default function Header() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Rechercher un logement..."
+              list="localities-mobile"
               className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
             />
+            <datalist id="localities-mobile">
+              {localitesTunisie.map((l) => <option key={l} value={l} />)}
+            </datalist>
           </form>
 
           <nav className="flex flex-col gap-1">

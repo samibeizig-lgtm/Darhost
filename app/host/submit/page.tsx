@@ -7,7 +7,7 @@ import {
   Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock,
 } from 'lucide-react';
 import Link from 'next/link';
-import { wilayasTunisie, CATEGORIES } from '@/lib/data';
+import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
 import { getUser, addSubmittedProperty, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
@@ -85,6 +85,9 @@ interface FormData {
   noPets: boolean;
   noNoise: boolean;
   customRules: string[];
+  streetNumber: string;
+  streetName: string;
+  mapsLink: string;
   bankHolder: string;
   bankName: string;
   iban: string;
@@ -94,7 +97,9 @@ interface FormData {
 }
 
 const INITIAL: FormData = {
-  type: '', categories: [], address: '', wilaya: '', guests: '', bedrooms: '', beds: '', bathrooms: '',
+  type: '', categories: [], address: '', wilaya: '',
+  streetNumber: '', streetName: '', mapsLink: '',
+  guests: '', bedrooms: '', beds: '', bathrooms: '',
   title: '', description: '', photos: [], amenities: [],
   pricePerNight: '', cleaningFee: '', minNights: '1',
   checkIn: '15:00', checkOut: '11:00',
@@ -103,6 +108,25 @@ const INITIAL: FormData = {
   bankHolder: '', bankName: '', iban: '',
   idFront: null, idBack: null, selfie: null,
 };
+
+function compressPhoto(file: File): Promise<string> {
+  return new Promise((resolve) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const MAX = 800;
+      let { width, height } = img;
+      if (width > MAX) { height = Math.round(height * MAX / width); width = MAX; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      resolve(canvas.toDataURL('image/jpeg', 0.72));
+    };
+    img.src = url;
+  });
+}
 
 export default function HostSubmitPage() {
   const [step, setStep] = useState(1);
@@ -145,22 +169,26 @@ export default function HostSubmitPage() {
     set('customRules', form.customRules.filter((_, idx) => idx !== i));
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
+    const seed = Date.now();
+    const images = form.photos.length > 0
+      ? await Promise.all(form.photos.map(compressPhoto))
+      : [
+          `https://picsum.photos/seed/${seed}/800/600`,
+          `https://picsum.photos/seed/${seed + 1}/800/600`,
+          `https://picsum.photos/seed/${seed + 2}/800/600`,
+          `https://picsum.photos/seed/${seed + 3}/800/600`,
+          `https://picsum.photos/seed/${seed + 4}/800/600`,
+        ];
     const newProperty: Property = {
-      id: `user-${Date.now()}`,
+      id: `user-${seed}`,
       title: form.title,
       type: (form.type as PropertyType) || 'Maison',
       location: form.address,
       wilaya: form.wilaya,
       description: form.description,
       shortDescription: form.description.slice(0, 100) + '…',
-      images: [
-        `https://picsum.photos/seed/${Date.now()}/800/600`,
-        `https://picsum.photos/seed/${Date.now() + 1}/800/600`,
-        `https://picsum.photos/seed/${Date.now() + 2}/800/600`,
-        `https://picsum.photos/seed/${Date.now() + 3}/800/600`,
-        `https://picsum.photos/seed/${Date.now() + 4}/800/600`,
-      ],
+      images,
       price: Number(form.pricePerNight) || 0,
       cleaningFee: Number(form.cleaningFee) || 0,
       guests: Number(form.guests) || 1,
@@ -171,12 +199,13 @@ export default function HostSubmitPage() {
       reviewCount: 0,
       amenities: form.amenities,
       categories: form.categories,
+      createdAt: seed,
       houseRules: [
         { title: 'Arrivée', description: `Après ${form.checkIn}` },
         { title: 'Départ', description: `Avant ${form.checkOut}` },
         ...(form.noSmoking ? [{ title: 'Pas de cigarette', description: 'Interdit de fumer' }] : []),
         ...(form.noParties ? [{ title: 'Pas de fêtes', description: "Pas d'événements" }] : []),
-        ...(form.noPets ? [{ title: 'Animaux non admis', description: 'Pas d\'animaux' }] : []),
+        ...(form.noPets ? [{ title: 'Animaux non admis', description: "Pas d'animaux" }] : []),
         ...(form.noNoise ? [{ title: 'Calme nocturne', description: 'Silence après 22h' }] : []),
         ...form.customRules.map((r) => ({ title: r, description: '' })),
       ],
@@ -382,9 +411,43 @@ export default function HostSubmitPage() {
                     value={form.address}
                     onChange={(e) => set('address', e.target.value)}
                     placeholder="ex: Hammamet Nord, Médina..."
+                    list="localities-submit"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+                  />
+                  <datalist id="localities-submit">
+                    {localitesTunisie.map((l) => <option key={l} value={l} />)}
+                  </datalist>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Numéro de rue</label>
+                  <input
+                    value={form.streetNumber}
+                    onChange={(e) => set('streetNumber', e.target.value)}
+                    placeholder="ex: 12"
                     className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
                   />
                 </div>
+                <div className="sm:col-span-2">
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nom de la rue *</label>
+                  <input
+                    value={form.streetName}
+                    onChange={(e) => set('streetName', e.target.value)}
+                    placeholder="ex: Rue de la République"
+                    className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Lien Google Maps</label>
+                <input
+                  value={form.mapsLink}
+                  onChange={(e) => set('mapsLink', e.target.value)}
+                  placeholder="https://maps.google.com/..."
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+                />
+                <p className="text-xs text-gray-400 mt-1">Depuis Google Maps : clic droit sur la localisation → "Partager ou intégrer la carte" → copier le lien</p>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 {[
@@ -800,7 +863,7 @@ export default function HostSubmitPage() {
               {[
                 { label: 'Type de bien', value: form.type || '—' },
                 { label: 'Catégories', value: form.categories.length > 0 ? form.categories.map(c => CATEGORIES.find(cat => cat.value === c)?.label).join(', ') : '—' },
-                { label: 'Localisation', value: form.wilaya && form.address ? `${form.address}, ${form.wilaya}` : '—' },
+                { label: 'Localisation', value: form.wilaya && form.address ? `${form.streetNumber ? form.streetNumber + ' ' : ''}${form.streetName ? form.streetName + ', ' : ''}${form.address}, ${form.wilaya}` : '—' },
                 { label: 'Capacité', value: form.guests ? `${form.guests} voyageurs, ${form.bedrooms} chambre(s), ${form.beds} lit(s), ${form.bathrooms} salle(s) de bain` : '—' },
                 { label: 'Titre de l\'annonce', value: form.title || '—' },
                 { label: 'Photos', value: form.photos.length > 0 ? `${form.photos.length} photo(s)` : '—' },
@@ -833,7 +896,7 @@ export default function HostSubmitPage() {
       {/* Navigation */}
       <div className="flex justify-between items-center">
         <button
-          onClick={() => setStep(Math.max(1, step - 1))}
+          onClick={() => { setStep(Math.max(1, step - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           disabled={step === 1}
           className="flex items-center gap-2 px-5 py-3 border border-gray-300 rounded-full font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
@@ -843,7 +906,7 @@ export default function HostSubmitPage() {
 
         {step < STEPS.length ? (
           <button
-            onClick={() => setStep(Math.min(STEPS.length, step + 1))}
+            onClick={() => { setStep(Math.min(STEPS.length, step + 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
             className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-full font-semibold hover:bg-[#0A3566] transition-colors"
           >
             Suivant
