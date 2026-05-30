@@ -62,3 +62,10 @@ export function addSubmittedProperty(property: Property): void {
     JSON.stringify([property, ...existing])
   );
 }
+
+export function importSharedProperty(property: Property): void {
+  const existing = getSubmittedProperties();
+  if (!existing.find((p) => p.id === property.id)) {
+    addSubmittedProperty(property);
+  }
+}

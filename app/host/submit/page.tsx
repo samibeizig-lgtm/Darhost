@@ -132,6 +132,8 @@ export default function HostSubmitPage() {
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
+  const [shareLink, setShareLink] = useState('');
+  const [copied, setCopied] = useState(false);
   const [newRule, setNewRule] = useState('');
   const [user, setUser] = useState<StoredUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
@@ -224,6 +226,23 @@ export default function HostSubmitPage() {
       available: true,
     };
     addSubmittedProperty(newProperty);
+
+    // Build a shareable link that embeds property metadata (no base64 photos)
+    // so the listing can be viewed on any device via the share URL
+    try {
+      const shareable: Property = {
+        ...newProperty,
+        images: Array.from({ length: 5 }, (_, i) =>
+          `https://picsum.photos/seed/${seed + i}/800/600`
+        ),
+      };
+      const json = JSON.stringify(shareable);
+      const bytes = new TextEncoder().encode(json);
+      const binString = String.fromCodePoint(...bytes);
+      const encoded = btoa(binString);
+      setShareLink(`${window.location.origin}/properties/${newProperty.id}#share=${encoded}`);
+    } catch {}
+
     setSubmitted(true);
   }
 
@@ -263,7 +282,7 @@ export default function HostSubmitPage() {
   if (submitted) {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
-        <div className="text-center max-w-md">
+        <div className="text-center max-w-lg">
           <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
             <Check size={40} className="text-green-600" />
           </div>
@@ -271,15 +290,54 @@ export default function HostSubmitPage() {
           <p className="text-gray-600 mb-2">
             Votre bien <strong>{form.title}</strong> a bien été soumis pour vérification.
           </p>
-          <p className="text-gray-500 text-sm mb-8">
+          <p className="text-gray-500 text-sm mb-6">
             Notre équipe examine votre dossier sous 48h. Vous recevrez une confirmation par e-mail.
           </p>
-          <a
-            href="/"
-            className="inline-block px-8 py-3 bg-[#0F4C8A] text-white rounded-full font-semibold hover:bg-[#0A3566] transition-colors"
-          >
-            Retour à l&apos;accueil
-          </a>
+
+          {shareLink && (
+            <div className="bg-[#E8F0FB] rounded-2xl p-5 mb-6 text-left">
+              <p className="text-sm font-semibold text-[#0F4C8A] mb-3">
+                Lien de partage de votre annonce
+              </p>
+              <div className="flex gap-2">
+                <input
+                  readOnly
+                  value={shareLink}
+                  className="flex-1 text-xs bg-white border border-gray-200 rounded-xl px-3 py-2.5 text-gray-600 truncate"
+                />
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(shareLink);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 2000);
+                  }}
+                  className="shrink-0 px-4 py-2.5 bg-[#0F4C8A] text-white rounded-xl text-xs font-semibold hover:bg-[#0A3566] transition-colors"
+                >
+                  {copied ? '✓ Copié' : 'Copier'}
+                </button>
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Ce lien permet de voir votre annonce sur n&apos;importe quel appareil, même sans compte.
+              </p>
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <a
+              href="/"
+              className="inline-block px-8 py-3 bg-[#0F4C8A] text-white rounded-full font-semibold hover:bg-[#0A3566] transition-colors"
+            >
+              Retour à l&apos;accueil
+            </a>
+            {shareLink && (
+              <a
+                href={shareLink}
+                className="inline-block px-8 py-3 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
+              >
+                Voir mon annonce
+              </a>
+            )}
+          </div>
         </div>
       </div>
     );
