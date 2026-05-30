@@ -3,7 +3,10 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, MessageSquare, User, Home, Search, LogOut, ChevronDown } from 'lucide-react';
+import {
+  Menu, X, MessageSquare, User, Home, Search,
+  LogOut, ChevronDown, Calendar, BookOpen, Plus,
+} from 'lucide-react';
 import { getUser, clearUser, StoredUser } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
 
@@ -16,15 +19,27 @@ function DarHostLogo() {
         <circle cx="21" cy="32" r="1.8" fill="#0F4C8A" />
         <circle cx="17" cy="6" r="2" fill="white" opacity="0.5" />
       </svg>
-      <span className="text-2xl font-bold text-[#0F4C8A] tracking-tight">
-        DarHost
-      </span>
+      <span className="text-2xl font-bold text-[#0F4C8A] tracking-tight">DarHost</span>
     </Link>
   );
 }
 
-const navLinks = [
-  { href: '/properties', label: 'Logements' },
+const hostLinks = [
+  { href: '/profile', label: 'Mes annonces', icon: Home },
+  { href: '/host/calendar', label: 'Calendrier', icon: Calendar },
+  { href: '/messages', label: 'Messagerie', icon: MessageSquare },
+  { href: '/profile', label: 'Profil', icon: User },
+];
+
+const guestLinks = [
+  { href: '/profile', label: 'Mes réservations', icon: BookOpen },
+  { href: '/properties', label: 'Rechercher', icon: Search },
+  { href: '/messages', label: 'Messagerie', icon: MessageSquare },
+  { href: '/profile', label: 'Profil', icon: User },
+];
+
+const publicLinks = [
+  { href: '/properties', label: 'Logements', icon: Search },
 ];
 
 export default function Header() {
@@ -36,9 +51,7 @@ export default function Header() {
   const pathname = usePathname();
   const router = useRouter();
 
-  useEffect(() => {
-    setUser(getUser());
-  }, [pathname]);
+  useEffect(() => { setUser(getUser()); }, [pathname]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -54,6 +67,7 @@ export default function Header() {
     e.preventDefault();
     const q = searchQuery.trim();
     router.push(q ? `/properties?location=${encodeURIComponent(q)}` : '/properties');
+    setMenuOpen(false);
   }
 
   function handleLogout() {
@@ -64,13 +78,31 @@ export default function Header() {
     router.push('/');
   }
 
+  const navLinks = user
+    ? user.role === 'host' ? hostLinks : guestLinks
+    : publicLinks;
+
+  function navClass(href: string) {
+    const active = pathname === href || (href !== '/' && pathname.startsWith(href));
+    return `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+      active ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'text-gray-600 hover:bg-gray-100'
+    }`;
+  }
+
+  function mobileNavClass(href: string) {
+    const active = pathname === href || (href !== '/' && pathname.startsWith(href));
+    return `flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+      active ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'text-gray-700 hover:bg-gray-50'
+    }`;
+  }
+
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <DarHostLogo />
 
-          {/* Desktop search pill */}
+          {/* Desktop search */}
           <form
             onSubmit={handleSearch}
             className="hidden lg:flex items-center gap-3 border border-gray-300 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow flex-1 max-w-md"
@@ -81,7 +113,7 @@ export default function Header() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Où allez-vous ?"
               list="localities-desktop"
-            className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent min-w-0"
+              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent min-w-0"
             />
             <datalist id="localities-desktop">
               {localitesTunisie.map((l) => <option key={l} value={l} />)}
@@ -99,49 +131,24 @@ export default function Header() {
           {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-                  pathname === link.href
-                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
+              <Link key={`${link.href}-${link.label}`} href={link.href} className={navClass(link.href)}>
+                <link.icon size={15} />
                 {link.label}
               </Link>
             ))}
 
-            {user ? (
+            {/* Host: quick publish button */}
+            {user?.role === 'host' && (
               <Link
                 href="/host/submit"
-                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   pathname === '/host/submit'
-                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
-                    : 'text-gray-600 hover:bg-gray-100'
+                    ? 'bg-[#0F4C8A] text-white'
+                    : 'bg-[#E8F0FB] text-[#0F4C8A] hover:bg-[#d0e3f8]'
                 }`}
               >
-                Publier un logement
-              </Link>
-            ) : (
-              <Link
-                href="/register"
-                className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
-              >
-                Devenir hôte
-              </Link>
-            )}
-
-            {user && (
-              <Link
-                href="/messages"
-                className={`p-2 rounded-full transition-colors ${
-                  pathname === '/messages'
-                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <MessageSquare size={20} />
+                <Plus size={15} />
+                Publier
               </Link>
             )}
 
@@ -153,14 +160,13 @@ export default function Header() {
                   onClick={() => setDropdownOpen(!dropdownOpen)}
                   className="flex items-center gap-2 pl-2 pr-3 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-shadow"
                 >
-                  <img
-                    src={user.avatar}
-                    alt={user.name}
-                    className="w-7 h-7 rounded-full object-cover shrink-0"
-                  />
-                  <span className="text-sm font-medium text-gray-700 hidden xl:inline max-w-[120px] truncate">
-                    {user.name.split(' ')[0]}
-                  </span>
+                  <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  <div className="hidden xl:flex flex-col items-start leading-none">
+                    <span className="text-xs font-semibold text-gray-800 max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
+                    <span className={`text-[10px] font-medium mt-0.5 ${user.role === 'host' ? 'text-[#0F4C8A]' : 'text-gray-400'}`}>
+                      {user.role === 'host' ? 'Hôte' : 'Voyageur'}
+                    </span>
+                  </div>
                   <ChevronDown size={14} className="text-gray-500 shrink-0" />
                 </button>
 
@@ -169,45 +175,32 @@ export default function Header() {
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <span className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
+                        user.role === 'host' ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'bg-gray-100 text-gray-500'
+                      }`}>
+                        {user.role === 'host' ? 'Hôte' : 'Voyageur'}
+                      </span>
                     </div>
-                    <Link
-                      href="/profile"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors"
-                    >
-                      <User size={15} className="text-[#0F4C8A]" />
-                      Mon profil
+                    <Link href="/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                      <User size={15} className="text-[#0F4C8A]" /> Mon profil
                     </Link>
-                    <Link
-                      href="/host/submit"
-                      onClick={() => setDropdownOpen(false)}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors"
-                    >
-                      <Home size={15} className="text-[#0F4C8A]" />
-                      Publier un logement
-                    </Link>
-                    <button
-                      onClick={handleLogout}
-                      className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t border-gray-100 transition-colors"
-                    >
-                      <LogOut size={15} />
-                      Se déconnecter
+                    {user.role === 'host' && (
+                      <Link href="/host/submit" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                        <Plus size={15} className="text-[#0F4C8A]" /> Publier un logement
+                      </Link>
+                    )}
+                    <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t border-gray-100 transition-colors">
+                      <LogOut size={15} /> Se déconnecter
                     </button>
                   </div>
                 )}
               </div>
             ) : (
               <>
-                <Link
-                  href="/login"
-                  className="px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-                >
+                <Link href="/login" className="px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
                   Connexion
                 </Link>
-                <Link
-                  href="/register"
-                  className="px-4 py-2 bg-[#0F4C8A] text-white text-sm font-medium rounded-full hover:bg-[#0A3566] transition-colors"
-                >
+                <Link href="/register" className="px-4 py-2 bg-[#0F4C8A] text-white text-sm font-medium rounded-full hover:bg-[#0A3566] transition-colors">
                   S&apos;inscrire
                 </Link>
               </>
@@ -230,7 +223,7 @@ export default function Header() {
         <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
           {/* Mobile search */}
           <form
-            onSubmit={(e) => { handleSearch(e); setMenuOpen(false); }}
+            onSubmit={handleSearch}
             className="flex items-center gap-3 border border-gray-300 rounded-full px-4 py-3 mb-4 shadow-sm"
           >
             <Search size={18} className="text-[#0F4C8A] shrink-0" />
@@ -247,95 +240,53 @@ export default function Header() {
             </datalist>
           </form>
 
+          {/* Role badge */}
+          {user && (
+            <div className="flex items-center gap-3 px-4 py-2 mb-3 bg-gray-50 rounded-xl">
+              <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full object-cover shrink-0" />
+              <div>
+                <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
+                <span className={`text-xs font-medium ${user.role === 'host' ? 'text-[#0F4C8A]' : 'text-gray-500'}`}>
+                  {user.role === 'host' ? 'Hôte' : 'Voyageur'}
+                </span>
+              </div>
+            </div>
+          )}
+
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                  pathname === link.href
-                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
-                    : 'text-gray-700 hover:bg-gray-50'
-                }`}
-              >
+              <Link key={`${link.href}-${link.label}`} href={link.href} onClick={() => setMenuOpen(false)} className={mobileNavClass(link.href)}>
+                <link.icon size={18} className="text-[#0F4C8A]" />
                 {link.label}
               </Link>
             ))}
 
-            {user ? (
+            {user?.role === 'host' && (
               <Link
                 href="/host/submit"
                 onClick={() => setMenuOpen(false)}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                  pathname === '/host/submit'
-                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
-                    : 'text-gray-700 hover:bg-gray-50'
+                  pathname === '/host/submit' ? 'bg-[#0F4C8A] text-white' : 'bg-[#E8F0FB] text-[#0F4C8A] hover:bg-[#d0e3f8]'
                 }`}
               >
+                <Plus size={18} />
                 Publier un logement
-              </Link>
-            ) : (
-              <Link
-                href="/register"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Devenir hôte
-              </Link>
-            )}
-
-            {user && (
-              <Link
-                href="/messages"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-              >
-                <MessageSquare size={18} className="text-[#0F4C8A]" />
-                Messages
               </Link>
             )}
           </nav>
 
           {user ? (
-            <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
-              <div className="flex items-center gap-3 px-4 py-2 mb-2">
-                <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
-                <div>
-                  <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
-                  <p className="text-xs text-gray-500">{user.email}</p>
-                </div>
-              </div>
-              <Link
-                href="/profile"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-              >
-                <User size={18} className="text-[#0F4C8A]" />
-                Mon profil
-              </Link>
-              <button
-                onClick={handleLogout}
-                className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 font-medium hover:bg-red-50 transition-colors w-full"
-              >
-                <LogOut size={18} />
-                Se déconnecter
+            <div className="mt-4 pt-4 border-t border-gray-200">
+              <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 font-medium hover:bg-red-50 transition-colors w-full">
+                <LogOut size={18} /> Se déconnecter
               </button>
             </div>
           ) : (
             <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
-              <Link
-                href="/login"
-                onClick={() => setMenuOpen(false)}
-                className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-              >
+              <Link href="/login" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                 Connexion
               </Link>
-              <Link
-                href="/register"
-                onClick={() => setMenuOpen(false)}
-                className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors"
-              >
+              <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors">
                 S&apos;inscrire
               </Link>
             </div>
