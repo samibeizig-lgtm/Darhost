@@ -1,22 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, MessageSquare, User, Home, Search } from 'lucide-react';
+import { Menu, X, MessageSquare, User, Home, Search, LogOut, ChevronDown } from 'lucide-react';
+import { getUser, clearUser, StoredUser } from '@/lib/store';
 
 function DarHostLogo() {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0">
       <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path
-          d="M1 42V17C1 7.611 8.163 1 17 1C25.837 1 33 7.611 33 17V42H1Z"
-          fill="#0F4C8A"
-        />
-        <path
-          d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z"
-          fill="white"
-        />
+        <path d="M1 42V17C1 7.611 8.163 1 17 1C25.837 1 33 7.611 33 17V42H1Z" fill="#0F4C8A" />
+        <path d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z" fill="white" />
         <circle cx="21" cy="32" r="1.8" fill="#0F4C8A" />
         <circle cx="17" cy="6" r="2" fill="white" opacity="0.5" />
       </svg>
@@ -35,13 +30,38 @@ const navLinks = [
 export default function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState<StoredUser | null>(null);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+    setUser(getUser());
+  }, [pathname]);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const q = searchQuery.trim();
     router.push(q ? `/properties?location=${encodeURIComponent(q)}` : '/properties');
+  }
+
+  function handleLogout() {
+    clearUser();
+    setUser(null);
+    setDropdownOpen(false);
+    setMenuOpen(false);
+    router.push('/');
   }
 
   return (
@@ -88,31 +108,86 @@ export default function Header() {
               </Link>
             ))}
 
-            <Link
-              href="/messages"
-              className={`p-2 rounded-full transition-colors ${
-                pathname === '/messages'
-                  ? 'bg-[#E8F0FB] text-[#0F4C8A]'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <MessageSquare size={20} />
-            </Link>
+            {user && (
+              <Link
+                href="/messages"
+                className={`p-2 rounded-full transition-colors ${
+                  pathname === '/messages'
+                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                <MessageSquare size={20} />
+              </Link>
+            )}
 
             <div className="w-px h-6 bg-gray-200 mx-1" />
 
-            <Link
-              href="/login"
-              className="px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/register"
-              className="px-4 py-2 bg-[#0F4C8A] text-white text-sm font-medium rounded-full hover:bg-[#0A3566] transition-colors"
-            >
-              S&apos;inscrire
-            </Link>
+            {user ? (
+              <div className="relative" ref={dropdownRef}>
+                <button
+                  onClick={() => setDropdownOpen(!dropdownOpen)}
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-shadow"
+                >
+                  <img
+                    src={user.avatar}
+                    alt={user.name}
+                    className="w-7 h-7 rounded-full object-cover shrink-0"
+                  />
+                  <span className="text-sm font-medium text-gray-700 hidden xl:inline max-w-[120px] truncate">
+                    {user.name.split(' ')[0]}
+                  </span>
+                  <ChevronDown size={14} className="text-gray-500 shrink-0" />
+                </button>
+
+                {dropdownOpen && (
+                  <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-2xl shadow-xl w-56 z-50 overflow-hidden">
+                    <div className="px-4 py-3 border-b border-gray-100">
+                      <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
+                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors"
+                    >
+                      <User size={15} className="text-[#0F4C8A]" />
+                      Mon profil
+                    </Link>
+                    <Link
+                      href="/host/submit"
+                      onClick={() => setDropdownOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors"
+                    >
+                      <Home size={15} className="text-[#0F4C8A]" />
+                      Publier un logement
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t border-gray-100 transition-colors"
+                    >
+                      <LogOut size={15} />
+                      Se déconnecter
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/register"
+                  className="px-4 py-2 bg-[#0F4C8A] text-white text-sm font-medium rounded-full hover:bg-[#0A3566] transition-colors"
+                >
+                  S&apos;inscrire
+                </Link>
+              </>
+            )}
           </nav>
 
           {/* Mobile hamburger */}
@@ -159,48 +234,62 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-            <Link
-              href="/messages"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-            >
-              <MessageSquare size={18} />
-              Messages
-            </Link>
-            <Link
-              href="/profile"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-            >
-              <User size={18} />
-              Mon profil
-            </Link>
-            <Link
-              href="/"
-              onClick={() => setMenuOpen(false)}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
-            >
-              <Home size={18} />
-              Accueil
-            </Link>
+
+            {user && (
+              <Link
+                href="/messages"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                <MessageSquare size={18} className="text-[#0F4C8A]" />
+                Messages
+              </Link>
+            )}
           </nav>
 
-          <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
-            <Link
-              href="/login"
-              onClick={() => setMenuOpen(false)}
-              className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/register"
-              onClick={() => setMenuOpen(false)}
-              className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors"
-            >
-              S&apos;inscrire
-            </Link>
-          </div>
+          {user ? (
+            <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
+              <div className="flex items-center gap-3 px-4 py-2 mb-2">
+                <img src={user.avatar} alt={user.name} className="w-10 h-10 rounded-full object-cover" />
+                <div>
+                  <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
+                  <p className="text-xs text-gray-500">{user.email}</p>
+                </div>
+              </div>
+              <Link
+                href="/profile"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors"
+              >
+                <User size={18} className="text-[#0F4C8A]" />
+                Mon profil
+              </Link>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 font-medium hover:bg-red-50 transition-colors w-full"
+              >
+                <LogOut size={18} />
+                Se déconnecter
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
+              <Link
+                href="/login"
+                onClick={() => setMenuOpen(false)}
+                className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Connexion
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => setMenuOpen(false)}
+                className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors"
+              >
+                S&apos;inscrire
+              </Link>
+            </div>
+          )}
         </div>
       )}
     </header>

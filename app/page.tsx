@@ -3,21 +3,25 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Search, MapPin, Calendar, Users, Star, Shield, Clock, Award } from 'lucide-react';
+import {
+  Search, MapPin, Calendar, Users, Star, Shield, Clock, Award,
+  Umbrella, Landmark, Mountain, Sun, Waves, Leaf, Building2, Anchor,
+  Home as HomeIcon,
+} from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties } from '@/lib/data';
 import { getSubmittedProperties } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 const categories = [
-  { icon: '🏖️', label: 'Plage', value: 'plage' },
-  { icon: '🕌', label: 'Médina', value: 'medina' },
-  { icon: '⛰️', label: 'Montagne', value: 'montagne' },
-  { icon: '🏜️', label: 'Désert', value: 'desert' },
-  { icon: '🏊', label: 'Piscine', value: 'piscine' },
-  { icon: '🌿', label: 'Nature', value: 'nature' },
-  { icon: '🏛️', label: 'Historique', value: 'historique' },
-  { icon: '🌊', label: 'Bord de mer', value: 'mer' },
+  { Icon: Umbrella, label: 'Plage', value: 'plage' },
+  { Icon: Landmark, label: 'Médina', value: 'medina' },
+  { Icon: Mountain, label: 'Montagne', value: 'montagne' },
+  { Icon: Sun, label: 'Désert', value: 'desert' },
+  { Icon: Waves, label: 'Piscine', value: 'piscine' },
+  { Icon: Leaf, label: 'Nature', value: 'nature' },
+  { Icon: Building2, label: 'Historique', value: 'historique' },
+  { Icon: Anchor, label: 'Bord de mer', value: 'mer' },
 ];
 
 const stats = [
@@ -46,13 +50,32 @@ export default function Home() {
     const params = new URLSearchParams();
     if (location) params.set('location', location);
     if (guests) params.set('guests', guests);
+    if (activeCategory) params.set('category', activeCategory);
+    router.push(`/properties?${params.toString()}`);
+  }
+
+  function handleCategoryClick(value: string) {
+    const next = value === activeCategory ? '' : value;
+    setActiveCategory(next);
+    const params = new URLSearchParams();
+    if (next) params.set('category', next);
     router.push(`/properties?${params.toString()}`);
   }
 
   return (
     <div>
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-[#051C44] via-[#0F4C8A] to-[#1B6FBF] text-white">
+      <section className="relative overflow-hidden text-white">
+        {/* Sidi Bou Said background photo with gradient overlay */}
+        <div className="absolute inset-0">
+          <img
+            src="https://picsum.photos/seed/sidibousaid-hero/1600/900"
+            alt="Sidi Bou Said"
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#051C44]/92 via-[#0F4C8A]/88 to-[#1B6FBF]/80" />
+        </div>
+
         {/* Decorative arches */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
           <svg
@@ -174,14 +197,17 @@ export default function Home() {
             {categories.map((cat) => (
               <button
                 key={cat.value}
-                onClick={() => setActiveCategory(cat.value === activeCategory ? '' : cat.value)}
+                onClick={() => handleCategoryClick(cat.value)}
                 className={`flex flex-col items-center gap-1.5 px-5 py-2 rounded-full shrink-0 transition-all text-sm font-medium border ${
                   activeCategory === cat.value
                     ? 'bg-[#0F4C8A] text-white border-[#0F4C8A]'
                     : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
                 }`}
               >
-                <span className="text-xl">{cat.icon}</span>
+                <cat.Icon
+                  size={20}
+                  className={activeCategory === cat.value ? 'text-white' : 'text-[#5B8AC5]'}
+                />
                 <span>{cat.label}</span>
               </button>
             ))}
@@ -267,7 +293,9 @@ export default function Home() {
       {/* ── Become a host CTA ── */}
       <section className="bg-gradient-to-r from-[#0F4C8A] to-[#1B6FBF] text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="text-5xl mb-4">🏡</div>
+          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+            <HomeIcon size={36} className="text-white" />
+          </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">
             Partagez votre bien et gagnez de l&apos;argent
           </h2>

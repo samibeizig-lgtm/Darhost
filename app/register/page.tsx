@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock, User, Phone } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, User, Phone, Camera, Plus } from 'lucide-react';
 import { setUser } from '@/lib/store';
 
 export default function RegisterPage() {
@@ -10,6 +10,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', password: '', confirm: '',
   });
+  const [avatar, setAvatar] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -20,17 +21,32 @@ export default function RegisterPage() {
     const params = new URLSearchParams(window.location.search);
     const r = params.get('redirect') ?? '/';
     setRedirect(r);
-    // Pre-select host role if coming from /host/submit
     if (r.includes('host')) setRole('host');
   }, []);
 
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  function handleAvatarChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      setError('Image trop grande (max 5 Mo).');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => setAvatar(reader.result as string);
+    reader.readAsDataURL(file);
+  }
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     if (!form.firstName || !form.lastName || !form.email || !form.password) {
       setError('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+    if (!avatar) {
+      setError('Veuillez ajouter une photo de profil.');
       return;
     }
     if (form.password !== form.confirm) {
@@ -52,7 +68,7 @@ export default function RegisterPage() {
         name: `${form.firstName} ${form.lastName}`,
         email: form.email,
         role,
-        avatar: `https://i.pravatar.cc/150?u=${form.email}`,
+        avatar,
       });
       window.location.href = redirect;
     }, 900);
@@ -75,6 +91,7 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+          {/* Role toggle */}
           <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
             <button
               onClick={() => setRole('guest')}
@@ -82,7 +99,7 @@ export default function RegisterPage() {
                 role === 'guest' ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              🧳 Je suis voyageur
+              Je suis voyageur
             </button>
             <button
               onClick={() => setRole('host')}
@@ -90,7 +107,7 @@ export default function RegisterPage() {
                 role === 'host' ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              🏡 Je suis hôte
+              Je suis hôte
             </button>
           </div>
 
@@ -99,6 +116,33 @@ export default function RegisterPage() {
               En tant qu&apos;hôte, vous pourrez publier votre logement après l&apos;inscription.
             </div>
           )}
+
+          {/* Profile photo upload */}
+          <div className="flex flex-col items-center mb-6">
+            <label className="relative cursor-pointer group">
+              <div className={`w-24 h-24 rounded-full overflow-hidden border-2 flex items-center justify-center transition-colors ${
+                avatar
+                  ? 'border-[#0F4C8A]'
+                  : 'border-dashed border-gray-300 bg-gray-50 hover:border-[#0F4C8A]'
+              }`}>
+                {avatar ? (
+                  <img src={avatar} alt="Photo de profil" className="w-full h-full object-cover" />
+                ) : (
+                  <Camera size={28} className="text-gray-400" />
+                )}
+              </div>
+              <div className="absolute -bottom-1 -right-1 w-7 h-7 bg-[#0F4C8A] rounded-full flex items-center justify-center shadow-sm">
+                <Plus size={14} className="text-white" />
+              </div>
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
+            </label>
+            <p className="text-xs text-gray-500 mt-2">
+              Photo de profil <span className="text-red-500">*</span>
+            </p>
+            {!avatar && (
+              <p className="text-xs text-gray-400 mt-0.5">Cliquez pour ajouter</p>
+            )}
+          </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (

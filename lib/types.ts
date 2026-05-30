@@ -46,6 +46,7 @@ export interface Property {
   houseRules: HouseRule[];
   host: Host;
   reviews: Review[];
+  categories?: string[];
   minNights: number;
   available: boolean;
   lat?: number;

@@ -2,9 +2,12 @@
 
 import { useState, useMemo, Suspense, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { SlidersHorizontal, X, MapPin, ChevronDown } from 'lucide-react';
+import {
+  SlidersHorizontal, X, MapPin, ChevronDown,
+  Umbrella, Landmark, Mountain, Sun, Waves, Leaf, Building2, Anchor,
+} from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
-import { properties as mockProperties } from '@/lib/data';
+import { properties as mockProperties, CATEGORIES } from '@/lib/data';
 import { Property, PropertyType } from '@/lib/types';
 import { getSubmittedProperties } from '@/lib/store';
 
@@ -15,9 +18,21 @@ const AMENITIES_LIST = [
 
 const TYPES: PropertyType[] = ['Villa', 'Appartement', 'Riad', 'Maison', 'Chambre'];
 
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  plage: Umbrella,
+  medina: Landmark,
+  montagne: Mountain,
+  desert: Sun,
+  piscine: Waves,
+  nature: Leaf,
+  historique: Building2,
+  mer: Anchor,
+};
+
 function PropertiesPage() {
   const searchParams = useSearchParams();
   const locationParam = searchParams.get('location') ?? '';
+  const categoryParam = searchParams.get('category') ?? '';
 
   const [allProperties, setAllProperties] = useState<Property[]>(mockProperties);
 
@@ -31,6 +46,9 @@ function PropertiesPage() {
   const [minPrice, setMinPrice] = useState('');
   const [maxPrice, setMaxPrice] = useState('');
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(
+    categoryParam ? [categoryParam] : []
+  );
   const [sortBy, setSortBy] = useState<'default' | 'price-asc' | 'price-desc' | 'rating'>('default');
   const [location, setLocation] = useState(locationParam);
 
@@ -46,11 +64,18 @@ function PropertiesPage() {
     );
   }
 
+  function toggleCategory(cat: string) {
+    setSelectedCategories((prev) =>
+      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
+    );
+  }
+
   function clearFilters() {
     setSelectedTypes([]);
     setMinPrice('');
     setMaxPrice('');
     setSelectedAmenities([]);
+    setSelectedCategories([]);
     setSortBy('default');
     setLocation('');
   }
@@ -77,20 +102,35 @@ function PropertiesPage() {
         selectedAmenities.every((a) => p.amenities.includes(a))
       );
     }
+    if (selectedCategories.length > 0) {
+      result = result.filter((p) =>
+        p.categories && selectedCategories.some((c) => p.categories!.includes(c))
+      );
+    }
 
     if (sortBy === 'price-asc') result.sort((a, b) => a.price - b.price);
     else if (sortBy === 'price-desc') result.sort((a, b) => b.price - a.price);
     else if (sortBy === 'rating') result.sort((a, b) => b.rating - a.rating);
 
     return result;
-  }, [location, selectedTypes, minPrice, maxPrice, selectedAmenities, sortBy]);
+  }, [location, selectedTypes, minPrice, maxPrice, selectedAmenities, selectedCategories, sortBy, allProperties]);
 
   const hasFilters =
     selectedTypes.length > 0 ||
     minPrice ||
     maxPrice ||
     selectedAmenities.length > 0 ||
+    selectedCategories.length > 0 ||
     location;
+
+  const activeFilterCount = [
+    selectedTypes.length > 0,
+    minPrice,
+    maxPrice,
+    selectedAmenities.length > 0,
+    selectedCategories.length > 0,
+    location,
+  ].filter(Boolean).length;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -135,7 +175,7 @@ function PropertiesPage() {
             Filtres
             {hasFilters && (
               <span className="bg-white/30 text-white text-xs rounded-full px-1.5 py-0.5">
-                {[selectedTypes.length > 0, minPrice, maxPrice, selectedAmenities.length > 0, location].filter(Boolean).length}
+                {activeFilterCount}
               </span>
             )}
           </button>
@@ -210,6 +250,35 @@ function PropertiesPage() {
                   </button>
                 ))}
               </div>
+            </div>
+          </div>
+
+          {/* Categories */}
+          <div className="mt-5 pt-5 border-t border-gray-200">
+            <label className="block text-sm font-semibold text-gray-700 mb-3">Environnement</label>
+            <div className="flex flex-wrap gap-2">
+              {CATEGORIES.map(({ value, label }) => {
+                const Icon = CATEGORY_ICONS[value];
+                return (
+                  <button
+                    key={value}
+                    onClick={() => toggleCategory(value)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                      selectedCategories.includes(value)
+                        ? 'bg-[#0F4C8A] text-white border-[#0F4C8A]'
+                        : 'border-gray-300 text-gray-700 hover:border-gray-500'
+                    }`}
+                  >
+                    {Icon && (
+                      <Icon
+                        size={14}
+                        className={selectedCategories.includes(value) ? 'text-white' : 'text-[#5B8AC5]'}
+                      />
+                    )}
+                    {label}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Check, ChevronRight, ChevronLeft, Upload, X, Plus, LogIn } from 'lucide-react';
+import {
+  Check, ChevronRight, ChevronLeft, Upload, X, Plus, LogIn,
+  Home, Building2, Landmark, Building, BedDouble,
+  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock,
+} from 'lucide-react';
 import Link from 'next/link';
-import { wilayasTunisie } from '@/lib/data';
+import { wilayasTunisie, CATEGORIES } from '@/lib/data';
 import { getUser, addSubmittedProperty, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
@@ -21,12 +25,23 @@ const STEPS = [
 ];
 
 const PROPERTY_TYPES = [
-  { value: 'Villa', emoji: '🏡', desc: 'Villa individuelle avec jardin' },
-  { value: 'Appartement', emoji: '🏢', desc: 'Appartement en immeuble' },
-  { value: 'Riad', emoji: '🕌', desc: 'Maison traditionnelle avec patio' },
-  { value: 'Maison', emoji: '🏠', desc: 'Maison mitoyenne ou individuelle' },
-  { value: 'Chambre', emoji: '🛏️', desc: 'Chambre dans un logement partagé' },
+  { value: 'Villa', Icon: Home, desc: 'Villa individuelle avec jardin' },
+  { value: 'Appartement', Icon: Building2, desc: 'Appartement en immeuble' },
+  { value: 'Riad', Icon: Landmark, desc: 'Maison traditionnelle avec patio' },
+  { value: 'Maison', Icon: Building, desc: 'Maison mitoyenne ou individuelle' },
+  { value: 'Chambre', Icon: BedDouble, desc: 'Chambre dans un logement partagé' },
 ];
+
+const CATEGORY_ICONS: Record<string, React.ElementType> = {
+  plage: Umbrella,
+  medina: Landmark,
+  montagne: Mountain,
+  desert: Sun,
+  piscine: Waves,
+  nature: Leaf,
+  historique: Building2,
+  mer: Anchor,
+};
 
 const AMENITIES = [
   'WiFi', 'Piscine', 'Climatisation', 'Cuisine équipée', 'Parking', 'Terrasse',
@@ -49,7 +64,7 @@ const BANKS = [
 
 interface FormData {
   type: string;
-  name: string;
+  categories: string[];
   address: string;
   wilaya: string;
   guests: string;
@@ -79,7 +94,7 @@ interface FormData {
 }
 
 const INITIAL: FormData = {
-  type: '', name: '', address: '', wilaya: '', guests: '', bedrooms: '', beds: '', bathrooms: '',
+  type: '', categories: [], address: '', wilaya: '', guests: '', bedrooms: '', beds: '', bathrooms: '',
   title: '', description: '', photos: [], amenities: [],
   pricePerNight: '', cleaningFee: '', minNights: '1',
   checkIn: '15:00', checkOut: '11:00',
@@ -112,6 +127,13 @@ export default function HostSubmitPage() {
     );
   }
 
+  function toggleCategory(cat: string) {
+    set('categories', form.categories.includes(cat)
+      ? form.categories.filter((c) => c !== cat)
+      : [...form.categories, cat]
+    );
+  }
+
   function addCustomRule() {
     if (newRule.trim()) {
       set('customRules', [...form.customRules, newRule.trim()]);
@@ -126,7 +148,7 @@ export default function HostSubmitPage() {
   function handleSubmit() {
     const newProperty: Property = {
       id: `user-${Date.now()}`,
-      title: form.title || form.name,
+      title: form.title,
       type: (form.type as PropertyType) || 'Maison',
       location: form.address,
       wilaya: form.wilaya,
@@ -148,6 +170,7 @@ export default function HostSubmitPage() {
       rating: 0,
       reviewCount: 0,
       amenities: form.amenities,
+      categories: form.categories,
       houseRules: [
         { title: 'Arrivée', description: `Après ${form.checkIn}` },
         { title: 'Départ', description: `Avant ${form.checkOut}` },
@@ -181,7 +204,9 @@ export default function HostSubmitPage() {
     return (
       <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="text-6xl mb-6">🔐</div>
+          <div className="w-20 h-20 bg-[#E8F0FB] rounded-full flex items-center justify-center mx-auto mb-6">
+            <Lock size={36} className="text-[#0F4C8A]" />
+          </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Connexion requise</h1>
           <p className="text-gray-500 mb-8">
             Vous devez être connecté pour soumettre un logement sur DarHost.
@@ -274,48 +299,69 @@ export default function HostSubmitPage() {
       {/* Step content */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-sm">
 
-        {/* Step 1: Type */}
+        {/* Step 1: Type + Categories */}
         {step === 1 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Quel type de bien proposez-vous ?</h2>
             <p className="text-gray-500 text-sm mb-6">Choisissez la catégorie qui correspond le mieux à votre logement.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {PROPERTY_TYPES.map((pt) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8">
+              {PROPERTY_TYPES.map(({ value, Icon, desc }) => (
                 <button
-                  key={pt.value}
-                  onClick={() => set('type', pt.value)}
+                  key={value}
+                  onClick={() => set('type', value)}
                   className={`flex items-center gap-4 p-5 border-2 rounded-xl text-left transition-all ${
-                    form.type === pt.value
+                    form.type === value
                       ? 'border-[#0F4C8A] bg-[#E8F0FB]'
                       : 'border-gray-200 hover:border-gray-400'
                   }`}
                 >
-                  <span className="text-4xl">{pt.emoji}</span>
+                  <Icon
+                    size={32}
+                    className={form.type === value ? 'text-[#0F4C8A]' : 'text-[#5B8AC5]'}
+                  />
                   <div>
-                    <div className="font-bold text-gray-900">{pt.value}</div>
-                    <div className="text-sm text-gray-500">{pt.desc}</div>
+                    <div className="font-bold text-gray-900">{value}</div>
+                    <div className="text-sm text-gray-500">{desc}</div>
                   </div>
                 </button>
               ))}
             </div>
+
+            <div className="border-t border-gray-200 pt-6">
+              <h3 className="font-semibold text-gray-900 mb-1">Environnement du logement</h3>
+              <p className="text-gray-500 text-sm mb-4">Sélectionnez les catégories qui décrivent votre logement (plusieurs choix possibles).</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                {CATEGORIES.map(({ value, label }) => {
+                  const Icon = CATEGORY_ICONS[value];
+                  const selected = form.categories.includes(value);
+                  return (
+                    <button
+                      key={value}
+                      onClick={() => toggleCategory(value)}
+                      className={`flex flex-col items-center gap-2 p-3 border-2 rounded-xl text-sm font-medium transition-all ${
+                        selected
+                          ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A]'
+                          : 'border-gray-200 text-gray-600 hover:border-gray-400'
+                      }`}
+                    >
+                      {Icon && (
+                        <Icon size={22} className={selected ? 'text-[#0F4C8A]' : 'text-[#5B8AC5]'} />
+                      )}
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
           </div>
         )}
 
-        {/* Step 2: Basic info */}
+        {/* Step 2: Basic info (without name — title is in Step 3) */}
         {step === 2 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Informations de base</h2>
             <p className="text-gray-500 text-sm mb-6">Dites-nous où se trouve votre logement et sa capacité.</p>
             <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nom du logement *</label>
-                <input
-                  value={form.name}
-                  onChange={(e) => set('name', e.target.value)}
-                  placeholder="ex: Villa les Jasmins, Riad Sidi Bou Said..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
-                />
-              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Gouvernorat *</label>
@@ -558,7 +604,6 @@ export default function HostSubmitPage() {
             <p className="text-gray-500 text-sm mb-6">Définissez les règles que vos voyageurs doivent respecter.</p>
 
             <div className="space-y-4 mb-6">
-              {/* Check-in/out times */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-1.5">Heure d&apos;arrivée</label>
@@ -586,7 +631,6 @@ export default function HostSubmitPage() {
                 </div>
               </div>
 
-              {/* Toggle rules */}
               {[
                 { key: 'noSmoking', label: 'Interdit de fumer', desc: 'Pas de cigarette ni chicha à l\'intérieur' },
                 { key: 'noParties', label: 'Pas de fêtes', desc: 'Pas d\'événements ou soirées non autorisés' },
@@ -617,7 +661,6 @@ export default function HostSubmitPage() {
               ))}
             </div>
 
-            {/* Custom rules */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Règles personnalisées</label>
               {form.customRules.map((rule, i) => (
@@ -691,7 +734,7 @@ export default function HostSubmitPage() {
               </div>
             </div>
             <div className="mt-5 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A] flex items-start gap-2">
-              <span>🔒</span>
+              <Lock size={16} className="shrink-0 mt-0.5" />
               <span>Vos informations bancaires sont chiffrées et ne sont jamais partagées avec des tiers.</span>
             </div>
           </div>
@@ -706,95 +749,43 @@ export default function HostSubmitPage() {
               Vos documents sont traités de manière confidentielle.
             </p>
             <div className="space-y-5">
-              {/* CIN Front */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Carte d&apos;Identité Nationale — Recto *
-                </label>
-                <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  form.idFront ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-[#0F4C8A]'
-                }`}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => set('idFront', e.target.files?.[0] ?? null)}
-                  />
-                  {form.idFront ? (
-                    <div>
-                      <Check size={24} className="mx-auto text-green-500 mb-1" />
-                      <p className="text-sm font-medium text-green-700">{form.idFront.name}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload size={24} className="mx-auto text-gray-400 mb-1" />
-                      <p className="text-sm text-gray-600">Cliquez pour télécharger le recto de votre CIN</p>
-                    </div>
-                  )}
-                </label>
-              </div>
-
-              {/* CIN Back */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Carte d&apos;Identité Nationale — Verso *
-                </label>
-                <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  form.idBack ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-[#0F4C8A]'
-                }`}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => set('idBack', e.target.files?.[0] ?? null)}
-                  />
-                  {form.idBack ? (
-                    <div>
-                      <Check size={24} className="mx-auto text-green-500 mb-1" />
-                      <p className="text-sm font-medium text-green-700">{form.idBack.name}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload size={24} className="mx-auto text-gray-400 mb-1" />
-                      <p className="text-sm text-gray-600">Cliquez pour télécharger le verso de votre CIN</p>
-                    </div>
-                  )}
-                </label>
-              </div>
-
-              {/* Selfie */}
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Selfie tenant votre CIN *
-                </label>
-                <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                  form.selfie ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-[#0F4C8A]'
-                }`}>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => set('selfie', e.target.files?.[0] ?? null)}
-                  />
-                  {form.selfie ? (
-                    <div>
-                      <Check size={24} className="mx-auto text-green-500 mb-1" />
-                      <p className="text-sm font-medium text-green-700">{form.selfie.name}</p>
-                    </div>
-                  ) : (
-                    <div>
-                      <Upload size={24} className="mx-auto text-gray-400 mb-1" />
-                      <p className="text-sm text-gray-600">
-                        Photo de vous tenant votre CIN à côté de votre visage
-                      </p>
-                    </div>
-                  )}
-                </label>
-              </div>
+              {[
+                { key: 'idFront', label: 'Carte d\'Identité Nationale — Recto *', desc: 'Cliquez pour télécharger le recto de votre CIN' },
+                { key: 'idBack', label: 'Carte d\'Identité Nationale — Verso *', desc: 'Cliquez pour télécharger le verso de votre CIN' },
+                { key: 'selfie', label: 'Selfie tenant votre CIN *', desc: 'Photo de vous tenant votre CIN à côté de votre visage' },
+              ].map(({ key, label, desc }) => {
+                const file = form[key as 'idFront' | 'idBack' | 'selfie'];
+                return (
+                  <div key={key}>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
+                    <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
+                      file ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-[#0F4C8A]'
+                    }`}>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => set(key as keyof FormData, e.target.files?.[0] ?? null)}
+                      />
+                      {file ? (
+                        <div>
+                          <Check size={24} className="mx-auto text-green-500 mb-1" />
+                          <p className="text-sm font-medium text-green-700">{(file as File).name}</p>
+                        </div>
+                      ) : (
+                        <div>
+                          <Upload size={24} className="mx-auto text-gray-400 mb-1" />
+                          <p className="text-sm text-gray-600">{desc}</p>
+                        </div>
+                      )}
+                    </label>
+                  </div>
+                );
+              })}
             </div>
-            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700">
-              ⏱️ La vérification d&apos;identité prend généralement <strong>24 à 48 heures</strong>. Vous
-              serez notifié par e-mail.
+            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 flex items-start gap-2">
+              <Lock size={16} className="shrink-0 mt-0.5" />
+              <span>La vérification d&apos;identité prend généralement <strong>24 à 48 heures</strong>. Vous serez notifié par e-mail.</span>
             </div>
           </div>
         )}
@@ -808,7 +799,7 @@ export default function HostSubmitPage() {
             <div className="space-y-4">
               {[
                 { label: 'Type de bien', value: form.type || '—' },
-                { label: 'Nom', value: form.name || '—' },
+                { label: 'Catégories', value: form.categories.length > 0 ? form.categories.map(c => CATEGORIES.find(cat => cat.value === c)?.label).join(', ') : '—' },
                 { label: 'Localisation', value: form.wilaya && form.address ? `${form.address}, ${form.wilaya}` : '—' },
                 { label: 'Capacité', value: form.guests ? `${form.guests} voyageurs, ${form.bedrooms} chambre(s), ${form.beds} lit(s), ${form.bathrooms} salle(s) de bain` : '—' },
                 { label: 'Titre de l\'annonce', value: form.title || '—' },
@@ -821,14 +812,14 @@ export default function HostSubmitPage() {
                 { label: 'Vérification identité', value: form.idFront && form.idBack && form.selfie ? '✓ Documents fournis' : '⚠️ Documents manquants' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
-                  <span className="text-sm font-semibold text-gray-600 w-40 shrink-0">{label}</span>
+                  <span className="text-sm font-semibold text-gray-600 w-44 shrink-0">{label}</span>
                   <span className="text-sm text-gray-900">{value}</span>
                 </div>
               ))}
             </div>
 
             <div className="mt-6 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A]">
-              <p className="font-semibold mb-1">📋 Ce qui se passe ensuite :</p>
+              <p className="font-semibold mb-1">Ce qui se passe ensuite :</p>
               <ol className="list-decimal list-inside space-y-1 text-[#1A4EA1]">
                 <li>Vérification de votre identité (24–48h)</li>
                 <li>Examen de votre annonce par notre équipe</li>
