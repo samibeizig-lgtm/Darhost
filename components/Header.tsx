@@ -24,7 +24,6 @@ function DarHostLogo() {
 
 const navLinks = [
   { href: '/properties', label: 'Logements' },
-  { href: '/host/submit', label: 'Devenir hôte' },
 ];
 
 export default function Header() {
@@ -107,6 +106,26 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+
+            {user ? (
+              <Link
+                href="/host/submit"
+                className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                  pathname === '/host/submit'
+                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
+                    : 'text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Publier un logement
+              </Link>
+            ) : (
+              <Link
+                href="/register"
+                className="px-4 py-2 rounded-full text-sm font-medium text-gray-600 hover:bg-gray-100 transition-colors"
+              >
+                Devenir hôte
+              </Link>
+            )}
 
             {user && (
               <Link
@@ -234,6 +253,28 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
+
+            {user ? (
+              <Link
+                href="/host/submit"
+                onClick={() => setMenuOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
+                  pathname === '/host/submit'
+                    ? 'bg-[#E8F0FB] text-[#0F4C8A]'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                Publier un logement
+              </Link>
+            ) : (
+              <Link
+                href="/register"
+                onClick={() => setMenuOpen(false)}
+                className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              >
+                Devenir hôte
+              </Link>
+            )}
 
             {user && (
               <Link

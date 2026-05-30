@@ -65,16 +65,14 @@ export default function Home() {
   return (
     <div>
       {/* ── Hero ── */}
-      <section className="relative overflow-hidden text-white">
-        {/* Sidi Bou Said background photo with gradient overlay */}
-        <div className="absolute inset-0">
-          <img
-            src="https://picsum.photos/seed/sidibousaid-hero/1600/900"
-            alt="Sidi Bou Said"
-            className="w-full h-full object-cover"
-          />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#051C44]/92 via-[#0F4C8A]/88 to-[#1B6FBF]/80" />
-        </div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-[#051C44] via-[#0F4C8A] to-[#1B6FBF] text-white">
+        {/* Sidi Bou Said photo fused with the blue gradient */}
+        <img
+          src="https://picsum.photos/seed/sidi1/1600/900"
+          alt=""
+          aria-hidden="true"
+          className="absolute inset-0 w-full h-full object-cover opacity-[0.22] mix-blend-overlay pointer-events-none select-none"
+        />
 
         {/* Decorative arches */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
