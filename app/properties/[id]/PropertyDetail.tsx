@@ -9,7 +9,7 @@ import {
   Share, Heart, Shield, Clock, MessageSquare, Award, X, AlertCircle,
 } from 'lucide-react';
 import { properties } from '@/lib/data';
-import { getSubmittedProperties, getUser, saveBooking } from '@/lib/store';
+import { getSubmittedProperties, getUser, saveBooking, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
@@ -178,6 +178,16 @@ function BookingForm({ property }: { property: Property }) {
       return;
     }
     if (!canReserve) return;
+
+    cancelExpiredBookings();
+    const existing = getBookings().filter(
+      b => b.propertyId === property.id && (b.status === 'pending' || b.status === 'confirmed'),
+    );
+    const overlaps = existing.some(b => checkIn < b.checkOut && checkOut > b.checkIn);
+    if (overlaps) {
+      setError('Ces dates ne sont plus disponibles. Veuillez choisir d\'autres dates.');
+      return;
+    }
 
     setCompleting(true);
     const autoApproved = property.autoApprove ?? false;

@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Settings } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote } from '@/lib/store';
+import { getUser, syncPropertiesFromRemote, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 const MONTH_NAMES = [
@@ -83,31 +83,11 @@ function loadSettings(id: string, property: Property): PropertySettings {
 function toStr(d: Date) { return d.toISOString().slice(0, 10); }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 
-function generateReservations(property: Property): MockReservation[] {
-  const today = new Date();
-  const guests = [
-    { name: 'Amine B.', id: 'g1' },
-    { name: 'Sonia T.', id: 'g2' },
-    { name: 'Mehdi K.', id: 'g3' },
-    { name: 'Yasmine B.', id: 'g4' },
-    { name: 'Karim M.', id: 'g5' },
-  ];
-  const make = (id: string, gi: number, ci: number, nights: number): MockReservation => {
-    const checkIn = toStr(addDays(today, ci));
-    const checkOut = toStr(addDays(today, ci + nights));
-    return {
-      id, guestName: guests[gi].name,
-      checkIn, checkOut,
-      totalAmount: property.price * nights + (property.cleaningFee || 0),
-    };
-  };
-  return [
-    make('r1', 0, -30, 5),
-    make('r2', 1, -15, 3),
-    make('r3', 2, -2,  5),
-    make('r4', 3,  8,  4),
-    make('r5', 4, 20,  5),
-  ];
+function getRealReservations(propertyId: string): MockReservation[] {
+  cancelExpiredBookings();
+  return getBookings()
+    .filter(b => b.propertyId === propertyId && (b.status === 'confirmed' || b.status === 'pending'))
+    .map(b => ({ id: b.id, guestName: b.guestName, checkIn: b.checkIn, checkOut: b.checkOut, totalAmount: b.total }));
 }
 
 function formatDateFr(s: string) {
@@ -318,7 +298,7 @@ function PropertyCalendarInner() {
       const prop = props.find(p => p.id === id && p.host?.id === user.id);
       if (!prop) { router.push('/host/calendar'); return; }
       setProperty(prop);
-      setReservations(generateReservations(prop));
+      setReservations(getRealReservations(id));
       const cal = loadCal(id);
       setCalData(cal);
       setSettings(loadSettings(id, prop));
