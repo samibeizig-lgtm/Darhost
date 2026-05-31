@@ -190,7 +190,7 @@ export default function ProfilePage() {
   const avgRating = MOCK_REVIEWS.reduce((sum, r) => sum + r.rating, 0) / MOCK_REVIEWS.length;
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 md:pb-10">
 
       {/* ── Profile card ── */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-sm">
@@ -249,6 +249,29 @@ export default function ProfilePage() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* ── Reset all data ── */}
+      <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-bold text-red-700">Réinitialisation des données</p>
+          <p className="text-xs text-red-500 mt-0.5">Efface tous les comptes, annonces et réservations</p>
+        </div>
+        <button
+          onClick={() => {
+            if (!confirm('Effacer toutes les données ? Cette action est irréversible.')) return;
+            ['darhost_user','darhost_profile','darhost_host_bank','darhost_identity_status','darhost_identity_verified','darhost_submitted_properties','darhost_bookings']
+              .forEach(k => localStorage.removeItem(k));
+            Object.keys(localStorage)
+              .filter(k => k.startsWith('darhost_settings_') || k.startsWith('darhost_calendar_'))
+              .forEach(k => localStorage.removeItem(k));
+            window.location.href = '/';
+          }}
+          className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors"
+        >
+          <Trash2 size={14} />
+          Tout effacer
+        </button>
       </div>
 
       {/* ── Profile form ── */}
@@ -621,42 +644,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Reset all data ── */}
-      <div className="bg-white border border-red-100 rounded-2xl p-6 sm:p-8 mt-6 mb-10 shadow-sm">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0">
-            <Trash2 size={20} className="text-red-500" />
-          </div>
-          <div>
-            <h2 className="text-lg font-bold text-gray-900">Réinitialisation</h2>
-            <p className="text-xs text-red-500 font-medium">Efface tous les comptes, annonces et réservations</p>
-          </div>
-        </div>
-        <p className="text-sm text-gray-500 mb-5">
-          Supprime toutes les données locales (comptes, annonces, réservations, paramètres).
-          Utile pour recommencer les tests depuis zéro.
-        </p>
-        <button
-          onClick={() => {
-            if (!confirm('Effacer toutes les données ? Cette action est irréversible.')) return;
-            const keys = [
-              'darhost_user', 'darhost_profile', 'darhost_host_bank',
-              'darhost_identity_status', 'darhost_identity_verified',
-              'darhost_submitted_properties', 'darhost_bookings',
-            ];
-            keys.forEach(k => localStorage.removeItem(k));
-            // Remove all per-property settings/calendar keys
-            Object.keys(localStorage)
-              .filter(k => k.startsWith('darhost_settings_') || k.startsWith('darhost_calendar_'))
-              .forEach(k => localStorage.removeItem(k));
-            window.location.href = '/';
-          }}
-          className="flex items-center gap-2 px-5 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors text-sm"
-        >
-          <Trash2 size={15} />
-          Tout réinitialiser
-        </button>
-      </div>
     </div>
   );
 }
