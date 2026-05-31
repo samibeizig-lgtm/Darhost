@@ -14,9 +14,9 @@ import { AMENITY_CATEGORIES } from '@/lib/amenities';
 const PROPERTY_TYPES: PropertyType[] = ['Villa', 'Appartement', 'Riad', 'Maison', 'Chambre'];
 
 const TABS = [
-  { id: 'info',      label: 'Informations' },
-  { id: 'pricing',   label: 'Tarif & Capacité' },
-  { id: 'amenities', label: 'Équipements' },
+  { id: 'info',      label: 'Infos' },
+  { id: 'pricing',   label: 'Tarif' },
+  { id: 'amenities', label: 'Équip.' },
   { id: 'photos',    label: 'Photos' },
   { id: 'rules',     label: 'Règles' },
 ] as const;
@@ -91,10 +91,11 @@ function EditListingInner() {
   const [newRule, setNewRule] = useState('');
   const [uploading, setUploading] = useState(false);
 
-  const dragIdx = useRef<number | null>(null);
-  const dragOverIdx = useRef<number | null>(null);
+  const [draggingIdx, setDraggingIdx] = useState<number | null>(null);
+  const [overIdx, setOverIdx] = useState<number | null>(null);
+  const draggingRef = useRef<number | null>(null);
+  const overRef = useRef<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const tabBarRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const user = getUser();
@@ -171,28 +172,59 @@ function EditListingInner() {
     });
   }
 
-  function onDragStart(idx: number) {
-    dragIdx.current = idx;
-  }
-
-  function onDragOver(e: React.DragEvent, idx: number) {
+  function startDrag(e: React.MouseEvent | React.TouchEvent, idx: number) {
+    if ((e.target as HTMLElement).closest('button')) return;
     e.preventDefault();
-    dragOverIdx.current = idx;
+    draggingRef.current = idx;
+    overRef.current = idx;
+    setDraggingIdx(idx);
+    setOverIdx(idx);
   }
 
-  function onDrop() {
-    const from = dragIdx.current;
-    const to = dragOverIdx.current;
-    if (from === null || to === null || from === to) return;
-    setPhotos(prev => {
-      const next = [...prev];
-      const [item] = next.splice(from, 1);
-      next.splice(to, 0, item);
-      return next;
-    });
-    dragIdx.current = null;
-    dragOverIdx.current = null;
-  }
+  useEffect(() => {
+    if (draggingIdx === null) return;
+
+    function onMove(e: MouseEvent | TouchEvent) {
+      if ('touches' in e) e.preventDefault();
+      const point = ('touches' in e ? (e as TouchEvent).touches[0] : e) as { clientX: number; clientY: number };
+      const el = document.elementFromPoint(point.clientX, point.clientY);
+      const card = el?.closest('[data-photo-idx]');
+      if (card) {
+        const i = Number(card.getAttribute('data-photo-idx'));
+        overRef.current = i;
+        setOverIdx(i);
+      }
+    }
+
+    function onUp() {
+      const from = draggingRef.current;
+      const to = overRef.current;
+      if (from !== null && to !== null && from !== to) {
+        setPhotos(prev => {
+          const next = [...prev];
+          const [item] = next.splice(from, 1);
+          next.splice(to, 0, item);
+          return next;
+        });
+      }
+      draggingRef.current = null;
+      overRef.current = null;
+      setDraggingIdx(null);
+      setOverIdx(null);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchend', onUp);
+
+    return () => {
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchend', onUp);
+    };
+  }, [draggingIdx]);
 
   async function handleSave() {
     if (!property) return;
@@ -274,20 +306,22 @@ function EditListingInner() {
           </button>
         </div>
 
-        <div ref={tabBarRef} className="flex overflow-x-auto scrollbar-hide border-t border-gray-100">
-          {TABS.map((tab, i) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`relative flex-shrink-0 px-4 py-3 text-sm font-semibold transition-colors whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'text-[#0F4C8A] border-b-2 border-[#0F4C8A] bg-[#F5F8FF]'
-                  : 'text-gray-500 hover:text-gray-700 border-b-2 border-transparent'
-              } ${i === 0 ? 'ml-0' : ''}`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        <div className="px-4 pb-3 pt-1 border-t border-gray-100">
+          <div className="grid grid-cols-5 bg-gray-100 rounded-2xl p-1">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`py-2.5 text-[11px] font-semibold rounded-xl transition-all leading-tight text-center ${
+                  activeTab === tab.id
+                    ? 'bg-white text-[#0F4C8A] shadow-sm'
+                    : 'text-gray-400 hover:text-gray-600'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -476,11 +510,16 @@ function EditListingInner() {
                 {photos.map((src, idx) => (
                   <div
                     key={idx}
-                    draggable
-                    onDragStart={() => onDragStart(idx)}
-                    onDragOver={e => onDragOver(e, idx)}
-                    onDrop={onDrop}
-                    className="relative group rounded-xl overflow-hidden border-2 border-transparent hover:border-[#0F4C8A] transition-all cursor-grab active:cursor-grabbing select-none"
+                    data-photo-idx={idx}
+                    onMouseDown={e => startDrag(e, idx)}
+                    onTouchStart={e => startDrag(e, idx)}
+                    className={`relative group rounded-xl overflow-hidden border-2 transition-all select-none ${
+                      draggingIdx === idx
+                        ? 'opacity-40 border-gray-300 scale-95'
+                        : overIdx === idx && draggingIdx !== null
+                        ? 'border-[#0F4C8A] scale-[1.02] shadow-lg'
+                        : 'border-transparent hover:border-[#0F4C8A]'
+                    } ${draggingIdx !== null ? 'cursor-grabbing' : 'cursor-grab'}`}
                     style={{ aspectRatio: '4/3' }}
                   >
                     <img src={src} alt={`Photo ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
