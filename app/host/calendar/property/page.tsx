@@ -315,7 +315,7 @@ function PropertyCalendarInner() {
     if (!user || user.role !== 'host') { router.push('/host/calendar'); return; }
     if (!id) { router.push('/host/calendar'); return; }
     syncPropertiesFromRemote().then(props => {
-      const prop = props.find(p => p.id === id);
+      const prop = props.find(p => p.id === id && p.host?.id === user.id);
       if (!prop) { router.push('/host/calendar'); return; }
       setProperty(prop);
       setReservations(generateReservations(prop));

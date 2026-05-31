@@ -43,7 +43,7 @@ export default function CalendarListPage() {
     const user = getUser();
     if (!user) { router.push('/login?redirect=/host/calendar'); return; }
     if (user.role !== 'host') { router.push('/'); return; }
-    syncPropertiesFromRemote().then(props => { setProperties(props); setLoading(false); });
+    syncPropertiesFromRemote().then(props => { setProperties(props.filter(p => p.host?.id === user.id)); setLoading(false); });
   }, [router]);
 
   const active = properties.filter(p => p.available && !p.isDraft);
