@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
 import { AMENITY_CATEGORIES } from '@/lib/amenities';
-import { getIdentityVerified } from '@/lib/store';
+import { getIdentityStatus } from '@/lib/store';
 import { getUser, addSubmittedProperty, savePropertyRemote, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
@@ -217,7 +217,12 @@ export default function HostSubmitPage() {
   }
 
   async function handleSubmit() {
-    if (!getIdentityVerified()) {
+    const idStatus = getIdentityStatus();
+    if (idStatus === 'pending') {
+      alert("Votre dossier de vérification d'identité est en cours d'examen par un administrateur (délai max 48h). Vous pourrez publier dès validation.");
+      return;
+    }
+    if (idStatus === 'none') {
       alert("Votre identité doit être vérifiée avant de publier une annonce. Rendez-vous dans votre Profil → Vérification d'identité.");
       return;
     }

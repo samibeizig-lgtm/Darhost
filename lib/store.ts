@@ -66,13 +66,39 @@ export function setHostBank(data: HostBankData): void {
 
 // ── Identity verification ──────────────────────────────────────────────────────
 
+export type IdentityStatus = 'none' | 'pending' | 'verified';
+
+export function getIdentityStatus(): IdentityStatus {
+  if (typeof window === 'undefined') return 'none';
+  const v = localStorage.getItem('darhost_identity_status');
+  if (v === 'verified' || v === 'pending') return v;
+  // backward compat with old boolean flag
+  if (localStorage.getItem('darhost_identity_verified') === 'true') return 'verified';
+  return 'none';
+}
+
+export function setIdentityStatus(status: IdentityStatus): void {
+  localStorage.setItem('darhost_identity_status', status);
+}
+
+// kept for backward compat
 export function getIdentityVerified(): boolean {
-  if (typeof window === 'undefined') return false;
-  return localStorage.getItem('darhost_identity_verified') === 'true';
+  return getIdentityStatus() === 'verified';
 }
 
 export function setIdentityVerified(v: boolean): void {
-  localStorage.setItem('darhost_identity_verified', String(v));
+  setIdentityStatus(v ? 'verified' : 'none');
+}
+
+export async function submitIdentityForReview(userId: string, userName: string): Promise<void> {
+  if (!firebaseUrl) return;
+  try {
+    await fetch(`${firebaseUrl}/identity_requests/${userId}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, userName, status: 'pending', submittedAt: Date.now() }),
+    });
+  } catch {}
 }
 
 export function getSubmittedProperties(): Property[] {

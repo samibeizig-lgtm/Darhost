@@ -7,7 +7,8 @@ import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
   getHostBank, setHostBank,
-  getIdentityVerified, setIdentityVerified,
+  getIdentityStatus, setIdentityStatus, submitIdentityForReview,
+  IdentityStatus,
   StoredUser,
 } from '@/lib/store';
 import { TUNISIAN_BANKS, validateRib, formatRibDisplay } from '@/lib/banks';
@@ -60,11 +61,12 @@ export default function ProfilePage() {
   const [bankSaving, setBankSaving] = useState(false);
 
   // Identity verification state
-  const [idVerified, setIdVerified] = useState(false);
+  const [idStatus, setIdStatus] = useState<IdentityStatus>('none');
   const [idFront, setIdFront] = useState('');
   const [idBack, setIdBack] = useState('');
   const [selfie, setSelfie] = useState('');
-  const [idSaved, setIdSaved] = useState(false);
+  const [idSubmitting, setIdSubmitting] = useState(false);
+  const [idSubmitted, setIdSubmitted] = useState(false);
   const idFrontRef = useRef<HTMLInputElement>(null);
   const idBackRef = useRef<HTMLInputElement>(null);
   const selfieRef = useRef<HTMLInputElement>(null);
@@ -92,7 +94,7 @@ export default function ProfilePage() {
 
     const bank = getHostBank();
     setBankForm({ bankHolder: bank.bankHolder, bankName: bank.bankName, rib: bank.rib });
-    setIdVerified(getIdentityVerified());
+    setIdStatus(getIdentityStatus());
   }, [router]);
 
   function toggleHobby(hobby: string) {
@@ -172,12 +174,15 @@ export default function ProfilePage() {
     };
   }
 
-  function handleVerifyIdentity() {
-    if (!idFront || !idBack || !selfie) return;
-    setIdentityVerified(true);
-    setIdVerified(true);
-    setIdSaved(true);
-    setTimeout(() => setIdSaved(false), 3000);
+  async function handleVerifyIdentity() {
+    if (!idFront || !idBack || !selfie || !user) return;
+    setIdSubmitting(true);
+    setIdentityStatus('pending');
+    setIdStatus('pending');
+    await submitIdentityForReview(user.id, user.name);
+    setIdSubmitting(false);
+    setIdSubmitted(true);
+    setTimeout(() => setIdSubmitted(false), 4000);
   }
 
   if (!user) return null;
@@ -512,26 +517,54 @@ export default function ProfilePage() {
       {user.role === 'host' && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 mb-10 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
-            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${idVerified ? 'bg-green-100' : 'bg-amber-50'}`}>
-              <ShieldCheck size={20} className={idVerified ? 'text-green-600' : 'text-amber-500'} />
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+              idStatus === 'verified' ? 'bg-green-100' : idStatus === 'pending' ? 'bg-amber-50' : 'bg-gray-100'
+            }`}>
+              <ShieldCheck size={20} className={
+                idStatus === 'verified' ? 'text-green-600' : idStatus === 'pending' ? 'text-amber-500' : 'text-gray-400'
+              } />
             </div>
             <div>
               <h2 className="text-lg font-bold text-gray-900">Vérification d&apos;identité</h2>
-              <p className={`text-xs font-semibold mt-0.5 ${idVerified ? 'text-green-600' : 'text-amber-500'}`}>
-                {idVerified ? 'Identité vérifiée' : 'Non vérifiée — requis pour publier une annonce'}
+              <p className={`text-xs font-semibold mt-0.5 ${
+                idStatus === 'verified' ? 'text-green-600' : idStatus === 'pending' ? 'text-amber-500' : 'text-gray-400'
+              }`}>
+                {idStatus === 'verified' && 'Identité vérifiée'}
+                {idStatus === 'pending' && 'En cours de vérification'}
+                {idStatus === 'none' && 'Non vérifiée — requis pour publier une annonce'}
               </p>
             </div>
           </div>
 
-          {idVerified ? (
+          {idStatus === 'verified' && (
             <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
               <ShieldCheck size={18} className="shrink-0" />
               Votre identité a été vérifiée avec succès. Vous pouvez publier des annonces.
             </div>
-          ) : (
+          )}
+
+          {idStatus === 'pending' && (
+            <div className="space-y-3">
+              <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+                <div className="w-5 h-5 border-2 border-amber-500 border-t-transparent rounded-full animate-spin shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-semibold">Vos documents sont en cours d&apos;examen</p>
+                  <p className="text-xs mt-0.5 text-amber-700">
+                    Un administrateur validera votre identité dans un délai maximum de <strong>48 heures</strong>.
+                    Vous recevrez une confirmation dès que votre dossier sera traité.
+                  </p>
+                </div>
+              </div>
+              <p className="text-xs text-gray-400 px-1">
+                Soumis le {new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+              </p>
+            </div>
+          )}
+
+          {idStatus === 'none' && (
             <>
               <p className="text-sm text-gray-600 mb-5">
-                Téléversez les 3 documents suivants pour vérifier votre identité :
+                Téléversez les 3 documents suivants. Un administrateur vérifiera votre identité sous 48h.
               </p>
               <div className="space-y-4">
                 {([
@@ -567,11 +600,17 @@ export default function ProfilePage() {
               <div className="mt-6">
                 <button
                   onClick={handleVerifyIdentity}
-                  disabled={!idFront || !idBack || !selfie}
-                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
+                  disabled={!idFront || !idBack || !selfie || idSubmitting}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-40 transition-colors"
                 >
-                  {idSaved ? <Check size={16} /> : <ShieldCheck size={16} />}
-                  {idSaved ? 'Identité vérifiée !' : 'Valider mon identité'}
+                  {idSubmitting ? (
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : idSubmitted ? (
+                    <Check size={16} />
+                  ) : (
+                    <ShieldCheck size={16} />
+                  )}
+                  {idSubmitting ? 'Envoi en cours...' : idSubmitted ? 'Dossier envoyé !' : 'Soumettre pour vérification'}
                 </button>
                 {(!idFront || !idBack || !selfie) && (
                   <p className="text-xs text-gray-400 mt-2">Téléversez les 3 documents pour continuer</p>
