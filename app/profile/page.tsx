@@ -175,8 +175,8 @@ export default function ProfilePage() {
   async function handleVerifyIdentity() {
     if (!idFront || !idBack || !selfie || !user) return;
     setIdSubmitting(true);
-    setIdentityStatus('pending');
-    setIdStatus('pending');
+    setIdentityStatus('verified');
+    setIdStatus('verified');
     await submitIdentityForReview(user.id, user.name);
     setIdSubmitting(false);
     setIdSubmitted(true);
