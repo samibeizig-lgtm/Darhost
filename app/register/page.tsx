@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Camera, Plus } from 'lucide-react';
-import { setUser } from '@/lib/store';
+import { setUser, saveAccount, emailExists } from '@/lib/store';
 
 export default function RegisterPage() {
   const [role, setRole] = useState<'guest' | 'host'>('guest');
@@ -61,15 +61,22 @@ export default function RegisterPage() {
       setError("Vous devez accepter les conditions d'utilisation.");
       return;
     }
+    if (emailExists(form.email)) {
+      setError('Un compte existe déjà avec cet e-mail.');
+      return;
+    }
     setLoading(true);
     setTimeout(() => {
-      setUser({
+      const account = {
         id: `u-${Date.now()}`,
         name: `${form.firstName} ${form.lastName}`,
         email: form.email,
         role,
         avatar,
-      });
+        password: form.password,
+      };
+      saveAccount(account);
+      setUser({ id: account.id, name: account.name, email: account.email, role, avatar });
       window.location.href = redirect;
     }, 900);
   }

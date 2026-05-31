@@ -101,6 +101,44 @@ export async function submitIdentityForReview(userId: string, userName: string):
   } catch {}
 }
 
+// ── Accounts (email → credentials) ───────────────────────────────────────────
+
+export interface StoredAccount {
+  id: string;
+  name: string;
+  email: string;
+  role: 'guest' | 'host';
+  avatar: string;
+  password: string;
+}
+
+export function getAccounts(): Record<string, StoredAccount> {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = localStorage.getItem('darhost_accounts');
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+export function saveAccount(account: StoredAccount): void {
+  const all = getAccounts();
+  all[account.email.toLowerCase()] = account;
+  localStorage.setItem('darhost_accounts', JSON.stringify(all));
+}
+
+export function findAccount(email: string, password: string): StoredAccount | null {
+  const all = getAccounts();
+  const account = all[email.toLowerCase()];
+  if (!account) return null;
+  if (account.password !== password) return null;
+  return account;
+}
+
+export function emailExists(email: string): boolean {
+  const all = getAccounts();
+  return !!all[email.toLowerCase()];
+}
+
 export function getSubmittedProperties(): Property[] {
   if (typeof window === 'undefined') return [];
   try {

@@ -260,7 +260,7 @@ export default function ProfilePage() {
         <button
           onClick={() => {
             if (!confirm('Effacer toutes les données ? Cette action est irréversible.')) return;
-            ['darhost_user','darhost_profile','darhost_host_bank','darhost_identity_status','darhost_identity_verified','darhost_submitted_properties','darhost_bookings']
+            ['darhost_user','darhost_accounts','darhost_profile','darhost_host_bank','darhost_identity_status','darhost_identity_verified','darhost_submitted_properties','darhost_bookings']
               .forEach(k => localStorage.removeItem(k));
             Object.keys(localStorage)
               .filter(k => k.startsWith('darhost_settings_') || k.startsWith('darhost_calendar_'))

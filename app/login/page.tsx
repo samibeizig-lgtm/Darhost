@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { setUser } from '@/lib/store';
+import { setUser, findAccount } from '@/lib/store';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -27,13 +27,13 @@ export default function LoginPage() {
     }
     setLoading(true);
     setTimeout(() => {
-      setUser({
-        id: `u-${Date.now()}`,
-        name: email.split('@')[0],
-        email,
-        role: 'host',
-        avatar: 'https://i.pravatar.cc/150?img=12',
-      });
+      const account = findAccount(email, password);
+      if (!account) {
+        setLoading(false);
+        setError('E-mail ou mot de passe incorrect.');
+        return;
+      }
+      setUser({ id: account.id, name: account.name, email: account.email, role: account.role, avatar: account.avatar });
       window.location.href = redirect;
     }, 900);
   }
