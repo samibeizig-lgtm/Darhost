@@ -118,7 +118,7 @@ export default function HostListingsPage() {
                 </Link>
                 <div className="w-px bg-gray-100" />
                 <Link
-                  href={`/host/edit/${property.id}`}
+                  href={`/host/edit?id=${property.id}`}
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   <Pencil size={15} />

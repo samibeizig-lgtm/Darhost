@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Save, Check, ArrowLeft } from 'lucide-react';
 import {
   getUser,
@@ -23,10 +23,10 @@ function updateSubmittedProperty(updated: Property): void {
   }
 }
 
-export default function EditListingPage() {
+function EditListingInner() {
   const router = useRouter();
-  const params = useParams();
-  const id = params?.id as string;
+  const searchParams = useSearchParams();
+  const id = searchParams.get('id') ?? '';
 
   const [property, setProperty] = useState<Property | null>(null);
   const [saving, setSaving] = useState(false);
@@ -51,6 +51,7 @@ export default function EditListingPage() {
     const user = getUser();
     if (!user) { router.push('/login?redirect=/host/listings'); return; }
     if (user.role !== 'host') { router.push('/'); return; }
+    if (!id) { setNotFound(true); return; }
 
     const all = getSubmittedProperties();
     const found = all.find((p) => p.id === id);
@@ -125,7 +126,6 @@ export default function EditListingPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => router.push('/host/listings')}
@@ -141,7 +141,6 @@ export default function EditListingPage() {
 
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
 
-        {/* Title */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
             Titre de l&apos;annonce
@@ -155,7 +154,6 @@ export default function EditListingPage() {
           />
         </div>
 
-        {/* Type */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
             Type de bien
@@ -171,7 +169,6 @@ export default function EditListingPage() {
           </select>
         </div>
 
-        {/* Description */}
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-1.5">
             Description
@@ -187,7 +184,6 @@ export default function EditListingPage() {
           />
         </div>
 
-        {/* Pricing */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Prix / nuit (DT)</label>
@@ -221,7 +217,6 @@ export default function EditListingPage() {
           </div>
         </div>
 
-        {/* Capacity */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[
             { key: 'guests', label: 'Voyageurs' },
@@ -242,7 +237,6 @@ export default function EditListingPage() {
           ))}
         </div>
 
-        {/* Available toggle */}
         <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
           <div>
             <div className="font-medium text-gray-900 text-sm">Publier l&apos;annonce</div>
@@ -265,7 +259,6 @@ export default function EditListingPage() {
           </button>
         </div>
 
-        {/* Save button */}
         <div>
           <button
             onClick={handleSave}
@@ -284,5 +277,13 @@ export default function EditListingPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function EditListingPage() {
+  return (
+    <Suspense>
+      <EditListingInner />
+    </Suspense>
   );
 }
