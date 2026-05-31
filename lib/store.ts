@@ -155,6 +155,15 @@ export function getBookings(): Booking[] {
   } catch { return []; }
 }
 
+export function cancelExpiredBookings(): void {
+  if (typeof window === 'undefined') return;
+  const all = getBookings();
+  const now = Date.now();
+  all
+    .filter(b => b.status === 'confirmed' && b.paymentDeadline && b.paymentDeadline < now)
+    .forEach(b => updateBookingStatus(b.id, 'cancelled'));
+}
+
 export function saveBooking(booking: Booking): void {
   if (typeof window === 'undefined') return;
   const all = getBookings();

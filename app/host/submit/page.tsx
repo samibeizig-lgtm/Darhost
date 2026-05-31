@@ -4,11 +4,12 @@ import { useState, useEffect } from 'react';
 import {
   Check, ChevronRight, ChevronLeft, Upload, X, Plus, LogIn,
   Home, Building2, Landmark, Building, BedDouble,
-  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock,
+  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock, AlertCircle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
+import { TUNISIAN_BANKS, validateRib } from '@/lib/banks';
 import { getUser, addSubmittedProperty, savePropertyRemote, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
@@ -50,19 +51,6 @@ const AMENITIES = [
   'Accès plage', 'Ascenseur', 'Sèche-linge', 'Fer à repasser', 'Bureau de travail',
 ];
 
-const BANKS = [
-  'BNA – Banque Nationale Agricole',
-  'STB – Société Tunisienne de Banque',
-  'BIAT – Banque Internationale Arabe de Tunisie',
-  'Attijari Bank',
-  'BH Bank',
-  'Amen Bank',
-  'UIB – Union Internationale de Banques',
-  'Arab Tunisian Bank (ATB)',
-  'Banque Zitouna',
-  'Autre',
-];
-
 interface FormData {
   type: string;
   categories: string[];
@@ -91,7 +79,7 @@ interface FormData {
   mapsLink: string;
   bankHolder: string;
   bankName: string;
-  iban: string;
+  rib: string;
   idFront: File | null;
   idBack: File | null;
   selfie: File | null;
@@ -106,7 +94,7 @@ const INITIAL: FormData = {
   checkIn: '15:00', checkOut: '11:00',
   noSmoking: true, noParties: true, noPets: false, noNoise: true,
   customRules: [],
-  bankHolder: '', bankName: '', iban: '',
+  bankHolder: '', bankName: '', rib: '',
   idFront: null, idBack: null, selfie: null,
 };
 
@@ -139,6 +127,7 @@ export default function HostSubmitPage() {
   const [newRule, setNewRule] = useState('');
   const [user, setUser] = useState<StoredUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [ribError, setRibError] = useState('');
 
   useEffect(() => {
     setUser(getUser());
@@ -160,6 +149,25 @@ export default function HostSubmitPage() {
       ? form.categories.filter((c) => c !== cat)
       : [...form.categories, cat]
     );
+  }
+
+  function handleRibChange(val: string) {
+    const digits = val.replace(/\D/g, '').slice(0, 20);
+    set('rib', digits);
+    if (digits.length === 20 && form.bankName) {
+      const bank = TUNISIAN_BANKS.find(b => b.name === form.bankName);
+      if (bank) setRibError(validateRib(digits, bank.code) ?? '');
+    } else {
+      setRibError('');
+    }
+  }
+
+  function handleBankChange(name: string) {
+    set('bankName', name);
+    if (form.rib.length === 20 && name) {
+      const bank = TUNISIAN_BANKS.find(b => b.name === name);
+      if (bank) setRibError(validateRib(form.rib, bank.code) ?? '');
+    }
   }
 
   function addCustomRule() {
@@ -790,14 +798,18 @@ export default function HostSubmitPage() {
                     <div className="text-xs text-gray-500">{desc}</div>
                   </div>
                   <button
+                    type="button"
+                    role="switch"
+                    aria-checked={form[key as keyof FormData] as boolean}
                     onClick={() => set(key as keyof FormData, !form[key as keyof FormData])}
-                    className={`relative w-12 h-6 rounded-full transition-colors ${
-                      form[key as keyof FormData] ? 'bg-[#0F4C8A]' : 'bg-gray-300'
+                    className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                      form[key as keyof FormData] ? 'bg-[#0F4C8A]' : 'bg-gray-200'
                     }`}
                   >
                     <span
-                      className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                        form[key as keyof FormData] ? 'translate-x-7' : 'translate-x-1'
+                      aria-hidden="true"
+                      className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                        form[key as keyof FormData] ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
                   </button>
@@ -839,7 +851,7 @@ export default function HostSubmitPage() {
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Compte bancaire</h2>
             <p className="text-gray-500 text-sm mb-6">
-              Renseignez votre compte pour recevoir vos paiements. Vos données sont chiffrées et sécurisées.
+              Renseignez votre RIB pour recevoir vos paiements. Vos données sont chiffrées et sécurisées.
             </p>
             <div className="space-y-5">
               <div>
@@ -855,26 +867,41 @@ export default function HostSubmitPage() {
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Banque *</label>
                 <select
                   value={form.bankName}
-                  onChange={(e) => set('bankName', e.target.value)}
+                  onChange={(e) => handleBankChange(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
                 >
                   <option value="">Sélectionner votre banque</option>
-                  {BANKS.map((b) => (
-                    <option key={b} value={b}>{b}</option>
+                  {TUNISIAN_BANKS.map((b) => (
+                    <option key={b.code} value={b.name}>{b.name}</option>
                   ))}
                 </select>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  Numéro de compte / RIB *
+                  RIB (Relevé d&apos;Identité Bancaire) *
                 </label>
                 <input
-                  value={form.iban}
-                  onChange={(e) => set('iban', e.target.value)}
-                  placeholder="TN59 XXXX XXXX XXXX XXXX XXXX XX"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+                  value={form.rib}
+                  onChange={(e) => handleRibChange(e.target.value)}
+                  placeholder="20 chiffres — ex : 03 001 0012345678901 65"
+                  maxLength={20}
+                  className={`w-full px-4 py-3 border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] ${
+                    ribError ? 'border-red-400 bg-red-50' : form.rib.length === 20 ? 'border-green-400' : 'border-gray-300'
+                  }`}
                 />
-                <p className="text-xs text-gray-500 mt-1">Format IBAN tunisien : TN59 suivi de 20 chiffres</p>
+                <p className="text-xs text-gray-400 mt-1">
+                  Format : code banque (2) + agence (3) + compte (13) + clé (2) = 20 chiffres. Pas d&apos;IBAN (TN59...).
+                </p>
+                {ribError && (
+                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
+                    <AlertCircle size={12} className="shrink-0" />{ribError}
+                  </p>
+                )}
+                {!ribError && form.rib.length === 20 && (
+                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
+                    <Check size={12} className="shrink-0" />RIB valide
+                  </p>
+                )}
               </div>
             </div>
             <div className="mt-5 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A] flex items-start gap-2">
@@ -953,6 +980,7 @@ export default function HostSubmitPage() {
                 { label: 'Frais de ménage', value: form.cleaningFee ? `${form.cleaningFee} DT` : '—' },
                 { label: 'Arrivée / Départ', value: `Après ${form.checkIn} — Avant ${form.checkOut}` },
                 { label: 'Banque', value: form.bankName || '—' },
+                { label: 'RIB', value: form.rib || '—' },
                 { label: 'Vérification identité', value: form.idFront && form.idBack && form.selfie ? '✓ Documents fournis' : '⚠️ Documents manquants' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">

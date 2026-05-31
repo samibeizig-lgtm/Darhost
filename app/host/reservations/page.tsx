@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, CheckCircle, XCircle, Users, Clock, BookOpen } from 'lucide-react';
 import {
-  getUser, syncPropertiesFromRemote, syncBookingsFromRemote, updateBookingStatus,
+  getUser, syncPropertiesFromRemote, syncBookingsFromRemote, updateBookingStatus, cancelExpiredBookings,
 } from '@/lib/store';
 import { Booking } from '@/lib/types';
 
@@ -34,6 +34,7 @@ function BookingCard({
     confirmed: { label: 'Confirmée',  cls: 'bg-green-100 text-green-700' },
     refused:   { label: 'Refusée',    cls: 'bg-red-100 text-red-600' },
     cancelled: { label: 'Annulée',    cls: 'bg-gray-100 text-gray-500' },
+    paid:      { label: 'Payée',      cls: 'bg-blue-100 text-blue-700' },
   };
   const cfg = STATUS[b.status];
   const createdAt = new Date(b.createdAt);
@@ -117,6 +118,7 @@ export default function HostReservationsPage() {
   useEffect(() => {
     const user = getUser();
     if (!user || user.role !== 'host') { router.push('/'); return; }
+    cancelExpiredBookings();
     Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
       const myIds = new Set(props.map(p => p.id));
       setBookings(allBookings.filter(b => myIds.has(b.propertyId)));

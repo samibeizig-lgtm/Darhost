@@ -105,12 +105,12 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
             {timeLeft && (
               <div className="text-2xl font-bold text-amber-800 font-mono mb-3">{timeLeft}</div>
             )}
-            <button
-              disabled
-              className="w-full py-3 bg-amber-400 text-white rounded-xl font-bold text-sm opacity-60 cursor-not-allowed"
+            <Link
+              href={`/payment?id=${booking.id}`}
+              className="block w-full py-3 bg-[#0F4C8A] text-white rounded-xl font-bold text-sm text-center hover:bg-[#0A3566] transition-colors"
             >
-              Procéder au paiement — Interface à venir
-            </button>
+              Procéder au paiement
+            </Link>
           </div>
         )}
 

@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {
   TrendingUp, Home, LogIn, LogOut, Clock, Users, ChevronRight, Plus,
 } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote } from '@/lib/store';
+import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
 
 const MONTHS_FR = [
@@ -124,6 +124,7 @@ export default function HostDashboardPage() {
     if (!user) { router.push('/login?redirect=/host/dashboard'); return; }
     if (user.role !== 'host') { router.push('/'); return; }
     setHostName(user.name.split(' ')[0]);
+    cancelExpiredBookings();
     Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
       setProperties(props);
       const myIds = new Set(props.map(p => p.id));
@@ -167,7 +168,7 @@ export default function HostDashboardPage() {
 
       {/* Welcome */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Bonjour, {hostName} 👋</h1>
+        <h1 className="text-2xl font-bold text-gray-900">Bonjour, {hostName}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{MONTH_NAMES_FR[today.getMonth()]} {today.getFullYear()}</p>
       </div>
 

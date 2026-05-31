@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, MapPin, Users, Star, Clock, CheckCircle, Search, AlertCircle, XCircle, BookOpen } from 'lucide-react';
-import { getUser, syncBookingsFromRemote } from '@/lib/store';
+import { getUser, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
 import { Booking } from '@/lib/types';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
@@ -19,6 +19,7 @@ const STATUS_CONFIG = {
   confirmed: { label: 'Confirmée',   cls: 'bg-green-100 text-green-700',   icon: CheckCircle },
   refused:   { label: 'Refusée',     cls: 'bg-red-100 text-red-600',       icon: XCircle },
   cancelled: { label: 'Annulée',     cls: 'bg-gray-100 text-gray-500',     icon: XCircle },
+  paid:      { label: 'Payée',       cls: 'bg-blue-100 text-blue-700',     icon: CheckCircle },
 };
 
 function isActive(b: Booking): boolean {
@@ -70,12 +71,12 @@ function BookingCard({ b }: { b: Booking }) {
             <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
               <Clock size={13} /> Paiement requis dans les 6h
             </div>
-            <button
-              disabled
-              className="text-xs bg-amber-400 text-white px-3 py-1.5 rounded-lg font-bold opacity-60 cursor-not-allowed"
+            <Link
+              href={`/payment?id=${b.id}`}
+              className="text-xs bg-[#0F4C8A] text-white px-3 py-1.5 rounded-lg font-bold hover:bg-[#0A3566] transition-colors"
             >
-              Payer (à venir)
-            </button>
+              Procéder au paiement
+            </Link>
           </div>
         </div>
       )}
@@ -107,6 +108,7 @@ export default function ReservationsPage() {
   useEffect(() => {
     const user = getUser();
     if (!user) { router.push('/login?redirect=/reservations'); return; }
+    cancelExpiredBookings();
     syncBookingsFromRemote().then(all => {
       setBookings(all.filter(b => b.guestId === user.id).sort((a, b) => b.createdAt - a.createdAt));
       setLoading(false);

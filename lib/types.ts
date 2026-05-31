@@ -56,7 +56,7 @@ export interface Property {
   lng?: number;
 }
 
-export type BookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled';
+export type BookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled' | 'paid';
 
 export interface Booking {
   id: string;
