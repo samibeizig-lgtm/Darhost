@@ -6,8 +6,8 @@ import Link from 'next/link';
 import {
   TrendingUp, Home, LogIn, LogOut, Clock, Users, ChevronRight, Plus,
 } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote } from '@/lib/store';
-import { Property } from '@/lib/types';
+import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote } from '@/lib/store';
+import { Property, Booking } from '@/lib/types';
 
 const MONTHS_FR = [
   'jan', 'fév', 'mars', 'avr', 'mai', 'juin',
@@ -30,6 +30,7 @@ interface Reservation {
   nights: number;
   guests: number;
   totalAmount: number;
+  paymentPending?: boolean;
 }
 
 function toStr(d: Date): string {
@@ -91,6 +92,23 @@ function seedReservations(properties: Property[]): Reservation[] {
   ];
 }
 
+function bookingToReservation(b: Booking): Reservation {
+  return {
+    id: b.id,
+    propertyId: b.propertyId,
+    propertyTitle: b.propertyTitle,
+    propertyImage: b.propertyImage,
+    guestName: b.guestName,
+    guestAvatar: b.guestAvatar,
+    checkIn: b.checkIn,
+    checkOut: b.checkOut,
+    nights: b.nights,
+    guests: b.guests,
+    totalAmount: b.total,
+    paymentPending: !!(b.paymentDeadline && b.paymentDeadline > Date.now()),
+  };
+}
+
 export default function HostDashboardPage() {
   const router = useRouter();
   const [properties, setProperties] = useState<Property[]>([]);
@@ -106,9 +124,16 @@ export default function HostDashboardPage() {
     if (!user) { router.push('/login?redirect=/host/dashboard'); return; }
     if (user.role !== 'host') { router.push('/'); return; }
     setHostName(user.name.split(' ')[0]);
-    syncPropertiesFromRemote().then((props) => {
+    Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
       setProperties(props);
-      setReservations(seedReservations(props));
+      const myIds = new Set(props.map(p => p.id));
+      const confirmed = allBookings
+        .filter(b => b.status === 'confirmed' && myIds.has(b.propertyId))
+        .map(bookingToReservation);
+      // Merge seeded mocks + real confirmed bookings (deduplicate by id)
+      const seeded = seedReservations(props);
+      const realIds = new Set(confirmed.map(r => r.id));
+      setReservations([...seeded.filter(r => !realIds.has(r.id)), ...confirmed]);
       setLoading(false);
     });
   }, [router]);
@@ -253,10 +278,19 @@ export default function HostDashboardPage() {
 
 function ReservationCard({ r }: { r: Reservation }) {
   return (
-    <div className="flex items-center gap-3 p-3.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+    <div className={`flex items-center gap-3 p-3.5 bg-white border rounded-xl shadow-sm ${
+      r.paymentPending ? 'border-amber-200 bg-amber-50/40' : 'border-gray-200'
+    }`}>
       <img src={r.propertyImage} alt={r.propertyTitle} className="w-12 h-12 rounded-xl object-cover shrink-0" />
       <div className="flex-1 min-w-0">
-        <p className="font-semibold text-gray-900 text-sm truncate">{r.propertyTitle}</p>
+        <div className="flex items-center gap-2">
+          <p className="font-semibold text-gray-900 text-sm truncate">{r.propertyTitle}</p>
+          {r.paymentPending && (
+            <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1">
+              <Clock size={9} /> Paiement en cours
+            </span>
+          )}
+        </div>
         <div className="flex items-center gap-1.5 mt-0.5">
           <img src={r.guestAvatar} alt={r.guestName} className="w-4 h-4 rounded-full object-cover" />
           <p className="text-xs text-gray-500 truncate">{r.guestName} · {r.guests} voy.</p>
