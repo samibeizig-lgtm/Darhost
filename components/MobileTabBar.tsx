@@ -17,7 +17,7 @@ const HOST_TABS = [
 ];
 
 const GUEST_TABS = [
-  { href: '/profile', icon: BookOpen, label: 'Réservations' },
+  { href: '/reservations', icon: BookOpen, label: 'Réservations' },
   { href: '/properties', icon: Search, label: 'Recherche' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
 ];

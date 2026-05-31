@@ -5,7 +5,7 @@ import Footer from '@/components/Footer';
 import MobileTabBar from '@/components/MobileTabBar';
 
 export const metadata: Metadata = {
-  title: 'DarHost — Votre logement en Tunisie',
+  title: 'Hostn — Votre logement en Tunisie',
   description:
     'Trouvez et réservez les plus beaux logements en Tunisie. Villas, riads, appartements et chalets authentiques.',
   keywords: 'location vacances tunisie, villa tunisie, riad, djerba, sidi bou said, hammamet',

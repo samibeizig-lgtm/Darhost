@@ -12,27 +12,27 @@ import { localitesTunisie } from '@/lib/data';
 
 function DarHostLogo() {
   return (
-    <Link href="/" className="flex items-center gap-2 shrink-0">
-      <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 42V17C1 7.611 8.163 1 17 1C25.837 1 33 7.611 33 17V42H1Z" fill="#87CEEB" />
-        <path d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z" fill="white" />
-        <circle cx="21" cy="32" r="1.8" fill="#87CEEB" />
-        <circle cx="17" cy="6" r="2" fill="white" opacity="0.5" />
-      </svg>
-      <span className="text-2xl font-bold text-[#87CEEB] tracking-tight">DarHost</span>
+    <Link href="/" className="flex items-center shrink-0">
+      <span
+        style={{ background: 'rgb(10, 186, 181)' }}
+        className="text-white font-extrabold text-xl tracking-tight px-3 py-1.5 rounded-xl"
+      >
+        Hostn
+      </span>
     </Link>
   );
 }
 
 const hostLinks = [
-  { href: '/profile', label: 'Mes annonces', icon: Home },
+  { href: '/host/dashboard', label: 'Accueil', icon: Home },
+  { href: '/host/listings', label: 'Mes annonces', icon: MessageSquare },
   { href: '/host/calendar', label: 'Calendrier', icon: Calendar },
   { href: '/messages', label: 'Messagerie', icon: MessageSquare },
   { href: '/profile', label: 'Profil', icon: User },
 ];
 
 const guestLinks = [
-  { href: '/profile', label: 'Mes réservations', icon: BookOpen },
+  { href: '/reservations', label: 'Mes réservations', icon: BookOpen },
   { href: '/properties', label: 'Rechercher', icon: Search },
   { href: '/messages', label: 'Messagerie', icon: MessageSquare },
   { href: '/profile', label: 'Profil', icon: User },
