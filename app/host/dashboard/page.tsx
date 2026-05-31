@@ -48,49 +48,6 @@ function formatDate(s: string): string {
   return `${d} ${MONTHS_FR[m - 1]}`;
 }
 
-function seedReservations(properties: Property[]): Reservation[] {
-  if (properties.length === 0) return [];
-  const today = new Date();
-
-  const mockGuests = [
-    { name: 'Amine Benzara', avatar: 'https://i.pravatar.cc/150?img=12' },
-    { name: 'Sonia Trabelsi', avatar: 'https://i.pravatar.cc/150?img=49' },
-    { name: 'Mehdi Khelifi', avatar: 'https://i.pravatar.cc/150?img=33' },
-    { name: 'Yasmine Ben Ali', avatar: 'https://i.pravatar.cc/150?img=47' },
-    { name: 'Karim Mansour', avatar: 'https://i.pravatar.cc/150?img=68' },
-  ];
-
-  const p = (i: number) => properties[i % properties.length];
-
-  const make = (
-    id: string, pi: number, gi: number,
-    checkIn: Date, checkOut: Date, guests: number,
-  ): Reservation => {
-    const prop = p(pi);
-    const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000);
-    return {
-      id,
-      propertyId: prop.id,
-      propertyTitle: prop.title,
-      propertyImage: prop.images[0],
-      guestName: mockGuests[gi].name,
-      guestAvatar: mockGuests[gi].avatar,
-      checkIn: toStr(checkIn),
-      checkOut: toStr(checkOut),
-      nights,
-      guests,
-      totalAmount: prop.price * nights + (prop.cleaningFee || 0),
-    };
-  };
-
-  return [
-    make('r1', 0, 0, addDays(today, -2), addDays(today, 3),  2),
-    make('r2', 1, 1, today,              addDays(today, 4),  3),
-    make('r3', 2, 2, addDays(today, -5), today,              1),
-    make('r4', 0, 3, addDays(today, 2),  addDays(today, 5),  4),
-    make('r5', 1, 4, addDays(today, 7),  addDays(today, 14), 2),
-  ];
-}
 
 function bookingToReservation(b: Booking): Reservation {
   return {
@@ -131,10 +88,7 @@ export default function HostDashboardPage() {
       const confirmed = allBookings
         .filter(b => b.status === 'confirmed' && myIds.has(b.propertyId))
         .map(bookingToReservation);
-
-      const seeded = seedReservations(props);
-      const realIds = new Set(confirmed.map(r => r.id));
-      setReservations([...seeded.filter(r => !realIds.has(r.id)), ...confirmed]);
+      setReservations(confirmed);
       setLoading(false);
     });
   }, [router]);
