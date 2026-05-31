@@ -185,6 +185,17 @@ export async function savePropertyRemote(property: Property): Promise<void> {
   } catch {}
 }
 
+export async function deleteProperty(id: string): Promise<void> {
+  if (typeof window !== 'undefined') {
+    const all = getSubmittedProperties();
+    localStorage.setItem('darhost_submitted_properties', JSON.stringify(all.filter(p => p.id !== id)));
+  }
+  if (!firebaseUrl) return;
+  try {
+    await fetch(`${firebaseUrl}/annonces/${id}.json`, { method: 'DELETE' });
+  } catch {}
+}
+
 export async function pushLocalPropertiesToRemote(): Promise<{ count: number; error: string | null }> {
   if (!firebaseUrl) return { count: 0, error: "Firebase non connecté — ajoutez NEXT_PUBLIC_FIREBASE_DB_URL dans Cloudflare Pages." };
   const local = getSubmittedProperties();

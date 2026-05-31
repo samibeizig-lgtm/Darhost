@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Star, Eye, Share2, Check, Pencil } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote, generateShareLink } from '@/lib/store';
+import { Plus, Star, Eye, Share2, Check, Pencil, Trash2 } from 'lucide-react';
+import { getUser, syncPropertiesFromRemote, generateShareLink, deleteProperty } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 export default function HostListingsPage() {
@@ -12,6 +12,7 @@ export default function HostListingsPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     const user = getUser();
@@ -22,6 +23,14 @@ export default function HostListingsPage() {
       setLoading(false);
     });
   }, [router]);
+
+  async function handleDelete(property: Property) {
+    if (!confirm(`Supprimer "${property.title}" ? Cette action est irréversible.`)) return;
+    setDeletingId(property.id);
+    await deleteProperty(property.id);
+    setProperties(prev => prev.filter(p => p.id !== property.id));
+    setDeletingId(null);
+  }
 
   function handleShare(property: Property) {
     const link = generateShareLink(property);
@@ -126,6 +135,17 @@ export default function HostListingsPage() {
                 >
                   {copiedId === property.id ? <Check size={15} /> : <Share2 size={15} />}
                   {copiedId === property.id ? 'Copié !' : 'Partager'}
+                </button>
+                <div className="w-px bg-gray-100" />
+                <button
+                  onClick={() => handleDelete(property)}
+                  disabled={deletingId === property.id}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                >
+                  {deletingId === property.id
+                    ? <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                    : <Trash2 size={15} />}
+                  Supprimer
                 </button>
               </div>
             </div>
