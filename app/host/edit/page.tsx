@@ -9,6 +9,7 @@ import {
   savePropertyRemote,
 } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
+import { AMENITY_CATEGORIES } from '@/lib/amenities';
 
 const PROPERTY_TYPES: PropertyType[] = ['Villa', 'Appartement', 'Riad', 'Maison', 'Chambre'];
 
@@ -45,6 +46,7 @@ function EditListingInner() {
     bathrooms: '',
     beds: '',
     available: true,
+    amenities: [] as string[],
   });
 
   useEffect(() => {
@@ -70,8 +72,18 @@ function EditListingInner() {
       bathrooms: String(found.bathrooms),
       beds: String(found.beds),
       available: found.available,
+      amenities: found.amenities ?? [],
     });
   }, [id, router]);
+
+  function toggleAmenity(amenityId: string) {
+    setForm(prev => ({
+      ...prev,
+      amenities: prev.amenities.includes(amenityId)
+        ? prev.amenities.filter(a => a !== amenityId)
+        : [...prev.amenities, amenityId],
+    }));
+  }
 
   async function handleSave() {
     if (!property) return;
@@ -92,6 +104,7 @@ function EditListingInner() {
       beds: Number(form.beds) || 1,
       available: form.available,
       isDraft: !form.available,
+      amenities: form.amenities,
     };
 
     updateSubmittedProperty(updated);
@@ -125,7 +138,7 @@ function EditListingInner() {
   if (!property) return null;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-24 md:pb-8">
       <div className="flex items-center gap-4 mb-8">
         <button
           onClick={() => router.push('/host/listings')}
@@ -139,142 +152,183 @@ function EditListingInner() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm space-y-6">
+      <div className="space-y-4">
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Titre de l&apos;annonce
-          </label>
-          <input
-            value={form.title}
-            onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-            maxLength={70}
-            placeholder="ex: Villa avec vue mer à Sidi Bou Said"
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
-          />
-        </div>
+        {/* General info */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Informations générales</h2>
 
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Type de bien
-          </label>
-          <select
-            value={form.type}
-            onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as PropertyType }))}
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
-          >
-            {PROPERTY_TYPES.map((t) => (
-              <option key={t} value={t}>{t}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-            Description
-            <span className="text-gray-400 font-normal ml-2">({form.description.length}/1000)</span>
-          </label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
-            maxLength={1000}
-            rows={6}
-            placeholder="Décrivez votre logement..."
-            className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] resize-none"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Prix / nuit (DT)</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Titre de l&apos;annonce</label>
             <input
-              type="number"
-              min="0"
-              value={form.price}
-              onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
+              value={form.title}
+              onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
+              maxLength={70}
+              placeholder="ex: Villa avec vue mer à Sidi Bou Said"
               className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
             />
           </div>
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Frais de ménage (DT)</label>
-            <input
-              type="number"
-              min="0"
-              value={form.cleaningFee}
-              onChange={(e) => setForm((p) => ({ ...p, cleaningFee: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
-            />
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Type de bien</label>
+            <select
+              value={form.type}
+              onChange={(e) => setForm((p) => ({ ...p, type: e.target.value as PropertyType }))}
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
+            >
+              {PROPERTY_TYPES.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
           </div>
+
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nuits minimum</label>
-            <input
-              type="number"
-              min="1"
-              value={form.minNights}
-              onChange={(e) => setForm((p) => ({ ...p, minNights: e.target.value }))}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+            <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+              Description
+              <span className="text-gray-400 font-normal ml-2">({form.description.length}/1000)</span>
+            </label>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
+              maxLength={1000}
+              rows={5}
+              placeholder="Décrivez votre logement..."
+              className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] resize-none"
             />
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[
-            { key: 'guests', label: 'Voyageurs' },
-            { key: 'bedrooms', label: 'Chambres' },
-            { key: 'bathrooms', label: 'Salles de bain' },
-            { key: 'beds', label: 'Lits' },
-          ].map(({ key, label }) => (
-            <div key={key}>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
-              <input
-                type="number"
-                min="1"
-                value={form[key as keyof typeof form] as string}
-                onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
+        {/* Pricing & capacity */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Tarifs & Capacité</h2>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Prix / nuit (DT)</label>
+              <input type="number" min="0" value={form.price}
+                onChange={(e) => setForm((p) => ({ ...p, price: e.target.value }))}
                 className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
               />
             </div>
-          ))}
-        </div>
-
-        <div className="flex items-center justify-between p-4 border border-gray-200 rounded-xl">
-          <div>
-            <div className="font-medium text-gray-900 text-sm">Publier l&apos;annonce</div>
-            <div className="text-xs text-gray-500">
-              {form.available ? 'Visible sur DarHost' : 'Enregistré comme brouillon'}
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Frais de ménage (DT)</label>
+              <input type="number" min="0" value={form.cleaningFee}
+                onChange={(e) => setForm((p) => ({ ...p, cleaningFee: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nuits minimum</label>
+              <input type="number" min="1" value={form.minNights}
+                onChange={(e) => setForm((p) => ({ ...p, minNights: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+              />
             </div>
           </div>
-          <button
-            type="button"
-            onClick={() => setForm((p) => ({ ...p, available: !p.available }))}
-            className={`relative w-12 h-6 rounded-full transition-colors ${
-              form.available ? 'bg-[#0F4C8A]' : 'bg-gray-300'
-            }`}
-          >
-            <span
-              className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-transform ${
-                form.available ? 'translate-x-7' : 'translate-x-1'
-              }`}
-            />
-          </button>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {[
+              { key: 'guests', label: 'Voyageurs' },
+              { key: 'bedrooms', label: 'Chambres' },
+              { key: 'bathrooms', label: 'Salles de bain' },
+              { key: 'beds', label: 'Lits' },
+            ].map(({ key, label }) => (
+              <div key={key}>
+                <label className="block text-sm font-semibold text-gray-700 mb-1.5">{label}</label>
+                <input
+                  type="number" min="1"
+                  value={form[key as keyof typeof form] as string}
+                  onChange={(e) => setForm((p) => ({ ...p, [key]: e.target.value }))}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+                />
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div>
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-60 transition-colors"
-          >
-            {saving ? (
-              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-            ) : saved ? (
-              <Check size={16} />
-            ) : (
-              <Save size={16} />
-            )}
-            {saving ? 'Enregistrement...' : saved ? 'Enregistré !' : 'Enregistrer les modifications'}
-          </button>
+        {/* Amenities */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Équipements</h2>
+            <span className="text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2.5 py-1 rounded-full">
+              {form.amenities.length} sélectionné{form.amenities.length !== 1 ? 's' : ''}
+            </span>
+          </div>
+          <div className="space-y-5">
+            {AMENITY_CATEGORIES.map((cat) => (
+              <div key={cat.label}>
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2.5">{cat.label}</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {cat.items.map((item) => {
+                    const selected = form.amenities.includes(item.id);
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => toggleAmenity(item.id)}
+                        className={`flex items-center gap-3 px-4 py-3 border-2 rounded-xl text-sm text-left transition-all ${
+                          selected
+                            ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A] font-medium'
+                            : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        <span className="text-xl leading-none w-7 text-center">{item.emoji}</span>
+                        <span className="flex-1 leading-tight">{item.label}</span>
+                        <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                          selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'
+                        }`}>
+                          {selected && <Check size={12} className="text-white" />}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Visibility */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-semibold text-gray-900 text-sm">Publier l&apos;annonce</div>
+              <div className="text-xs text-gray-500 mt-0.5">
+                {form.available ? 'Visible sur Hostn' : 'Enregistré comme brouillon'}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setForm((p) => ({ ...p, available: !p.available }))}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                form.available ? 'bg-[#0F4C8A]' : 'bg-gray-200'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  form.available ? 'translate-x-5' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+        </div>
+
+        {/* Save */}
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className="w-full flex items-center justify-center gap-2 py-4 bg-[#0F4C8A] text-white rounded-2xl font-bold hover:bg-[#0A3566] disabled:opacity-60 transition-colors text-sm"
+        >
+          {saving ? (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+          ) : saved ? (
+            <Check size={18} />
+          ) : (
+            <Save size={18} />
+          )}
+          {saving ? 'Enregistrement...' : saved ? 'Modifications enregistrées !' : 'Enregistrer les modifications'}
+        </button>
       </div>
     </div>
   );
