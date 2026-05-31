@@ -12,6 +12,7 @@ import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/st
 const HOST_TABS = [
   { href: '/host/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { href: '/host/listings', icon: Building2, label: 'Annonces' },
+  { href: '/host/reservations', icon: BookOpen, label: 'Réservations' },
   { href: '/host/calendar', icon: Calendar, label: 'Calendrier' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
 ];

@@ -51,8 +51,35 @@ export interface Property {
   minNights: number;
   available: boolean;
   isDraft?: boolean;
+  autoApprove?: boolean;
   lat?: number;
   lng?: number;
+}
+
+export type BookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled';
+
+export interface Booking {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  propertyImage: string;
+  propertyLocation: string;
+  guestId: string;
+  guestName: string;
+  guestAvatar: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  guests: number;
+  pricePerNight: number;
+  cleaningFee: number;
+  serviceFee: number;
+  total: number;
+  status: BookingStatus;
+  autoApproved: boolean;
+  createdAt: number;
+  paymentDeadline?: number;
+  respondedAt?: number;
 }
 
 export interface ChatMessage {

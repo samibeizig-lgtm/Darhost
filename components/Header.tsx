@@ -50,6 +50,7 @@ const hostLinks = [
   { href: '/host/dashboard', label: 'Accueil', icon: Home },
   { href: '/host/listings', label: 'Mes annonces', icon: MessageSquare },
   { href: '/host/calendar', label: 'Calendrier', icon: Calendar },
+  { href: '/host/reservations', label: 'Réservations', icon: BookOpen },
   { href: '/messages', label: 'Messagerie', icon: MessageSquare },
   { href: '/profile', label: 'Profil', icon: User },
 ];

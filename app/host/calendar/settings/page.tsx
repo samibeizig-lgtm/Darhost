@@ -137,6 +137,7 @@ function SettingsInner() {
       price: form.basePrice,
       cleaningFee: form.cleaningFee,
       minNights: form.minNights,
+      autoApprove: form.autoApprove,
     });
     await new Promise(r => setTimeout(r, 500));
     setSaving(false);
