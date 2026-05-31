@@ -54,8 +54,8 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
   }, [isConfirmed, booking.paymentDeadline]);
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[60] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
-      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+    <div className="fixed inset-0 bg-black/60 z-[60] flex items-center justify-center px-4 py-6">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-y-auto max-h-[calc(100vh-3rem)]">
         <div className={`px-6 pt-6 pb-5 text-center ${isConfirmed ? 'bg-green-50' : 'bg-blue-50'}`}>
           <div className={`w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3 ${isConfirmed ? 'bg-green-100' : 'bg-blue-100'}`}>
             {isConfirmed
