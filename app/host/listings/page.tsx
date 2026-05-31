@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Plus, Star, Eye, Share2, Check } from 'lucide-react';
+import { Plus, Star, Eye, Share2, Check, Pencil } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, generateShareLink } from '@/lib/store';
 import { Property } from '@/lib/types';
 
@@ -81,9 +81,15 @@ export default function HostListingsPage() {
                 {/* Thumbnail */}
                 <div className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden">
                   <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
-                  <span className="absolute top-1.5 right-1.5 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                    Actif
-                  </span>
+                  {property.isDraft === true || property.available === false ? (
+                    <span className="absolute top-1.5 right-1.5 bg-gray-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      Brouillon
+                    </span>
+                  ) : (
+                    <span className="absolute top-1.5 right-1.5 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
+                      Actif
+                    </span>
+                  )}
                 </div>
 
                 {/* Info */}
@@ -109,6 +115,14 @@ export default function HostListingsPage() {
                 >
                   <Eye size={15} />
                   Voir
+                </Link>
+                <div className="w-px bg-gray-100" />
+                <Link
+                  href={`/host/edit/${property.id}`}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                >
+                  <Pencil size={15} />
+                  Modifier
                 </Link>
                 <div className="w-px bg-gray-100" />
                 <button

@@ -256,19 +256,6 @@ export default function Header() {
             </datalist>
           </form>
 
-          {/* Role badge */}
-          {user && (
-            <div className="flex items-center gap-3 px-4 py-2 mb-3 bg-gray-50 rounded-xl">
-              <img src={user.avatar} alt={user.name} className="w-9 h-9 rounded-full object-cover shrink-0" />
-              <div>
-                <p className="font-semibold text-gray-900 text-sm">{user.name}</p>
-                <span className={`text-xs font-medium ${user.role === 'host' ? 'text-[#0F4C8A]' : 'text-gray-500'}`}>
-                  {user.role === 'host' ? 'Hôte' : 'Voyageur'}
-                </span>
-              </div>
-            </div>
-          )}
-
           <nav className="flex flex-col gap-1">
             {navLinks.map((link) => (
               <Link key={`${link.href}-${link.label}`} href={link.href} onClick={() => setMenuOpen(false)} className={mobileNavClass(link.href)}>
@@ -276,41 +263,16 @@ export default function Header() {
                 {link.label}
               </Link>
             ))}
-
-            {user?.role === 'host' && (
-              <Link
-                href="/host/submit"
-                onClick={() => setMenuOpen(false)}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors ${
-                  pathname === '/host/submit' ? 'bg-[#0F4C8A] text-white' : 'bg-[#E8F0FB] text-[#0F4C8A] hover:bg-[#d0e3f8]'
-                }`}
-              >
-                <Plus size={18} />
-                Publier un logement
-              </Link>
-            )}
           </nav>
 
-          {user ? (
-            <div className="mt-4 pt-4 border-t border-gray-200 space-y-1">
-              <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors w-full">
-                <ArrowLeftRight size={18} className="text-[#0F4C8A]" />
-                Passer en mode {user.role === 'host' ? 'Voyageur' : 'Hôte'}
-              </button>
-              <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-600 font-medium hover:bg-red-50 transition-colors w-full">
-                <LogOut size={18} /> Se déconnecter
-              </button>
-            </div>
-          ) : (
-            <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
-              <Link href="/login" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                Connexion
-              </Link>
-              <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors">
-                S&apos;inscrire
-              </Link>
-            </div>
-          )}
+          <div className="flex gap-3 mt-4 pt-4 border-t border-gray-200">
+            <Link href="/login" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              Connexion
+            </Link>
+            <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors">
+              S&apos;inscrire
+            </Link>
+          </div>
         </div>
       )}
     </header>

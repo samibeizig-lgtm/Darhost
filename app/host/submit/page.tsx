@@ -130,6 +130,7 @@ function compressPhoto(file: File): Promise<string> {
 }
 
 export default function HostSubmitPage() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(INITIAL);
   const [submitted, setSubmitted] = useState(false);
@@ -172,18 +173,8 @@ export default function HostSubmitPage() {
     set('customRules', form.customRules.filter((_, idx) => idx !== i));
   }
 
-  async function handleSubmit() {
-    const seed = Date.now();
-    const images = form.photos.length > 0
-      ? await Promise.all(form.photos.map(compressPhoto))
-      : [
-          `https://picsum.photos/seed/${seed}/800/600`,
-          `https://picsum.photos/seed/${seed + 1}/800/600`,
-          `https://picsum.photos/seed/${seed + 2}/800/600`,
-          `https://picsum.photos/seed/${seed + 3}/800/600`,
-          `https://picsum.photos/seed/${seed + 4}/800/600`,
-        ];
-    const newProperty: Property = {
+  async function buildProperty(seed: number, images: string[], overrides: Partial<Property> = {}): Promise<Property> {
+    return {
       id: `user-${seed}`,
       title: form.title,
       type: (form.type as PropertyType) || 'Maison',
@@ -225,7 +216,39 @@ export default function HostSubmitPage() {
       reviews: [],
       minNights: Number(form.minNights) || 1,
       available: true,
+      ...overrides,
     };
+  }
+
+  async function handleDraft() {
+    const seed = Date.now();
+    const images = form.photos.length > 0
+      ? await Promise.all(form.photos.map(compressPhoto))
+      : [
+          `https://picsum.photos/seed/${seed}/800/600`,
+          `https://picsum.photos/seed/${seed + 1}/800/600`,
+          `https://picsum.photos/seed/${seed + 2}/800/600`,
+          `https://picsum.photos/seed/${seed + 3}/800/600`,
+          `https://picsum.photos/seed/${seed + 4}/800/600`,
+        ];
+    const draftProperty = await buildProperty(seed, images, { available: false, isDraft: true });
+    addSubmittedProperty(draftProperty);
+    await savePropertyRemote(draftProperty);
+    router.push('/host/listings');
+  }
+
+  async function handleSubmit() {
+    const seed = Date.now();
+    const images = form.photos.length > 0
+      ? await Promise.all(form.photos.map(compressPhoto))
+      : [
+          `https://picsum.photos/seed/${seed}/800/600`,
+          `https://picsum.photos/seed/${seed + 1}/800/600`,
+          `https://picsum.photos/seed/${seed + 2}/800/600`,
+          `https://picsum.photos/seed/${seed + 3}/800/600`,
+          `https://picsum.photos/seed/${seed + 4}/800/600`,
+        ];
+    const newProperty = await buildProperty(seed, images);
     addSubmittedProperty(newProperty);
     await savePropertyRemote(newProperty);
 
@@ -971,13 +994,21 @@ export default function HostSubmitPage() {
             <ChevronRight size={18} />
           </button>
         ) : (
-          <button
-            onClick={handleSubmit}
-            className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors"
-          >
-            <Check size={18} />
-            Soumettre l&apos;annonce
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleDraft}
+              className="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
+            >
+              Enregistrer
+            </button>
+            <button
+              onClick={handleSubmit}
+              className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors"
+            >
+              <Check size={18} />
+              Publier sur DarHost
+            </button>
+          </div>
         )}
       </div>
     </div>
