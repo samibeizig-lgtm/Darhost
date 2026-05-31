@@ -18,7 +18,7 @@ export default function HostListingsPage() {
     if (!user) { router.push('/login?redirect=/host/listings'); return; }
     if (user.role !== 'host') { router.push('/'); return; }
     syncPropertiesFromRemote().then((props) => {
-      setProperties(props);
+      setProperties(props.filter(p => p.host?.id === user.id));
       setLoading(false);
     });
   }, [router]);

@@ -104,7 +104,7 @@ function EditListingInner() {
     if (!id) { setNotFound(true); return; }
 
     const all = getSubmittedProperties();
-    const found = all.find((p) => p.id === id);
+    const found = all.find((p) => p.id === id && p.host?.id === user.id);
     if (!found) { setNotFound(true); return; }
 
     setProperty(found);

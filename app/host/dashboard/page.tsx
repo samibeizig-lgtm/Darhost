@@ -83,8 +83,9 @@ export default function HostDashboardPage() {
     setHostName(user.name.split(' ')[0]);
     cancelExpiredBookings();
     Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
-      setProperties(props);
-      const myIds = new Set(props.map(p => p.id));
+      const myProps = props.filter(p => p.host?.id === user.id);
+      setProperties(myProps);
+      const myIds = new Set(myProps.map(p => p.id));
       const confirmed = allBookings
         .filter(b => b.status === 'confirmed' && myIds.has(b.propertyId))
         .map(bookingToReservation);
