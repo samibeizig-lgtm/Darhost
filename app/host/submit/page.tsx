@@ -7,6 +7,7 @@ import {
   Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
 import { getUser, addSubmittedProperty, savePropertyRemote, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';

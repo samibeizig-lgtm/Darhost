@@ -14,12 +14,12 @@ function DarHostLogo() {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0">
       <svg width="34" height="42" viewBox="0 0 34 42" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M1 42V17C1 7.611 8.163 1 17 1C25.837 1 33 7.611 33 17V42H1Z" fill="#0F4C8A" />
+        <path d="M1 42V17C1 7.611 8.163 1 17 1C25.837 1 33 7.611 33 17V42H1Z" fill="#87CEEB" />
         <path d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z" fill="white" />
-        <circle cx="21" cy="32" r="1.8" fill="#0F4C8A" />
+        <circle cx="21" cy="32" r="1.8" fill="#87CEEB" />
         <circle cx="17" cy="6" r="2" fill="white" opacity="0.5" />
       </svg>
-      <span className="text-2xl font-bold text-[#0F4C8A] tracking-tight">DarHost</span>
+      <span className="text-2xl font-bold text-[#87CEEB] tracking-tight">DarHost</span>
     </Link>
   );
 }
@@ -221,19 +221,21 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMenuOpen(!menuOpen)}
-            className="md:hidden p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
-            aria-label="Menu"
-          >
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
+          {/* Mobile hamburger — only for non-logged-in users */}
+          {!user && (
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className="md:hidden p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+              aria-label="Menu"
+            >
+              {menuOpen ? <X size={24} /> : <Menu size={24} />}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Mobile menu */}
-      {menuOpen && (
+      {/* Mobile menu — only for non-logged-in users */}
+      {!user && menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
           {/* Mobile search */}
           <form

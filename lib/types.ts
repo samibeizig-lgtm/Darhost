@@ -50,6 +50,7 @@ export interface Property {
   createdAt?: number;
   minNights: number;
   available: boolean;
+  isDraft?: boolean;
   lat?: number;
   lng?: number;
 }
