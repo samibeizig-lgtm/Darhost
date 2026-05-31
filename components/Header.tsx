@@ -10,15 +10,38 @@ import {
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
 
+const TEAL = 'rgb(10, 186, 181)';
+
+// House-window SVG (birdhouse: arch roof + rounded body + circular window)
+function HouseIcon({ className = '' }: { className?: string }) {
+  return (
+    <svg
+      width="28"
+      height="28"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="white"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Arch roof */}
+      <path d="M4 12C4 7.582 7.582 4 12 4C16.418 4 20 7.582 20 12" />
+      {/* Rounded body */}
+      <rect x="4" y="11.5" width="16" height="9.5" rx="2.5" />
+      {/* Circular window */}
+      <circle cx="12" cy="16.5" r="2" />
+    </svg>
+  );
+}
+
 function DarHostLogo() {
   return (
-    <Link href="/" className="flex items-center shrink-0">
-      <span
-        style={{ background: 'rgb(10, 186, 181)' }}
-        className="text-white font-extrabold text-xl tracking-tight px-3 py-1.5 rounded-xl"
-      >
-        Hostn
-      </span>
+    <Link href="/" className="flex items-center gap-2 shrink-0">
+      <HouseIcon />
+      <span className="text-white font-extrabold text-xl tracking-tight">Hostn</span>
     </Link>
   );
 }
@@ -95,7 +118,7 @@ export default function Header() {
   function navClass(href: string) {
     const active = pathname === href || (href !== '/' && pathname.startsWith(href));
     return `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-      active ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'text-gray-600 hover:bg-gray-100'
+      active ? 'bg-white/25 text-white' : 'text-white/85 hover:bg-white/15'
     }`;
   }
 
@@ -107,7 +130,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <header className="sticky top-0 z-50 shadow-md" style={{ background: TEAL }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <DarHostLogo />
@@ -115,7 +138,8 @@ export default function Header() {
           {/* Desktop search */}
           <form
             onSubmit={handleSearch}
-            className="hidden lg:flex items-center gap-3 border border-gray-300 rounded-full px-4 py-2 shadow-sm hover:shadow-md transition-shadow flex-1 max-w-md"
+            className="hidden lg:flex items-center gap-3 rounded-full px-4 py-2 flex-1 max-w-md transition-shadow"
+            style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.35)' }}
           >
             <input
               type="text"
@@ -123,18 +147,19 @@ export default function Header() {
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Où allez-vous ?"
               list="localities-desktop"
-              className="flex-1 text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent min-w-0"
+              className="flex-1 text-sm outline-none bg-transparent min-w-0 text-white placeholder-white/60"
             />
             <datalist id="localities-desktop">
               {localitesTunisie.map((l) => <option key={l} value={l} />)}
             </datalist>
-            <span className="w-px h-4 bg-gray-300 shrink-0" />
-            <span className="text-sm text-gray-400 shrink-0 hidden xl:block">Tunisie</span>
+            <span className="w-px h-4 shrink-0" style={{ background: 'rgba(255,255,255,0.35)' }} />
+            <span className="text-sm shrink-0 hidden xl:block text-white/70">Tunisie</span>
             <button
               type="submit"
-              className="w-8 h-8 bg-[#0F4C8A] rounded-full flex items-center justify-center hover:bg-[#0A3566] transition-colors shrink-0"
+              className="w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0"
+              style={{ background: 'white' }}
             >
-              <Search size={14} className="text-white" />
+              <Search size={14} style={{ color: TEAL }} />
             </button>
           </form>
 
@@ -147,14 +172,13 @@ export default function Header() {
               </Link>
             ))}
 
-            {/* Host: quick publish button */}
             {user?.role === 'host' && (
               <Link
                 href="/host/submit"
                 className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   pathname === '/host/submit'
-                    ? 'bg-[#0F4C8A] text-white'
-                    : 'bg-[#E8F0FB] text-[#0F4C8A] hover:bg-[#d0e3f8]'
+                    ? 'bg-white/40 text-white'
+                    : 'bg-white/20 text-white hover:bg-white/30'
                 }`}
               >
                 <Plus size={15} />
@@ -162,24 +186,26 @@ export default function Header() {
               </Link>
             )}
 
-            <div className="w-px h-6 bg-gray-200 mx-1" />
+            <div className="w-px h-6 mx-1" style={{ background: 'rgba(255,255,255,0.3)' }} />
 
             {user ? (
               <div className="relative" ref={dropdownRef}>
                 <button
                   onClick={() => setDropdownOpen(!dropdownOpen)}
-                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 border border-gray-200 rounded-full hover:shadow-md transition-shadow"
+                  className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-white/15 transition-colors"
+                  style={{ border: '1px solid rgba(255,255,255,0.4)' }}
                 >
                   <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-full object-cover shrink-0" />
                   <div className="hidden xl:flex flex-col items-start leading-none">
-                    <span className="text-xs font-semibold text-gray-800 max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
-                    <span className={`text-[10px] font-medium mt-0.5 ${user.role === 'host' ? 'text-[#0F4C8A]' : 'text-gray-400'}`}>
+                    <span className="text-xs font-semibold text-white max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
+                    <span className="text-[10px] font-medium mt-0.5 text-white/70">
                       {user.role === 'host' ? 'Hôte' : 'Voyageur'}
                     </span>
                   </div>
-                  <ChevronDown size={14} className="text-gray-500 shrink-0" />
+                  <ChevronDown size={14} className="text-white/70 shrink-0" />
                 </button>
 
+                {/* Dropdown — white bg for readability */}
                 {dropdownOpen && (
                   <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-2xl shadow-xl w-56 z-50 overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-100">
@@ -211,21 +237,21 @@ export default function Header() {
               </div>
             ) : (
               <>
-                <Link href="/login" className="px-4 py-2 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-100 transition-colors">
+                <Link href="/login" className="px-4 py-2 rounded-full text-sm font-medium text-white/90 hover:bg-white/15 transition-colors">
                   Connexion
                 </Link>
-                <Link href="/register" className="px-4 py-2 bg-[#0F4C8A] text-white text-sm font-medium rounded-full hover:bg-[#0A3566] transition-colors">
+                <Link href="/register" className="px-4 py-2 bg-white text-sm font-semibold rounded-full hover:bg-white/90 transition-colors" style={{ color: TEAL }}>
                   S&apos;inscrire
                 </Link>
               </>
             )}
           </nav>
 
-          {/* Mobile hamburger — only for non-logged-in users */}
+          {/* Mobile hamburger — only for non-logged-in */}
           {!user && (
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-full text-gray-600 hover:bg-gray-100 transition-colors"
+              className="md:hidden p-2 rounded-full text-white hover:bg-white/15 transition-colors"
               aria-label="Menu"
             >
               {menuOpen ? <X size={24} /> : <Menu size={24} />}
@@ -237,7 +263,6 @@ export default function Header() {
       {/* Mobile menu — only for non-logged-in users */}
       {!user && menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
-          {/* Mobile search */}
           <form
             onSubmit={handleSearch}
             className="flex items-center gap-3 border border-gray-300 rounded-full px-4 py-3 mb-4 shadow-sm"
@@ -269,7 +294,7 @@ export default function Header() {
             <Link href="/login" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
               Connexion
             </Link>
-            <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 bg-[#0F4C8A] text-white rounded-full text-sm font-medium hover:bg-[#0A3566] transition-colors">
+            <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity" style={{ background: TEAL }}>
               S&apos;inscrire
             </Link>
           </div>

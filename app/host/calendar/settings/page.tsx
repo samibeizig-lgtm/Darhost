@@ -60,7 +60,7 @@ function updatePropertyInStorage(id: string, updates: Partial<Property>) {
 
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-4 border-b border-gray-100 last:border-0">
+    <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100 last:border-0">
       <div className="flex-1 min-w-0">
         <div className="text-sm font-semibold text-gray-900">{label}</div>
         {hint && <div className="text-xs text-gray-500 mt-0.5">{hint}</div>}

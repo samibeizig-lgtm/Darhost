@@ -326,6 +326,8 @@ function PropertyCalendarInner() {
   const [hoverDate, setHoverDate] = useState<string | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
   const [pendingRange, setPendingRange] = useState<{ start: string; end: string } | null>(null);
+  const [modalTab, setModalTab] = useState<'avail' | 'prix'>('avail');
+  const [priceInput, setPriceInput] = useState('');
 
   const currentMonthRef = useRef<HTMLDivElement>(null);
   const today = new Date();
@@ -386,7 +388,7 @@ function PropertyCalendarInner() {
     };
     setCalData(next);
     saveCal(property.id, next);
-    setPendingRange(null);
+    closeModal();
   }
 
   function confirmUnblock() {
@@ -397,7 +399,29 @@ function PropertyCalendarInner() {
     };
     setCalData(next);
     saveCal(property.id, next);
+    closeModal();
+  }
+
+  function confirmPriceChange() {
+    if (!pendingRange || !property) return;
+    const dates = expandRange(pendingRange.start, pendingRange.end);
+    const overrides = { ...calData.priceOverrides };
+    const val = Number(priceInput);
+    if (priceInput && !isNaN(val) && val > 0) {
+      dates.forEach(d => { overrides[d] = val; });
+    } else {
+      dates.forEach(d => { delete overrides[d]; });
+    }
+    const next: CalendarData = { ...calData, priceOverrides: overrides };
+    setCalData(next);
+    saveCal(property.id, next);
+    closeModal();
+  }
+
+  function closeModal() {
     setPendingRange(null);
+    setPriceInput('');
+    setModalTab('avail');
   }
 
   if (!property) {
@@ -410,8 +434,8 @@ function PropertyCalendarInner() {
 
   return (
     <div className="max-w-2xl mx-auto" onMouseLeave={() => { if (isSelecting) setHoverDate(null); }}>
-      {/* Sticky header */}
-      <div className="sticky top-0 md:top-16 z-20 bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between shadow-sm">
+      {/* Sticky header — below the app header (h-16 = 64px = top-16) */}
+      <div className="sticky top-16 z-20 bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between shadow-sm">
         <button onClick={() => router.push('/host/calendar')} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-700" />
         </button>
@@ -429,9 +453,9 @@ function PropertyCalendarInner() {
         </button>
       </div>
 
-      {/* Selection banner */}
+      {/* Selection banner — below app header (64px) + calendar header (56px) = 120px */}
       {isSelecting && (
-        <div className="sticky top-14 md:top-30 z-10 bg-indigo-50 border-b border-indigo-200 px-4 py-2 flex items-center justify-between">
+        <div className="sticky top-[7.5rem] z-10 bg-indigo-50 border-b border-indigo-200 px-4 py-2 flex items-center justify-between">
           <p className="text-sm text-indigo-800">
             Depuis le <span className="font-bold">{formatDateFr(selStart!)}</span> — sélectionnez la fin
           </p>
@@ -478,27 +502,81 @@ function PropertyCalendarInner() {
       {/* Confirm modal */}
       {pendingRange && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center px-4 pb-4">
-          <div className="bg-white rounded-2xl w-full max-w-sm p-6 shadow-2xl">
-            <h3 className="font-bold text-gray-900 text-lg mb-1">Gérer cette période</h3>
-            <p className="text-sm text-gray-500 mb-6">
-              Du <strong>{formatDateFr(pendingRange.start)}</strong> au <strong>{formatDateFr(pendingRange.end)}</strong>
-            </p>
-            <div className="flex gap-3">
-              <button
-                onClick={confirmUnblock}
-                className="flex-1 py-3 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
-              >
-                Débloquer
-              </button>
-              <button
-                onClick={confirmBlock}
-                className="flex-1 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors"
-              >
-                Bloquer
-              </button>
+          <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
+            {/* Header */}
+            <div className="px-5 pt-5 pb-3">
+              <h3 className="font-bold text-gray-900 text-base">Gérer cette période</h3>
+              <p className="text-sm text-gray-500 mt-0.5">
+                Du <strong>{formatDateFr(pendingRange.start)}</strong> au <strong>{formatDateFr(pendingRange.end)}</strong>
+              </p>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex border-b border-gray-200 mx-5">
+              {(['avail', 'prix'] as const).map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setModalTab(tab)}
+                  className={`flex-1 py-2.5 text-sm font-semibold transition-colors border-b-2 -mb-px ${
+                    modalTab === tab
+                      ? 'border-[#0F4C8A] text-[#0F4C8A]'
+                      : 'border-transparent text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  {tab === 'avail' ? 'Disponibilité' : 'Prix'}
+                </button>
+              ))}
+            </div>
+
+            <div className="p-5">
+              {modalTab === 'avail' ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={confirmUnblock}
+                    className="flex-1 py-3 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Débloquer
+                  </button>
+                  <button
+                    onClick={confirmBlock}
+                    className="flex-1 py-3 bg-red-500 text-white rounded-xl text-sm font-bold hover:bg-red-600 transition-colors"
+                  >
+                    Bloquer
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-600 mb-1.5">
+                      Prix par nuit (DT) — prioritaire sur le prix de base
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        value={priceInput}
+                        onChange={e => setPriceInput(e.target.value)}
+                        placeholder="ex: 200"
+                        autoFocus
+                        className="flex-1 px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+                      />
+                      <span className="flex items-center text-sm text-gray-500 font-medium">DT</span>
+                    </div>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Laissez vide pour supprimer le prix personnalisé.
+                    </p>
+                  </div>
+                  <button
+                    onClick={confirmPriceChange}
+                    className="w-full py-3 bg-[#0F4C8A] text-white rounded-xl text-sm font-bold hover:bg-[#0A3566] transition-colors"
+                  >
+                    Appliquer le prix
+                  </button>
+                </div>
+              )}
             </div>
             <button
-              onClick={() => setPendingRange(null)}
+              onClick={closeModal}
               className="w-full mt-3 py-2 text-sm text-gray-400 hover:text-gray-600 transition-colors"
             >
               Annuler
