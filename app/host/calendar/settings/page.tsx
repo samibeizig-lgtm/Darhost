@@ -14,11 +14,14 @@ interface PropertySettings {
   minNights: number;
   bookingNotice: number;
   autoApprove: boolean;
+  cancellationPolicy: 'flexible' | 'moderate' | 'strict';
+  cancellationRetention: 25 | 50;
 }
 
 const EMPTY: PropertySettings = {
   basePrice: 0, cleaningFee: 0, weeklyDiscount: 0, monthlyDiscount: 0,
   minNights: 1, bookingNotice: 1, autoApprove: false,
+  cancellationPolicy: 'moderate', cancellationRetention: 25,
 };
 
 function loadSettings(id: string, prop: Property): PropertySettings {
@@ -36,6 +39,8 @@ function loadSettings(id: string, prop: Property): PropertySettings {
       minNights: base.minNights ?? prop.minNights ?? 1,
       bookingNotice: base.bookingNotice ?? 1,
       autoApprove: base.autoApprove ?? false,
+      cancellationPolicy: base.cancellationPolicy ?? prop.cancellationPolicy ?? 'moderate',
+      cancellationRetention: base.cancellationRetention ?? prop.cancellationRetention ?? 25,
     };
   } catch { return { ...EMPTY, basePrice: prop.price, cleaningFee: prop.cleaningFee, minNights: prop.minNights }; }
 }
@@ -147,6 +152,8 @@ function SettingsInner() {
       cleaningFee: form.cleaningFee,
       minNights: form.minNights,
       autoApprove: form.autoApprove,
+      cancellationPolicy: form.cancellationPolicy,
+      cancellationRetention: form.cancellationRetention,
     });
     await new Promise(r => setTimeout(r, 500));
     setSaving(false);
@@ -252,6 +259,70 @@ function SettingsInner() {
             >
               <Toggle checked={form.autoApprove} onChange={v => set('autoApprove', v)} />
             </FieldRow>
+          </div>
+        </div>
+
+        {/* Annulation */}
+        <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+          <div className="px-4 pt-4 pb-2">
+            <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Politique d&apos;annulation</h2>
+          </div>
+          <div className="px-4 pb-4 space-y-3">
+            {([
+              { value: 'flexible', label: 'Flexible', days: 2, desc: 'Remboursement intégral jusqu\'à 2 jours avant l\'arrivée' },
+              { value: 'moderate', label: 'Modérée', days: 7, desc: 'Remboursement intégral jusqu\'à 7 jours avant l\'arrivée' },
+              { value: 'strict', label: 'Stricte', days: 15, desc: 'Remboursement intégral jusqu\'à 15 jours avant l\'arrivée' },
+            ] as const).map(opt => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => set('cancellationPolicy', opt.value)}
+                className={`w-full flex items-start gap-3 p-3.5 border-2 rounded-xl text-left transition-all ${
+                  form.cancellationPolicy === opt.value
+                    ? 'border-[#0F4C8A] bg-[#E8F0FB]'
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+              >
+                <div className={`w-4 h-4 mt-0.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                  form.cancellationPolicy === opt.value ? 'border-[#0F4C8A]' : 'border-gray-300'
+                }`}>
+                  {form.cancellationPolicy === opt.value && (
+                    <div className="w-2 h-2 rounded-full bg-[#0F4C8A]" />
+                  )}
+                </div>
+                <div>
+                  <p className={`font-semibold text-sm ${form.cancellationPolicy === opt.value ? 'text-[#0F4C8A]' : 'text-gray-900'}`}>
+                    {opt.label} <span className="font-normal text-gray-400 text-xs">· {opt.days} jours</span>
+                  </p>
+                  <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                </div>
+              </button>
+            ))}
+
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-sm font-semibold text-gray-700 mb-2">
+                Retenue après délai d&apos;annulation gratuite
+              </p>
+              <div className="flex gap-2">
+                {([25, 50] as const).map(pct => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => set('cancellationRetention', pct)}
+                    className={`flex-1 py-2.5 border-2 rounded-xl font-bold text-sm transition-all ${
+                      form.cancellationRetention === pct
+                        ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A]'
+                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {pct}% retenu
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-1.5">
+                Pourcentage du montant total retenu si le voyageur annule après la période gratuite.
+              </p>
+            </div>
           </div>
         </div>
 

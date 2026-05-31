@@ -52,6 +52,8 @@ export interface Property {
   available: boolean;
   isDraft?: boolean;
   autoApprove?: boolean;
+  cancellationPolicy?: 'flexible' | 'moderate' | 'strict';
+  cancellationRetention?: 25 | 50;
   lat?: number;
   lng?: number;
 }

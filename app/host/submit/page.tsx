@@ -45,10 +45,105 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   mer: Anchor,
 };
 
-const AMENITIES = [
-  'WiFi', 'Piscine', 'Climatisation', 'Cuisine équipée', 'Parking', 'Terrasse',
-  'Jardin', 'Barbecue', 'Lave-linge', 'Télévision', 'Cheminée', 'Vue mer',
-  'Accès plage', 'Ascenseur', 'Sèche-linge', 'Fer à repasser', 'Bureau de travail',
+interface AmenityItem { id: string; emoji: string; label: string; }
+interface AmenityCategory { label: string; items: AmenityItem[]; }
+
+const AMENITY_CATEGORIES: AmenityCategory[] = [
+  {
+    label: 'Connectivité & Divertissement',
+    items: [
+      { id: 'WiFi', emoji: '📶', label: 'WiFi' },
+      { id: 'Télévision', emoji: '📺', label: 'Télévision' },
+      { id: 'TV câblée / satellite', emoji: '📡', label: 'TV câblée / satellite' },
+      { id: 'Bureau de travail', emoji: '💻', label: 'Bureau de travail' },
+      { id: 'Système audio', emoji: '🔊', label: 'Système audio' },
+      { id: 'Console de jeux', emoji: '🎮', label: 'Console de jeux' },
+    ],
+  },
+  {
+    label: 'Confort climatique',
+    items: [
+      { id: 'Climatisation', emoji: '❄️', label: 'Climatisation' },
+      { id: 'Chauffage', emoji: '🌡️', label: 'Chauffage' },
+      { id: 'Ventilateur', emoji: '🌀', label: 'Ventilateur' },
+      { id: 'Cheminée', emoji: '🪵', label: 'Cheminée' },
+    ],
+  },
+  {
+    label: 'Cuisine & Électroménager',
+    items: [
+      { id: 'Cuisine équipée', emoji: '🍳', label: 'Cuisine équipée' },
+      { id: 'Plaques de cuisson', emoji: '🔥', label: 'Plaques de cuisson' },
+      { id: 'Four', emoji: '🫓', label: 'Four' },
+      { id: 'Micro-ondes', emoji: '📟', label: 'Micro-ondes' },
+      { id: 'Cafetière', emoji: '☕', label: 'Cafetière' },
+      { id: 'Bouilloire', emoji: '🫖', label: 'Bouilloire' },
+      { id: 'Réfrigérateur', emoji: '🧊', label: 'Réfrigérateur' },
+      { id: 'Congélateur', emoji: '🫙', label: 'Congélateur' },
+      { id: 'Lave-vaisselle', emoji: '🍽️', label: 'Lave-vaisselle' },
+      { id: 'Grille-pain', emoji: '🍞', label: 'Grille-pain' },
+      { id: 'Mixeur / Blender', emoji: '🥤', label: 'Mixeur / Blender' },
+    ],
+  },
+  {
+    label: 'Linge & Entretien',
+    items: [
+      { id: 'Lave-linge', emoji: '🧺', label: 'Lave-linge' },
+      { id: 'Sèche-linge', emoji: '🌀', label: 'Sèche-linge' },
+      { id: 'Fer à repasser', emoji: '👔', label: 'Fer à repasser' },
+      { id: 'Sèche-cheveux', emoji: '💨', label: 'Sèche-cheveux' },
+      { id: 'Matériel de nettoyage', emoji: '🧹', label: 'Matériel de nettoyage' },
+      { id: 'Produits de salle de bain', emoji: '🧴', label: 'Produits de salle de bain' },
+      { id: 'Linge de lit fourni', emoji: '🛏️', label: 'Linge de lit fourni' },
+      { id: 'Serviettes fournies', emoji: '🏖️', label: 'Serviettes fournies' },
+    ],
+  },
+  {
+    label: 'Détente & Bien-être',
+    items: [
+      { id: 'Piscine', emoji: '🏊', label: 'Piscine' },
+      { id: 'Jacuzzi / Bain à remous', emoji: '🛁', label: 'Jacuzzi / Bain à remous' },
+      { id: 'Hammam / Sauna', emoji: '🧖', label: 'Hammam / Sauna' },
+      { id: 'Salle de sport', emoji: '🏋️', label: 'Salle de sport' },
+      { id: 'Billard', emoji: '🎱', label: 'Billard' },
+      { id: 'Ping-pong', emoji: '🏓', label: 'Ping-pong' },
+    ],
+  },
+  {
+    label: 'Extérieur & Parking',
+    items: [
+      { id: 'Jardin', emoji: '🌿', label: 'Jardin' },
+      { id: 'Terrasse', emoji: '🪴', label: 'Terrasse / Balcon' },
+      { id: 'Barbecue', emoji: '🍖', label: 'Barbecue' },
+      { id: 'Vue mer', emoji: '🌊', label: 'Vue mer' },
+      { id: 'Vue montagne', emoji: '⛰️', label: 'Vue montagne' },
+      { id: 'Accès plage', emoji: '🏖️', label: 'Accès plage' },
+      { id: 'Parking gratuit', emoji: '🅿️', label: 'Parking gratuit' },
+      { id: 'Garage', emoji: '🚗', label: 'Garage' },
+    ],
+  },
+  {
+    label: 'Sécurité',
+    items: [
+      { id: 'Détecteur de fumée', emoji: '🚨', label: 'Détecteur de fumée' },
+      { id: 'Extincteur', emoji: '🧯', label: 'Extincteur' },
+      { id: 'Trousse de premiers secours', emoji: '🩺', label: 'Trousse de secours' },
+      { id: 'Détecteur CO', emoji: '⚠️', label: 'Détecteur de CO' },
+      { id: 'Serrure connectée', emoji: '🔐', label: 'Serrure connectée' },
+      { id: 'Caméra de sécurité', emoji: '📹', label: 'Caméra extérieure' },
+    ],
+  },
+  {
+    label: 'Accessibilité & Services',
+    items: [
+      { id: 'Ascenseur', emoji: '🛗', label: 'Ascenseur' },
+      { id: 'Accès PMR', emoji: '♿', label: 'Accès PMR' },
+      { id: 'Lit bébé', emoji: '👶', label: 'Lit bébé' },
+      { id: 'Chaise haute bébé', emoji: '🪑', label: 'Chaise haute bébé' },
+      { id: 'Animaux acceptés', emoji: '🐾', label: 'Animaux acceptés' },
+      { id: 'Consigne à bagages', emoji: '🎒', label: 'Consigne à bagages' },
+    ],
+  },
 ];
 
 interface FormData {
@@ -83,6 +178,8 @@ interface FormData {
   idFront: File | null;
   idBack: File | null;
   selfie: File | null;
+  cancellationPolicy: 'flexible' | 'moderate' | 'strict';
+  cancellationRetention: 25 | 50;
 }
 
 const INITIAL: FormData = {
@@ -96,6 +193,7 @@ const INITIAL: FormData = {
   customRules: [],
   bankHolder: '', bankName: '', rib: '',
   idFront: null, idBack: null, selfie: null,
+  cancellationPolicy: 'moderate', cancellationRetention: 25,
 };
 
 function compressPhoto(file: File): Promise<string> {
@@ -229,6 +327,8 @@ export default function HostSubmitPage() {
       reviews: [],
       minNights: Number(form.minNights) || 1,
       available: true,
+      cancellationPolicy: form.cancellationPolicy,
+      cancellationRetention: form.cancellationRetention,
       ...overrides,
     };
   }
@@ -672,21 +772,36 @@ export default function HostSubmitPage() {
         {step === 5 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Quels équipements proposez-vous ?</h2>
-            <p className="text-gray-500 text-sm mb-6">Sélectionnez tous les équipements disponibles dans votre logement.</p>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {AMENITIES.map((a) => (
-                <button
-                  key={a}
-                  onClick={() => toggleAmenity(a)}
-                  className={`flex items-center gap-2 px-4 py-3 border-2 rounded-xl text-sm text-left transition-all ${
-                    form.amenities.includes(a)
-                      ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A] font-medium'
-                      : 'border-gray-200 text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  {form.amenities.includes(a) && <Check size={15} className="shrink-0" />}
-                  {a}
-                </button>
+            <p className="text-gray-500 text-sm mb-5">Sélectionnez tous les équipements et services disponibles dans votre logement.</p>
+            <div className="space-y-6">
+              {AMENITY_CATEGORIES.map((cat) => (
+                <div key={cat.label}>
+                  <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">{cat.label}</h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {cat.items.map((item) => {
+                      const selected = form.amenities.includes(item.id);
+                      return (
+                        <button
+                          key={item.id}
+                          onClick={() => toggleAmenity(item.id)}
+                          className={`flex items-center gap-3 px-4 py-3 border-2 rounded-xl text-sm text-left transition-all ${
+                            selected
+                              ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A] font-medium'
+                              : 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
+                          }`}
+                        >
+                          <span className="text-xl leading-none w-7 text-center">{item.emoji}</span>
+                          <span className="flex-1 leading-tight">{item.label}</span>
+                          <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
+                            selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'
+                          }`}>
+                            {selected && <Check size={12} className="text-white" />}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               ))}
             </div>
             <p className="text-sm text-gray-500 mt-4">
@@ -847,6 +962,67 @@ export default function HostSubmitPage() {
                   <Plus size={18} />
                 </button>
               </div>
+            </div>
+
+            {/* Cancellation policy */}
+            <div className="mt-6 pt-5 border-t border-gray-100">
+              <h3 className="text-base font-bold text-gray-900 mb-1">Politique d&apos;annulation</h3>
+              <p className="text-sm text-gray-500 mb-4">Définissez les conditions d&apos;annulation pour vos voyageurs.</p>
+              <div className="space-y-3 mb-5">
+                {([
+                  { value: 'flexible', label: 'Flexible', days: 2, desc: 'Remboursement intégral jusqu\'à 2 jours avant l\'arrivée' },
+                  { value: 'moderate', label: 'Modérée', days: 7, desc: 'Remboursement intégral jusqu\'à 7 jours avant l\'arrivée' },
+                  { value: 'strict', label: 'Stricte', days: 15, desc: 'Remboursement intégral jusqu\'à 15 jours avant l\'arrivée' },
+                ] as const).map(opt => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => set('cancellationPolicy', opt.value)}
+                    className={`w-full flex items-start gap-3 p-4 border-2 rounded-xl text-left transition-all ${
+                      form.cancellationPolicy === opt.value
+                        ? 'border-[#0F4C8A] bg-[#E8F0FB]'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 mt-0.5 rounded-full border-2 shrink-0 flex items-center justify-center ${
+                      form.cancellationPolicy === opt.value ? 'border-[#0F4C8A]' : 'border-gray-300'
+                    }`}>
+                      {form.cancellationPolicy === opt.value && (
+                        <div className="w-2 h-2 rounded-full bg-[#0F4C8A]" />
+                      )}
+                    </div>
+                    <div>
+                      <p className={`font-semibold text-sm ${form.cancellationPolicy === opt.value ? 'text-[#0F4C8A]' : 'text-gray-900'}`}>
+                        {opt.label} <span className="font-normal text-gray-400 text-xs">· {opt.days} jours</span>
+                      </p>
+                      <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              <label className="block text-sm font-semibold text-gray-700 mb-2">
+                Retenue en cas d&apos;annulation tardive
+              </label>
+              <div className="flex gap-3">
+                {([25, 50] as const).map(pct => (
+                  <button
+                    key={pct}
+                    type="button"
+                    onClick={() => set('cancellationRetention', pct)}
+                    className={`flex-1 py-3 border-2 rounded-xl font-bold text-sm transition-all ${
+                      form.cancellationRetention === pct
+                        ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A]'
+                        : 'border-gray-200 text-gray-700 hover:border-gray-300'
+                    }`}
+                  >
+                    {pct}% retenu
+                  </button>
+                ))}
+              </div>
+              <p className="text-xs text-gray-400 mt-2">
+                Pourcentage retenu si le voyageur annule après la période de remboursement gratuit.
+              </p>
             </div>
           </div>
         )}
