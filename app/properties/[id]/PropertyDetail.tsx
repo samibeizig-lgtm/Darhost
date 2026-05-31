@@ -325,6 +325,7 @@ export default function PropertyDetail({ id }: { id: string }) {
   const [liked, setLiked] = useState(false);
   const [property, setProperty] = useState<Property | null | undefined>(undefined);
   const [mobileBookingOpen, setMobileBookingOpen] = useState(false);
+  const [isOwnProperty, setIsOwnProperty] = useState(false);
 
   useEffect(() => {
     const mock = properties.find((p) => p.id === id);
@@ -332,6 +333,8 @@ export default function PropertyDetail({ id }: { id: string }) {
     const submitted = getSubmittedProperties();
     const found = submitted.find((p) => p.id === id);
     setProperty(found ?? null);
+    const user = getUser();
+    if (found && user && found.host.id === user.id) setIsOwnProperty(true);
   }, [id]);
 
   if (property === undefined) return null;
@@ -562,7 +565,14 @@ export default function PropertyDetail({ id }: { id: string }) {
                 <span className="text-2xl font-bold text-gray-900">{property.price} DT</span>
                 <span className="text-gray-500">/ nuit</span>
               </div>
-              <BookingForm property={property} />
+              {isOwnProperty ? (
+                <div className="flex items-center gap-2 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A] font-semibold">
+                  <Shield size={16} className="shrink-0" />
+                  C&apos;est votre annonce
+                </div>
+              ) : (
+                <BookingForm property={property} />
+              )}
             </div>
           </div>
         </div>
@@ -577,16 +587,23 @@ export default function PropertyDetail({ id }: { id: string }) {
             · <Star size={11} className="inline fill-gray-400 text-gray-400 -mt-0.5" /> {property.rating}
           </span>
         </div>
-        <button
-          onClick={() => setMobileBookingOpen(true)}
-          className="px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-bold text-sm hover:bg-[#0A3566] transition-colors"
-        >
-          Réserver
-        </button>
+        {isOwnProperty ? (
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-[#0F4C8A] bg-[#E8F0FB] px-3 py-2 rounded-xl">
+            <Shield size={13} />
+            Votre annonce
+          </span>
+        ) : (
+          <button
+            onClick={() => setMobileBookingOpen(true)}
+            className="px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-bold text-sm hover:bg-[#0A3566] transition-colors"
+          >
+            Réserver
+          </button>
+        )}
       </div>
 
       {/* Mobile booking bottom sheet */}
-      {mobileBookingOpen && (
+      {mobileBookingOpen && !isOwnProperty && (
         <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileBookingOpen(false)} />
           <div className="relative bg-white rounded-t-3xl shadow-2xl overflow-y-auto max-h-[92vh]">

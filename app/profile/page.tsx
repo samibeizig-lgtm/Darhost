@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Camera, MapPin, Save, Check, Plus, ShieldCheck, Building2, Upload, AlertCircle } from 'lucide-react';
+import { Star, Camera, MapPin, Save, Check, Plus, ShieldCheck, Building2, Upload, AlertCircle, Trash2 } from 'lucide-react';
 import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
@@ -620,6 +620,43 @@ export default function ProfilePage() {
           )}
         </div>
       )}
+
+      {/* ── Reset all data ── */}
+      <div className="bg-white border border-red-100 rounded-2xl p-6 sm:p-8 mt-6 mb-10 shadow-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0">
+            <Trash2 size={20} className="text-red-500" />
+          </div>
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Réinitialisation</h2>
+            <p className="text-xs text-red-500 font-medium">Efface tous les comptes, annonces et réservations</p>
+          </div>
+        </div>
+        <p className="text-sm text-gray-500 mb-5">
+          Supprime toutes les données locales (comptes, annonces, réservations, paramètres).
+          Utile pour recommencer les tests depuis zéro.
+        </p>
+        <button
+          onClick={() => {
+            if (!confirm('Effacer toutes les données ? Cette action est irréversible.')) return;
+            const keys = [
+              'darhost_user', 'darhost_profile', 'darhost_host_bank',
+              'darhost_identity_status', 'darhost_identity_verified',
+              'darhost_submitted_properties', 'darhost_bookings',
+            ];
+            keys.forEach(k => localStorage.removeItem(k));
+            // Remove all per-property settings/calendar keys
+            Object.keys(localStorage)
+              .filter(k => k.startsWith('darhost_settings_') || k.startsWith('darhost_calendar_'))
+              .forEach(k => localStorage.removeItem(k));
+            window.location.href = '/';
+          }}
+          className="flex items-center gap-2 px-5 py-3 bg-red-600 text-white rounded-xl font-semibold hover:bg-red-700 transition-colors text-sm"
+        >
+          <Trash2 size={15} />
+          Tout réinitialiser
+        </button>
+      </div>
     </div>
   );
 }
