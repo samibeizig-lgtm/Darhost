@@ -47,3 +47,7 @@ body {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.emoji-blue {
+  filter: sepia(1) saturate(5) hue-rotate(195deg) brightness(0.75);
+}

@@ -8,6 +8,7 @@ import {
   getProfileData, setProfileData,
   getHostBank, setHostBank,
   getIdentityStatus, setIdentityStatus, submitIdentityForReview,
+  clearAllRemoteData,
   IdentityStatus,
   StoredUser,
 } from '@/lib/store';
@@ -251,13 +252,14 @@ export default function ProfilePage() {
           <p className="text-xs text-red-500 mt-0.5">Efface tous les comptes, annonces et réservations</p>
         </div>
         <button
-          onClick={() => {
+          onClick={async () => {
             if (!confirm('Effacer toutes les données ? Cette action est irréversible.')) return;
             ['darhost_user','darhost_accounts','darhost_profile','darhost_host_bank','darhost_identity_status','darhost_identity_verified','darhost_submitted_properties','darhost_bookings']
               .forEach(k => localStorage.removeItem(k));
             Object.keys(localStorage)
               .filter(k => k.startsWith('darhost_settings_') || k.startsWith('darhost_calendar_'))
               .forEach(k => localStorage.removeItem(k));
+            await clearAllRemoteData();
             window.location.href = '/';
           }}
           className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors"

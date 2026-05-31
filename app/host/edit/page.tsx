@@ -459,7 +459,7 @@ function EditListingInner() {
                             selected ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A] font-medium' : 'border-gray-200 text-gray-700 hover:border-gray-300'
                           }`}
                         >
-                          <span className="text-xl leading-none w-7 text-center grayscale">{item.emoji}</span>
+                          <span className="text-xl leading-none w-7 text-center emoji-blue">{item.emoji}</span>
                           <span className="flex-1 leading-tight">{item.label}</span>
                           <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'}`}>
                             {selected && <Check size={12} className="text-white" />}
@@ -614,7 +614,7 @@ function EditListingInner() {
               ] as const).map(({ key, label, emoji }) => (
                 <div key={key} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                   <span className="flex items-center gap-2.5 text-sm font-medium text-gray-800">
-                    <span className="grayscale text-base">{emoji}</span>
+                    <span className="emoji-blue text-base">{emoji}</span>
                     {label}
                   </span>
                   <button

@@ -161,6 +161,17 @@ export function isRemoteConnected(): boolean {
   return !!firebaseUrl;
 }
 
+export async function clearAllRemoteData(): Promise<void> {
+  if (!firebaseUrl) return;
+  try {
+    await Promise.all([
+      fetch(`${firebaseUrl}/annonces.json`, { method: 'DELETE' }),
+      fetch(`${firebaseUrl}/bookings.json`, { method: 'DELETE' }),
+      fetch(`${firebaseUrl}/identityRequests.json`, { method: 'DELETE' }),
+    ]);
+  } catch {}
+}
+
 export const isSupabaseConnected = isRemoteConnected;
 
 function stripBase64Images(property: Property): Property {

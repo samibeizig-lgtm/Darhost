@@ -661,7 +661,7 @@ export default function HostSubmitPage() {
                               : 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
                           }`}
                         >
-                          <span className="text-xl leading-none w-7 text-center grayscale">{item.emoji}</span>
+                          <span className="text-xl leading-none w-7 text-center emoji-blue">{item.emoji}</span>
                           <span className="flex-1 leading-tight">{item.label}</span>
                           <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                             selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'
