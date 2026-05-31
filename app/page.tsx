@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties, localitesTunisie } from '@/lib/data';
-import { syncPropertiesFromRemote } from '@/lib/store';
+import { syncPropertiesFromRemote, getUser } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 const categories = [
@@ -41,10 +41,15 @@ export default function Home() {
   const [featured, setFeatured] = useState<Property[]>(mockProperties.slice(0, 8));
 
   useEffect(() => {
+    // On mobile, redirect hosts directly to their dashboard
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      const u = getUser();
+      if (u?.role === 'host') { router.replace('/host/listings'); return; }
+    }
     syncPropertiesFromRemote().then((submitted) => {
       setFeatured([...submitted, ...mockProperties].slice(0, 8));
     });
-  }, []);
+  }, [router]);
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
