@@ -93,7 +93,6 @@ export const AMENITY_CATEGORIES: AmenityCategory[] = [
       { id: 'Accès PMR', emoji: '♿', label: 'Accès PMR' },
       { id: 'Lit bébé', emoji: '👶', label: 'Lit bébé' },
       { id: 'Chaise haute bébé', emoji: '🪑', label: 'Chaise haute bébé' },
-      { id: 'Animaux acceptés', emoji: '🐾', label: 'Animaux acceptés' },
       { id: 'Consigne à bagages', emoji: '🎒', label: 'Consigne à bagages' },
     ],
   },

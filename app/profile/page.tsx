@@ -1,13 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Camera, MapPin, Save, Check, Plus } from 'lucide-react';
+import { Star, Camera, MapPin, Save, Check, Plus, ShieldCheck, Building2, Upload, AlertCircle } from 'lucide-react';
 import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
+  getHostBank, setHostBank,
+  getIdentityVerified, setIdentityVerified,
   StoredUser,
 } from '@/lib/store';
+import { TUNISIAN_BANKS, validateRib, formatRibDisplay } from '@/lib/banks';
 
 const HOBBIES_LIST = [
   'Voyages', 'Cuisine', 'Sport', 'Lecture', 'Musique', 'Cinéma',
@@ -50,6 +53,22 @@ export default function ProfilePage() {
   });
   const [selectedHobbies, setSelectedHobbies] = useState<string[]>([]);
 
+  // Bank state
+  const [bankForm, setBankForm] = useState({ bankHolder: '', bankName: '', rib: '' });
+  const [ribError, setRibError] = useState('');
+  const [bankSaved, setBankSaved] = useState(false);
+  const [bankSaving, setBankSaving] = useState(false);
+
+  // Identity verification state
+  const [idVerified, setIdVerified] = useState(false);
+  const [idFront, setIdFront] = useState('');
+  const [idBack, setIdBack] = useState('');
+  const [selfie, setSelfie] = useState('');
+  const [idSaved, setIdSaved] = useState(false);
+  const idFrontRef = useRef<HTMLInputElement>(null);
+  const idBackRef = useRef<HTMLInputElement>(null);
+  const selfieRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     const u = getUser();
     if (!u) { router.push('/login?redirect=/profile'); return; }
@@ -70,6 +89,10 @@ export default function ProfilePage() {
     setSelectedHobbies(
       p.hobbies ? p.hobbies.split(',').map((h) => h.trim()).filter(Boolean) : []
     );
+
+    const bank = getHostBank();
+    setBankForm({ bankHolder: bank.bankHolder, bankName: bank.bankName, rib: bank.rib });
+    setIdVerified(getIdentityVerified());
   }, [router]);
 
   function toggleHobby(hobby: string) {
@@ -106,6 +129,55 @@ export default function ProfilePage() {
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     }, 600);
+  }
+
+  function handleRibChange(value: string) {
+    const digits = value.replace(/\D/g, '').slice(0, 20);
+    setBankForm(p => ({ ...p, rib: digits }));
+    if (digits.length === 20 && bankForm.bankName) {
+      const bank = TUNISIAN_BANKS.find(b => b.name === bankForm.bankName);
+      setRibError(bank ? (validateRib(digits, bank.code) ?? '') : '');
+    } else {
+      setRibError('');
+    }
+  }
+
+  function handleBankNameChange(name: string) {
+    setBankForm(p => ({ ...p, bankName: name }));
+    if (bankForm.rib.length === 20 && name) {
+      const bank = TUNISIAN_BANKS.find(b => b.name === name);
+      setRibError(bank ? (validateRib(bankForm.rib, bank.code) ?? '') : '');
+    } else {
+      setRibError('');
+    }
+  }
+
+  function handleBankSave() {
+    if (!bankForm.bankName) { setRibError('Choisissez votre banque avant'); return; }
+    const bank = TUNISIAN_BANKS.find(b => b.name === bankForm.bankName);
+    const err = bank ? validateRib(bankForm.rib, bank.code) : 'Banque introuvable';
+    if (err) { setRibError(err); return; }
+    setBankSaving(true);
+    setHostBank(bankForm);
+    setTimeout(() => { setBankSaving(false); setBankSaved(true); setTimeout(() => setBankSaved(false), 2500); }, 500);
+  }
+
+  function loadDoc(setter: (v: string) => void) {
+    return (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => setter(reader.result as string);
+      reader.readAsDataURL(file);
+    };
+  }
+
+  function handleVerifyIdentity() {
+    if (!idFront || !idBack || !selfie) return;
+    setIdentityVerified(true);
+    setIdVerified(true);
+    setIdSaved(true);
+    setTimeout(() => setIdSaved(false), 3000);
   }
 
   if (!user) return null;
@@ -352,6 +424,163 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      {/* ── Bank account (hosts only) ── */}
+      {user.role === 'host' && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-[#E8F0FB] rounded-xl flex items-center justify-center shrink-0">
+              <Building2 size={20} className="text-[#0F4C8A]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Paramètres de versement</h2>
+              <p className="text-xs text-gray-500">Coordonnées bancaires pour recevoir vos revenus</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Titulaire du compte</label>
+              <input
+                value={bankForm.bankHolder}
+                onChange={e => setBankForm(p => ({ ...p, bankHolder: e.target.value }))}
+                placeholder="Prénom et Nom du titulaire"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Banque</label>
+              <select
+                value={bankForm.bankName}
+                onChange={e => handleBankNameChange(e.target.value)}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
+              >
+                <option value="">Sélectionnez votre banque</option>
+                {TUNISIAN_BANKS.map(b => (
+                  <option key={b.code} value={b.name}>{b.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                RIB bancaire
+                <span className="text-gray-400 font-normal ml-2 text-xs">20 chiffres</span>
+              </label>
+              <input
+                value={formatRibDisplay(bankForm.rib)}
+                onChange={e => handleRibChange(e.target.value)}
+                placeholder="BB GGG AAAAAAAAAAAAA CC"
+                maxLength={24}
+                className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] font-mono ${
+                  ribError ? 'border-red-400 bg-red-50' : 'border-gray-300'
+                }`}
+              />
+              {ribError && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-xs text-red-600">
+                  <AlertCircle size={13} />
+                  {ribError}
+                </div>
+              )}
+              {!ribError && bankForm.rib.length === 20 && (
+                <div className="flex items-center gap-1.5 mt-1.5 text-xs text-green-600">
+                  <Check size={13} />
+                  RIB valide
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6">
+            <button
+              onClick={handleBankSave}
+              disabled={bankSaving}
+              className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-60 transition-colors"
+            >
+              {bankSaving ? (
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              ) : bankSaved ? (
+                <Check size={16} />
+              ) : (
+                <Save size={16} />
+              )}
+              {bankSaving ? 'Enregistrement...' : bankSaved ? 'Coordonnées enregistrées !' : 'Enregistrer'}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Identity verification (hosts only) ── */}
+      {user.role === 'host' && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 mb-10 shadow-sm">
+          <div className="flex items-center gap-3 mb-6">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${idVerified ? 'bg-green-100' : 'bg-amber-50'}`}>
+              <ShieldCheck size={20} className={idVerified ? 'text-green-600' : 'text-amber-500'} />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Vérification d&apos;identité</h2>
+              <p className={`text-xs font-semibold mt-0.5 ${idVerified ? 'text-green-600' : 'text-amber-500'}`}>
+                {idVerified ? 'Identité vérifiée' : 'Non vérifiée — requis pour publier une annonce'}
+              </p>
+            </div>
+          </div>
+
+          {idVerified ? (
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700">
+              <ShieldCheck size={18} className="shrink-0" />
+              Votre identité a été vérifiée avec succès. Vous pouvez publier des annonces.
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-gray-600 mb-5">
+                Téléversez les 3 documents suivants pour vérifier votre identité :
+              </p>
+              <div className="space-y-4">
+                {([
+                  { label: 'CIN recto', state: idFront, ref: idFrontRef, set: setIdFront },
+                  { label: 'CIN verso', state: idBack, ref: idBackRef, set: setIdBack },
+                  { label: 'Selfie avec CIN', state: selfie, ref: selfieRef, set: setSelfie },
+                ] as const).map(({ label, state, ref, set }) => (
+                  <div key={label} className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
+                        state ? 'border-green-500 bg-green-50' : 'border-gray-300'
+                      }`}>
+                        {state ? <Check size={14} className="text-green-600" /> : <Upload size={13} className="text-gray-400" />}
+                      </div>
+                      <span className="text-sm font-medium text-gray-800">{label}</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => ref.current?.click()}
+                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors ${
+                        state
+                          ? 'border-green-400 text-green-700 bg-green-50 hover:bg-green-100'
+                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      }`}
+                    >
+                      {state ? 'Modifier' : 'Téléverser'}
+                    </button>
+                    <input ref={ref} type="file" accept="image/*" className="hidden" onChange={loadDoc(set)} />
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-6">
+                <button
+                  onClick={handleVerifyIdentity}
+                  disabled={!idFront || !idBack || !selfie}
+                  className="flex items-center gap-2 px-6 py-3 bg-green-600 text-white rounded-xl font-semibold hover:bg-green-700 disabled:opacity-40 transition-colors"
+                >
+                  {idSaved ? <Check size={16} /> : <ShieldCheck size={16} />}
+                  {idSaved ? 'Identité vérifiée !' : 'Valider mon identité'}
+                </button>
+                {(!idFront || !idBack || !selfie) && (
+                  <p className="text-xs text-gray-400 mt-2">Téléversez les 3 documents pour continuer</p>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -2,15 +2,15 @@
 
 import { useState, useEffect } from 'react';
 import {
-  Check, ChevronRight, ChevronLeft, Upload, X, Plus, LogIn,
+  Check, ChevronRight, ChevronLeft, X, Plus, LogIn, Upload,
   Home, Building2, Landmark, Building, BedDouble,
-  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock, AlertCircle,
+  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
-import { TUNISIAN_BANKS, validateRib } from '@/lib/banks';
 import { AMENITY_CATEGORIES } from '@/lib/amenities';
+import { getIdentityVerified } from '@/lib/store';
 import { getUser, addSubmittedProperty, savePropertyRemote, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
@@ -22,9 +22,7 @@ const STEPS = [
   { n: 5, label: 'Équipements' },
   { n: 6, label: 'Tarification' },
   { n: 7, label: 'Règles' },
-  { n: 8, label: 'Compte bancaire' },
-  { n: 9, label: 'Identité' },
-  { n: 10, label: 'Récapitulatif' },
+  { n: 8, label: 'Récapitulatif' },
 ];
 
 const PROPERTY_TYPES = [
@@ -73,12 +71,6 @@ interface FormData {
   streetNumber: string;
   streetName: string;
   mapsLink: string;
-  bankHolder: string;
-  bankName: string;
-  rib: string;
-  idFront: File | null;
-  idBack: File | null;
-  selfie: File | null;
   cancellationPolicy: 'flexible' | 'moderate' | 'strict';
   cancellationRetention: 25 | 50;
 }
@@ -92,8 +84,6 @@ const INITIAL: FormData = {
   checkIn: '15:00', checkOut: '11:00',
   noSmoking: true, noParties: true, noPets: false, noNoise: true,
   customRules: [],
-  bankHolder: '', bankName: '', rib: '',
-  idFront: null, idBack: null, selfie: null,
   cancellationPolicy: 'moderate', cancellationRetention: 25,
 };
 
@@ -126,7 +116,6 @@ export default function HostSubmitPage() {
   const [newRule, setNewRule] = useState('');
   const [user, setUser] = useState<StoredUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
-  const [ribError, setRibError] = useState('');
 
   useEffect(() => {
     setUser(getUser());
@@ -148,30 +137,6 @@ export default function HostSubmitPage() {
       ? form.categories.filter((c) => c !== cat)
       : [...form.categories, cat]
     );
-  }
-
-  function handleRibChange(val: string) {
-    const digits = val.replace(/\D/g, '').slice(0, 20);
-    set('rib', digits);
-    if (!form.bankName) {
-      setRibError('Choisissez votre banque avant de saisir le RIB');
-      return;
-    }
-    if (digits.length === 20) {
-      const bank = TUNISIAN_BANKS.find(b => b.name === form.bankName);
-      if (bank) setRibError(validateRib(digits, bank.code) ?? '');
-    } else {
-      setRibError('');
-    }
-  }
-
-  function handleBankChange(name: string) {
-    set('bankName', name);
-    setRibError('');
-    if (form.rib.length === 20 && name) {
-      const bank = TUNISIAN_BANKS.find(b => b.name === name);
-      if (bank) setRibError(validateRib(form.rib, bank.code) ?? '');
-    }
   }
 
   function addCustomRule() {
@@ -252,6 +217,10 @@ export default function HostSubmitPage() {
   }
 
   async function handleSubmit() {
+    if (!getIdentityVerified()) {
+      alert("Votre identité doit être vérifiée avant de publier une annonce. Rendez-vous dans votre Profil → Vérification d'identité.");
+      return;
+    }
     const seed = Date.now();
     const images = form.photos.length > 0
       ? await Promise.all(form.photos.map(compressPhoto))
@@ -691,7 +660,7 @@ export default function HostSubmitPage() {
                               : 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
                           }`}
                         >
-                          <span className="text-xl leading-none w-7 text-center">{item.emoji}</span>
+                          <span className="text-xl leading-none w-7 text-center grayscale">{item.emoji}</span>
                           <span className="flex-1 leading-tight">{item.label}</span>
                           <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                             selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'
@@ -928,123 +897,8 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 8: Bank account */}
+        {/* Step 8: Review (old steps 8-9 moved to Profile) */}
         {step === 8 && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Compte bancaire</h2>
-            <p className="text-gray-500 text-sm mb-6">
-              Renseignez votre RIB pour recevoir vos paiements. Vos données sont chiffrées et sécurisées.
-            </p>
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nom du titulaire *</label>
-                <input
-                  value={form.bankHolder}
-                  onChange={(e) => set('bankHolder', e.target.value)}
-                  placeholder="Nom et prénom exacts du titulaire"
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Banque *</label>
-                <select
-                  value={form.bankName}
-                  onChange={(e) => handleBankChange(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
-                >
-                  <option value="">Sélectionner votre banque</option>
-                  {TUNISIAN_BANKS.map((b) => (
-                    <option key={b.code} value={b.name}>{b.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                  RIB (Relevé d&apos;Identité Bancaire) *
-                </label>
-                <input
-                  value={form.rib}
-                  onChange={(e) => handleRibChange(e.target.value)}
-                  placeholder="20 chiffres — ex : 03 001 0012345678901 65"
-                  maxLength={20}
-                  className={`w-full px-4 py-3 border rounded-xl text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] ${
-                    ribError ? 'border-red-400 bg-red-50' : form.rib.length === 20 ? 'border-green-400' : 'border-gray-300'
-                  }`}
-                />
-                <p className="text-xs text-gray-400 mt-1">
-                  Format : code banque (2) + agence (3) + compte (13) + clé (2) = 20 chiffres. Pas d&apos;IBAN (TN59...).
-                </p>
-                {ribError && (
-                  <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
-                    <AlertCircle size={12} className="shrink-0" />{ribError}
-                  </p>
-                )}
-                {!ribError && form.rib.length === 20 && (
-                  <p className="text-xs text-green-600 mt-1 flex items-center gap-1">
-                    <Check size={12} className="shrink-0" />RIB valide
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="mt-5 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A] flex items-start gap-2">
-              <Lock size={16} className="shrink-0 mt-0.5" />
-              <span>Vos informations bancaires sont chiffrées et ne sont jamais partagées avec des tiers.</span>
-            </div>
-          </div>
-        )}
-
-        {/* Step 9: Identity */}
-        {step === 9 && (
-          <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">Vérification d&apos;identité</h2>
-            <p className="text-gray-500 text-sm mb-6">
-              Pour garantir la sécurité de notre communauté, nous devons vérifier votre identité.
-              Vos documents sont traités de manière confidentielle.
-            </p>
-            <div className="space-y-5">
-              {[
-                { key: 'idFront', label: 'Carte d\'Identité Nationale — Recto *', desc: 'Cliquez pour télécharger le recto de votre CIN' },
-                { key: 'idBack', label: 'Carte d\'Identité Nationale — Verso *', desc: 'Cliquez pour télécharger le verso de votre CIN' },
-                { key: 'selfie', label: 'Selfie tenant votre CIN *', desc: 'Photo de vous tenant votre CIN à côté de votre visage' },
-              ].map(({ key, label, desc }) => {
-                const file = form[key as 'idFront' | 'idBack' | 'selfie'];
-                return (
-                  <div key={key}>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">{label}</label>
-                    <label className={`block border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-colors ${
-                      file ? 'border-green-400 bg-green-50' : 'border-gray-300 hover:border-[#0F4C8A]'
-                    }`}>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => set(key as keyof FormData, e.target.files?.[0] ?? null)}
-                      />
-                      {file ? (
-                        <div>
-                          <Check size={24} className="mx-auto text-green-500 mb-1" />
-                          <p className="text-sm font-medium text-green-700">{(file as File).name}</p>
-                        </div>
-                      ) : (
-                        <div>
-                          <Upload size={24} className="mx-auto text-gray-400 mb-1" />
-                          <p className="text-sm text-gray-600">{desc}</p>
-                        </div>
-                      )}
-                    </label>
-                  </div>
-                );
-              })}
-            </div>
-            <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-700 flex items-start gap-2">
-              <Lock size={16} className="shrink-0 mt-0.5" />
-              <span>La vérification d&apos;identité prend généralement <strong>24 à 48 heures</strong>. Vous serez notifié par e-mail.</span>
-            </div>
-          </div>
-        )}
-
-        {/* Step 10: Review */}
-        {step === 10 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Récapitulatif</h2>
             <p className="text-gray-500 text-sm mb-6">Vérifiez toutes les informations avant de soumettre votre annonce.</p>
@@ -1055,15 +909,13 @@ export default function HostSubmitPage() {
                 { label: 'Catégories', value: form.categories.length > 0 ? form.categories.map(c => CATEGORIES.find(cat => cat.value === c)?.label).join(', ') : '—' },
                 { label: 'Localisation', value: form.wilaya && form.address ? `${form.streetNumber ? form.streetNumber + ' ' : ''}${form.streetName ? form.streetName + ', ' : ''}${form.address}, ${form.wilaya}` : '—' },
                 { label: 'Capacité', value: form.guests ? `${form.guests} voyageurs, ${form.bedrooms} chambre(s), ${form.beds} lit(s), ${form.bathrooms} salle(s) de bain` : '—' },
-                { label: 'Titre de l\'annonce', value: form.title || '—' },
+                { label: "Titre de l'annonce", value: form.title || '—' },
                 { label: 'Photos', value: form.photos.length > 0 ? `${form.photos.length} photo(s)` : '—' },
-                { label: 'Équipements', value: form.amenities.length > 0 ? form.amenities.join(', ') : '—' },
+                { label: 'Équipements', value: form.amenities.length > 0 ? `${form.amenities.length} sélectionné(s)` : '—' },
                 { label: 'Prix par nuit', value: form.pricePerNight ? `${form.pricePerNight} DT` : '—' },
                 { label: 'Frais de ménage', value: form.cleaningFee ? `${form.cleaningFee} DT` : '—' },
                 { label: 'Arrivée / Départ', value: `Après ${form.checkIn} — Avant ${form.checkOut}` },
-                { label: 'Banque', value: form.bankName || '—' },
-                { label: 'RIB', value: form.rib || '—' },
-                { label: 'Vérification identité', value: form.idFront && form.idBack && form.selfie ? '✓ Documents fournis' : '⚠️ Documents manquants' },
+                { label: "Politique d'annulation", value: form.cancellationPolicy === 'flexible' ? 'Flexible (2j)' : form.cancellationPolicy === 'moderate' ? 'Modérée (7j)' : 'Stricte (15j)' },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-start gap-4 py-3 border-b border-gray-100 last:border-0">
                   <span className="text-sm font-semibold text-gray-600 w-44 shrink-0">{label}</span>
@@ -1075,7 +927,6 @@ export default function HostSubmitPage() {
             <div className="mt-6 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A]">
               <p className="font-semibold mb-1">Ce qui se passe ensuite :</p>
               <ol className="list-decimal list-inside space-y-1 text-[#1A4EA1]">
-                <li>Vérification de votre identité (24–48h)</li>
                 <li>Examen de votre annonce par notre équipe</li>
                 <li>Publication et première réservation !</li>
               </ol>
@@ -1107,14 +958,14 @@ export default function HostSubmitPage() {
           <div className="flex flex-col items-end gap-2">
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors"
+              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-colors text-sm"
             >
-              <Check size={18} />
-              Publier sur Azday
+              <Check size={16} />
+              Publier
             </button>
             <button
               onClick={handleDraft}
-              className="flex items-center gap-2 px-6 py-2.5 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors text-sm"
+              className="flex items-center gap-2 px-4 py-2 border border-gray-300 text-gray-600 rounded-full text-xs hover:bg-gray-50 transition-colors"
             >
               Enregistrer le brouillon
             </button>

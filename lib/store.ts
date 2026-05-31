@@ -47,6 +47,34 @@ export function setProfileData(data: ProfileData): void {
   localStorage.setItem('darhost_profile', JSON.stringify(data));
 }
 
+// ── Host bank data ─────────────────────────────────────────────────────────────
+
+export interface HostBankData { bankHolder: string; bankName: string; rib: string; }
+const EMPTY_BANK: HostBankData = { bankHolder: '', bankName: '', rib: '' };
+
+export function getHostBank(): HostBankData {
+  if (typeof window === 'undefined') return EMPTY_BANK;
+  try {
+    const raw = localStorage.getItem('darhost_host_bank');
+    return raw ? { ...EMPTY_BANK, ...JSON.parse(raw) } : EMPTY_BANK;
+  } catch { return EMPTY_BANK; }
+}
+
+export function setHostBank(data: HostBankData): void {
+  localStorage.setItem('darhost_host_bank', JSON.stringify(data));
+}
+
+// ── Identity verification ──────────────────────────────────────────────────────
+
+export function getIdentityVerified(): boolean {
+  if (typeof window === 'undefined') return false;
+  return localStorage.getItem('darhost_identity_verified') === 'true';
+}
+
+export function setIdentityVerified(v: boolean): void {
+  localStorage.setItem('darhost_identity_verified', String(v));
+}
+
 export function getSubmittedProperties(): Property[] {
   if (typeof window === 'undefined') return [];
   try {

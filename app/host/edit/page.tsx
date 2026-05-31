@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Save, Check, ArrowLeft } from 'lucide-react';
+import { Save, Check, ArrowLeft, Plus, X } from 'lucide-react';
 import {
   getUser,
   getSubmittedProperties,
@@ -47,7 +47,15 @@ function EditListingInner() {
     beds: '',
     available: true,
     amenities: [] as string[],
+    checkIn: '15:00',
+    checkOut: '11:00',
+    noSmoking: true,
+    noParties: true,
+    noPets: false,
+    noNoise: true,
+    customRules: [] as string[],
   });
+  const [newRule, setNewRule] = useState('');
 
   useEffect(() => {
     const user = getUser();
@@ -73,8 +81,22 @@ function EditListingInner() {
       beds: String(found.beds),
       available: found.available,
       amenities: found.amenities ?? [],
+      checkIn: found.houseRules?.find(r => r.title === 'Arrivée')?.description?.replace('Après ', '') ?? '15:00',
+      checkOut: found.houseRules?.find(r => r.title === 'Départ')?.description?.replace('Avant ', '') ?? '11:00',
+      noSmoking: !!found.houseRules?.some(r => r.title === 'Pas de cigarette'),
+      noParties: !!found.houseRules?.some(r => r.title === 'Pas de fêtes'),
+      noPets: !!found.houseRules?.some(r => r.title === 'Animaux non admis'),
+      noNoise: !!found.houseRules?.some(r => r.title === 'Calme nocturne'),
+      customRules: found.houseRules?.filter(r => !['Arrivée','Départ','Pas de cigarette','Pas de fêtes','Animaux non admis','Calme nocturne'].includes(r.title)).map(r => r.title) ?? [],
     });
   }, [id, router]);
+
+  function addCustomRule() {
+    if (newRule.trim()) {
+      setForm(p => ({ ...p, customRules: [...p.customRules, newRule.trim()] }));
+      setNewRule('');
+    }
+  }
 
   function toggleAmenity(amenityId: string) {
     setForm(prev => ({
@@ -105,6 +127,15 @@ function EditListingInner() {
       available: form.available,
       isDraft: !form.available,
       amenities: form.amenities,
+      houseRules: [
+        { title: 'Arrivée', description: `Après ${form.checkIn}` },
+        { title: 'Départ', description: `Avant ${form.checkOut}` },
+        ...(form.noSmoking ? [{ title: 'Pas de cigarette', description: 'Interdit de fumer' }] : []),
+        ...(form.noParties ? [{ title: 'Pas de fêtes', description: "Pas d'événements" }] : []),
+        ...(form.noPets ? [{ title: 'Animaux non admis', description: "Pas d'animaux" }] : []),
+        ...(form.noNoise ? [{ title: 'Calme nocturne', description: 'Silence après 22h' }] : []),
+        ...form.customRules.map(r => ({ title: r, description: '' })),
+      ],
     };
 
     updateSubmittedProperty(updated);
@@ -272,7 +303,7 @@ function EditListingInner() {
                             : 'border-gray-200 text-gray-700 hover:border-gray-300'
                         }`}
                       >
-                        <span className="text-xl leading-none w-7 text-center">{item.emoji}</span>
+                        <span className="text-xl leading-none w-7 text-center grayscale">{item.emoji}</span>
                         <span className="flex-1 leading-tight">{item.label}</span>
                         <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                           selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'
@@ -285,6 +316,111 @@ function EditListingInner() {
                 </div>
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* House Rules */}
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
+          <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Règles de la maison</h2>
+
+          {/* Check-in / Check-out */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Arrivée (après)</label>
+              <select
+                value={form.checkIn}
+                onChange={e => setForm(p => ({ ...p, checkIn: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
+              >
+                {['12:00','13:00','14:00','15:00','16:00','17:00','18:00'].map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Départ (avant)</label>
+              <select
+                value={form.checkOut}
+                onChange={e => setForm(p => ({ ...p, checkOut: e.target.value }))}
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
+              >
+                {['08:00','09:00','10:00','11:00','12:00','13:00'].map(t => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Toggles */}
+          <div className="space-y-3">
+            {([
+              { key: 'noSmoking', label: 'Non fumeur', emoji: '🚭' },
+              { key: 'noParties', label: 'Pas de fêtes', emoji: '🎉' },
+              { key: 'noPets', label: 'Animaux non admis', emoji: '🐾' },
+              { key: 'noNoise', label: 'Calme nocturne (après 22h)', emoji: '🌙' },
+            ] as const).map(({ key, label, emoji }) => (
+              <div key={key} className="flex items-center justify-between py-2">
+                <span className="flex items-center gap-2 text-sm font-medium text-gray-800">
+                  <span className="grayscale">{emoji}</span>
+                  {label}
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={form[key]}
+                  onClick={() => setForm(p => ({ ...p, [key]: !p[key] }))}
+                  className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                    form[key] ? 'bg-[#0F4C8A]' : 'bg-gray-200'
+                  }`}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                      form[key] ? 'translate-x-5' : 'translate-x-0'
+                    }`}
+                  />
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Custom rules */}
+          <div>
+            <label className="block text-sm font-semibold text-gray-700 mb-2">Règles personnalisées</label>
+            {form.customRules.length > 0 && (
+              <div className="space-y-2 mb-3">
+                {form.customRules.map((rule, idx) => (
+                  <div key={idx} className="flex items-center justify-between gap-2 px-3 py-2 bg-gray-50 rounded-xl text-sm text-gray-700">
+                    <span className="flex-1">{rule}</span>
+                    <button
+                      type="button"
+                      onClick={() => setForm(p => ({ ...p, customRules: p.customRules.filter((_, i) => i !== idx) }))}
+                      className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+                    >
+                      <X size={14} className="text-gray-500" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <input
+                value={newRule}
+                onChange={e => setNewRule(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), addCustomRule())}
+                placeholder="ex: Pas de chaussures à l'intérieur"
+                className="flex-1 px-4 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
+              />
+              <button
+                type="button"
+                onClick={addCustomRule}
+                disabled={!newRule.trim()}
+                className="px-4 py-2.5 bg-[#0F4C8A] text-white rounded-xl text-sm font-semibold hover:bg-[#0A3566] disabled:opacity-40 transition-colors flex items-center gap-1.5"
+              >
+                <Plus size={15} />
+                Ajouter
+              </button>
+            </div>
           </div>
         </div>
 
