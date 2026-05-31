@@ -1,0 +1,274 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import {
+  TrendingUp, Home, LogIn, LogOut, Clock, Users, ChevronRight, Plus,
+} from 'lucide-react';
+import { getUser, syncPropertiesFromRemote } from '@/lib/store';
+import { Property } from '@/lib/types';
+
+const MONTHS_FR = [
+  'jan', 'fév', 'mars', 'avr', 'mai', 'juin',
+  'juil', 'août', 'sep', 'oct', 'nov', 'déc',
+];
+const MONTH_NAMES_FR = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+];
+
+interface Reservation {
+  id: string;
+  propertyId: string;
+  propertyTitle: string;
+  propertyImage: string;
+  guestName: string;
+  guestAvatar: string;
+  checkIn: string;
+  checkOut: string;
+  nights: number;
+  guests: number;
+  totalAmount: number;
+}
+
+function toStr(d: Date): string {
+  return d.toISOString().slice(0, 10);
+}
+
+function addDays(d: Date, n: number): Date {
+  const r = new Date(d);
+  r.setDate(r.getDate() + n);
+  return r;
+}
+
+function formatDate(s: string): string {
+  const [, m, d] = s.split('-').map(Number);
+  return `${d} ${MONTHS_FR[m - 1]}`;
+}
+
+function seedReservations(properties: Property[]): Reservation[] {
+  if (properties.length === 0) return [];
+  const today = new Date();
+
+  const mockGuests = [
+    { name: 'Amine Benzara', avatar: 'https://i.pravatar.cc/150?img=12' },
+    { name: 'Sonia Trabelsi', avatar: 'https://i.pravatar.cc/150?img=49' },
+    { name: 'Mehdi Khelifi', avatar: 'https://i.pravatar.cc/150?img=33' },
+    { name: 'Yasmine Ben Ali', avatar: 'https://i.pravatar.cc/150?img=47' },
+    { name: 'Karim Mansour', avatar: 'https://i.pravatar.cc/150?img=68' },
+  ];
+
+  const p = (i: number) => properties[i % properties.length];
+
+  const make = (
+    id: string, pi: number, gi: number,
+    checkIn: Date, checkOut: Date, guests: number,
+  ): Reservation => {
+    const prop = p(pi);
+    const nights = Math.round((checkOut.getTime() - checkIn.getTime()) / 86400000);
+    return {
+      id,
+      propertyId: prop.id,
+      propertyTitle: prop.title,
+      propertyImage: prop.images[0],
+      guestName: mockGuests[gi].name,
+      guestAvatar: mockGuests[gi].avatar,
+      checkIn: toStr(checkIn),
+      checkOut: toStr(checkOut),
+      nights,
+      guests,
+      totalAmount: prop.price * nights + (prop.cleaningFee || 0),
+    };
+  };
+
+  return [
+    make('r1', 0, 0, addDays(today, -2), addDays(today, 3),  2),  // en cours
+    make('r2', 1, 1, today,              addDays(today, 4),  3),  // check-in aujourd'hui
+    make('r3', 2, 2, addDays(today, -5), today,              1),  // check-out aujourd'hui
+    make('r4', 0, 3, addDays(today, 2),  addDays(today, 5),  4),  // à venir J+2
+    make('r5', 1, 4, addDays(today, 7),  addDays(today, 14), 2),  // à venir J+7
+  ];
+}
+
+export default function HostDashboardPage() {
+  const router = useRouter();
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [hostName, setHostName] = useState('');
+
+  const todayStr = toStr(new Date());
+  const today = new Date();
+
+  useEffect(() => {
+    const user = getUser();
+    if (!user) { router.push('/login?redirect=/host/dashboard'); return; }
+    if (user.role !== 'host') { router.push('/'); return; }
+    setHostName(user.name.split(' ')[0]);
+    syncPropertiesFromRemote().then((props) => {
+      setProperties(props);
+      setReservations(seedReservations(props));
+      setLoading(false);
+    });
+  }, [router]);
+
+  const activeListings = properties.filter(p => p.available && !p.isDraft).length;
+
+  const ongoing = reservations.filter(r => r.checkIn < todayStr && r.checkOut > todayStr);
+  const checkInToday = reservations.filter(r => r.checkIn === todayStr);
+  const checkOutToday = reservations.filter(r => r.checkOut === todayStr);
+  const upcoming = reservations
+    .filter(r => r.checkIn > todayStr)
+    .sort((a, b) => a.checkIn.localeCompare(b.checkIn));
+
+  const monthPrefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+  const monthRevenue = reservations
+    .filter(r => r.checkIn.startsWith(monthPrefix) || r.checkOut > monthPrefix + '-01')
+    .reduce((sum, r) => sum + r.totalAmount, 0);
+
+  const todayEvents = [...checkInToday.map(r => ({ ...r, type: 'in' as const })), ...checkOutToday.map(r => ({ ...r, type: 'out' as const }))];
+
+  if (loading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-8 space-y-4">
+        {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />)}
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8 space-y-6">
+
+      {/* Welcome */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Bonjour, {hostName} 👋</h1>
+        <p className="text-sm text-gray-500 mt-0.5">{MONTH_NAMES_FR[today.getMonth()]} {today.getFullYear()}</p>
+      </div>
+
+      {/* Stats */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-[#0F4C8A] text-white rounded-2xl p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <TrendingUp size={16} className="opacity-80" />
+            <span className="text-xs font-medium opacity-80">Revenus du mois</span>
+          </div>
+          <div className="text-2xl font-extrabold">{monthRevenue.toLocaleString('fr-TN')} DT</div>
+          <div className="text-xs opacity-60 mt-0.5">{reservations.filter(r => r.checkIn.startsWith(monthPrefix)).length} réservation(s)</div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
+          <div className="flex items-center gap-2 mb-2">
+            <Home size={16} className="text-[#0F4C8A]" />
+            <span className="text-xs font-medium text-gray-500">Annonces actives</span>
+          </div>
+          <div className="text-2xl font-extrabold text-gray-900">{activeListings}</div>
+          <Link href="/host/listings" className="text-xs text-[#0F4C8A] font-semibold mt-0.5 block hover:underline">Voir mes annonces →</Link>
+        </div>
+      </div>
+
+      {/* Today */}
+      {todayEvents.length > 0 && (
+        <section>
+          <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <Clock size={16} className="text-[#0F4C8A]" />
+            Aujourd&apos;hui
+          </h2>
+          <div className="space-y-2">
+            {todayEvents.map(r => (
+              <div key={r.id + r.type} className={`flex items-center gap-3 p-3.5 rounded-xl border ${
+                r.type === 'in'
+                  ? 'bg-green-50 border-green-200'
+                  : 'bg-orange-50 border-orange-200'
+              }`}>
+                {r.type === 'in'
+                  ? <LogIn size={18} className="text-green-600 shrink-0" />
+                  : <LogOut size={18} className="text-orange-500 shrink-0" />
+                }
+                <img src={r.guestAvatar} alt={r.guestName} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-gray-900 text-sm truncate">{r.guestName}</p>
+                  <p className="text-xs text-gray-500 truncate">{r.propertyTitle}</p>
+                </div>
+                <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${
+                  r.type === 'in' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                }`}>
+                  {r.type === 'in' ? 'Check-in' : 'Check-out'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* En cours */}
+      {ongoing.length > 0 && (
+        <section>
+          <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <Users size={16} className="text-[#0F4C8A]" />
+            En cours
+            <span className="ml-auto text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full">{ongoing.length}</span>
+          </h2>
+          <div className="space-y-2">
+            {ongoing.map(r => (
+              <ReservationCard key={r.id} r={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* À venir */}
+      {upcoming.length > 0 && (
+        <section>
+          <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
+            <ChevronRight size={16} className="text-[#0F4C8A]" />
+            À venir
+            <span className="ml-auto text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full">{upcoming.length}</span>
+          </h2>
+          <div className="space-y-2">
+            {upcoming.map(r => (
+              <ReservationCard key={r.id} r={r} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* Empty state */}
+      {properties.length === 0 && (
+        <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
+          <Home size={40} className="text-gray-300 mx-auto mb-3" />
+          <p className="font-semibold text-gray-700 mb-1">Aucune annonce publiée</p>
+          <p className="text-sm text-gray-400 mb-5">Publiez votre premier logement pour recevoir des réservations.</p>
+          <Link
+            href="/host/submit"
+            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-full font-semibold text-sm hover:bg-[#0A3566] transition-colors"
+          >
+            <Plus size={15} />
+            Créer une annonce
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ReservationCard({ r }: { r: Reservation }) {
+  return (
+    <div className="flex items-center gap-3 p-3.5 bg-white border border-gray-200 rounded-xl shadow-sm">
+      <img src={r.propertyImage} alt={r.propertyTitle} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-gray-900 text-sm truncate">{r.propertyTitle}</p>
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <img src={r.guestAvatar} alt={r.guestName} className="w-4 h-4 rounded-full object-cover" />
+          <p className="text-xs text-gray-500 truncate">{r.guestName} · {r.guests} voy.</p>
+        </div>
+        <p className="text-xs text-[#0F4C8A] font-medium mt-0.5">
+          {formatDate(r.checkIn)} → {formatDate(r.checkOut)}
+        </p>
+      </div>
+      <div className="text-right shrink-0">
+        <p className="font-bold text-gray-900 text-sm">{r.totalAmount} DT</p>
+        <p className="text-xs text-gray-400">{r.nights} nuit{r.nights > 1 ? 's' : ''}</p>
+      </div>
+    </div>
+  );
+}

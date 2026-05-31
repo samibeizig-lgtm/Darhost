@@ -4,13 +4,14 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
-  Home, Calendar, MessageSquare, Menu, Search,
+  LayoutDashboard, Building2, Home, Calendar, MessageSquare, Menu, Search,
   BookOpen, User, LogOut, ArrowLeftRight, X,
 } from 'lucide-react';
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 
 const HOST_TABS = [
-  { href: '/host/listings', icon: Home, label: 'Annonces' },
+  { href: '/host/dashboard', icon: LayoutDashboard, label: 'Accueil' },
+  { href: '/host/listings', icon: Building2, label: 'Annonces' },
   { href: '/host/calendar', icon: Calendar, label: 'Calendrier' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
 ];

@@ -44,7 +44,7 @@ export default function Home() {
     // On mobile, redirect hosts directly to their dashboard
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       const u = getUser();
-      if (u?.role === 'host') { router.replace('/host/listings'); return; }
+      if (u?.role === 'host') { router.replace('/host/dashboard'); return; }
     }
     syncPropertiesFromRemote().then((submitted) => {
       setFeatured([...submitted, ...mockProperties].slice(0, 8));
