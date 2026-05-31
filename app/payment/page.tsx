@@ -69,8 +69,11 @@ function PaymentInner() {
   function handleRibChange(raw: string) {
     const digits = raw.replace(/\D/g, '').slice(0, 20);
     setRib(digits);
-    if (!selectedBank) { setRibError('Sélectionnez d\'abord votre banque'); setRibValid(false); return; }
-    if (digits.length === 0) { setRibError(null); setRibValid(false); return; }
+    if (!selectedBank) {
+      setRibError('Choisissez votre banque avant de saisir le RIB');
+      setRibValid(false);
+      return;
+    }
     if (digits.length < 20) { setRibError(null); setRibValid(false); return; }
     const err = validateRib(digits, selectedBank);
     setRibError(err);
@@ -79,7 +82,9 @@ function PaymentInner() {
 
   function handleBankChange(code: string) {
     setSelectedBank(code);
-    if (rib.length === 20) {
+    setRibError(null);
+    setRibValid(false);
+    if (rib.length === 20 && code) {
       const err = validateRib(rib, code);
       setRibError(err);
       setRibValid(!err);

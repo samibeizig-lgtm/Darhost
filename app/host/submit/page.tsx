@@ -154,7 +154,11 @@ export default function HostSubmitPage() {
   function handleRibChange(val: string) {
     const digits = val.replace(/\D/g, '').slice(0, 20);
     set('rib', digits);
-    if (digits.length === 20 && form.bankName) {
+    if (!form.bankName) {
+      setRibError('Choisissez votre banque avant de saisir le RIB');
+      return;
+    }
+    if (digits.length === 20) {
       const bank = TUNISIAN_BANKS.find(b => b.name === form.bankName);
       if (bank) setRibError(validateRib(digits, bank.code) ?? '');
     } else {
@@ -164,6 +168,7 @@ export default function HostSubmitPage() {
 
   function handleBankChange(name: string) {
     set('bankName', name);
+    setRibError('');
     if (form.rib.length === 20 && name) {
       const bank = TUNISIAN_BANKS.find(b => b.name === name);
       if (bank) setRibError(validateRib(form.rib, bank.code) ?? '');
@@ -1022,19 +1027,19 @@ export default function HostSubmitPage() {
             <ChevronRight size={18} />
           </button>
         ) : (
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleDraft}
-              className="flex items-center gap-2 px-6 py-3 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Enregistrer
-            </button>
+          <div className="flex flex-col items-end gap-2">
             <button
               onClick={handleSubmit}
               className="flex items-center gap-2 px-8 py-3 bg-green-600 text-white rounded-full font-bold hover:bg-green-700 transition-colors"
             >
               <Check size={18} />
-              Publier sur DarHost
+              Publier sur Azday
+            </button>
+            <button
+              onClick={handleDraft}
+              className="flex items-center gap-2 px-6 py-2.5 border border-gray-300 text-gray-700 rounded-full font-semibold hover:bg-gray-50 transition-colors text-sm"
+            >
+              Enregistrer le brouillon
             </button>
           </div>
         )}

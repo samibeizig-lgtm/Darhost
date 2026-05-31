@@ -10,38 +10,13 @@ import {
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
 
-const TEAL = 'rgb(10, 186, 181)';
+const BRAND = '#C04525';
 
-// House-window SVG (birdhouse: arch roof + rounded body + circular window)
-function HouseIcon({ className = '' }: { className?: string }) {
-  return (
-    <svg
-      width="28"
-      height="28"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="white"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-      aria-hidden="true"
-    >
-      {/* Arch roof */}
-      <path d="M4 12C4 7.582 7.582 4 12 4C16.418 4 20 7.582 20 12" />
-      {/* Rounded body */}
-      <rect x="4" y="11.5" width="16" height="9.5" rx="2.5" />
-      {/* Circular window */}
-      <circle cx="12" cy="16.5" r="2" />
-    </svg>
-  );
-}
-
-function DarHostLogo() {
+function AzdayLogo() {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0">
-      <HouseIcon />
-      <span className="text-white font-extrabold text-xl tracking-tight">Hostn</span>
+      <span className="text-white font-extrabold text-2xl leading-none">ⵣ</span>
+      <span className="text-white font-extrabold text-xl tracking-tight">Azday</span>
     </Link>
   );
 }
@@ -131,10 +106,10 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 shadow-md" style={{ background: TEAL }}>
+    <header className="sticky top-0 z-50 shadow-md" style={{ background: BRAND }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
-          <DarHostLogo />
+          <AzdayLogo />
 
           {/* Desktop search */}
           <form
@@ -160,7 +135,7 @@ export default function Header() {
               className="w-8 h-8 rounded-full flex items-center justify-center transition-colors shrink-0"
               style={{ background: 'white' }}
             >
-              <Search size={14} style={{ color: TEAL }} />
+              <Search size={14} style={{ color: BRAND }} />
             </button>
           </form>
 
@@ -241,7 +216,7 @@ export default function Header() {
                 <Link href="/login" className="px-4 py-2 rounded-full text-sm font-medium text-white/90 hover:bg-white/15 transition-colors">
                   Connexion
                 </Link>
-                <Link href="/register" className="px-4 py-2 bg-white text-sm font-semibold rounded-full hover:bg-white/90 transition-colors" style={{ color: TEAL }}>
+                <Link href="/register" className="px-4 py-2 bg-white text-sm font-semibold rounded-full hover:bg-white/90 transition-colors" style={{ color: BRAND }}>
                   S&apos;inscrire
                 </Link>
               </>
@@ -295,7 +270,7 @@ export default function Header() {
             <Link href="/login" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 border border-gray-300 rounded-full text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
               Connexion
             </Link>
-            <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity" style={{ background: TEAL }}>
+            <Link href="/register" onClick={() => setMenuOpen(false)} className="flex-1 text-center py-2.5 text-white rounded-full text-sm font-semibold hover:opacity-90 transition-opacity" style={{ background: BRAND }}>
               S&apos;inscrire
             </Link>
           </div>
