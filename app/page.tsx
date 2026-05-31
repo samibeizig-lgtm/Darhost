@@ -41,7 +41,7 @@ export default function Home() {
   const [featured, setFeatured] = useState<Property[]>(mockProperties.slice(0, 8));
 
   useEffect(() => {
-    // On mobile, redirect hosts directly to their dashboard
+
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       const u = getUser();
       if (u?.role === 'host') { router.replace('/host/dashboard'); return; }
@@ -70,9 +70,7 @@ export default function Home() {
 
   return (
     <div>
-      {/* ── Hero ── */}
       <section className="relative overflow-hidden bg-gradient-to-br from-[#051C44] via-[#0F4C8A] to-[#1B6FBF] text-white">
-        {/* Sidi Bou Said photo fused with the blue gradient */}
         <img
           src="https://images.unsplash.com/photo-1607869861980-da5f9b8b4969?q=80&w=1170&auto=format&fit=crop"
           alt=""
@@ -80,7 +78,6 @@ export default function Home() {
           className="absolute inset-0 w-full h-full object-cover opacity-75 mix-blend-overlay pointer-events-none select-none"
         />
 
-        {/* Decorative arches */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
           <svg
             className="absolute -right-24 -top-24 opacity-10"
@@ -117,13 +114,11 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Search card */}
           <form
             onSubmit={handleSearch}
             className="bg-white rounded-2xl shadow-2xl p-2 max-w-4xl mx-auto"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-              {/* Location */}
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <MapPin size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -141,7 +136,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Check-in */}
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <Calendar size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -155,7 +149,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Check-out */}
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <Calendar size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
@@ -169,7 +162,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Guests + Search */}
               <div className="flex items-center gap-2 px-2 py-2 rounded-xl">
                 <div className="flex items-center gap-3 px-3 py-1 flex-1">
                   <Users size={18} className="text-[#0F4C8A] shrink-0" />
@@ -198,7 +190,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Categories ── */}
       <section className="border-b border-gray-200 bg-white sticky top-16 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-center gap-1 overflow-x-auto py-3 scrollbar-hide">
@@ -223,7 +214,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Featured properties ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>
@@ -247,7 +237,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Stats ── */}
       <section className="bg-[#E8F0FB] py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -264,7 +253,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Destinations highlight ── */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
           Explorez la Tunisie
@@ -298,7 +286,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ── Become a host CTA ── */}
       <section className="bg-gradient-to-r from-[#0F4C8A] to-[#1B6FBF] text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">

@@ -42,7 +42,7 @@ export function validateRib(digits: string, bankCode: string): string | null {
 }
 
 export function formatRibDisplay(digits: string): string {
-  // BB GGG AAAAAAAAAAAAA CC
+
   const d = digits.replace(/\D/g, '');
   const parts = [d.slice(0, 2), d.slice(2, 5), d.slice(5, 18), d.slice(18, 20)];
   return parts.filter(Boolean).join(' ');

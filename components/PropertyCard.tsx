@@ -16,7 +16,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
   return (
     <div className="group">
       <Link href={`/properties/${property.id}`} className="block">
-        {/* Image container */}
         <div className="relative rounded-2xl overflow-hidden bg-gray-200 aspect-[4/3] mb-3">
           <img
             src={property.images[imgIdx]}
@@ -24,21 +23,18 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
           />
 
-          {/* Superhost badge */}
           {property.host.isSuperhost && (
             <span className="absolute top-3 left-3 px-2.5 py-1 bg-white text-[#0F4C8A] text-xs font-bold rounded-full shadow-sm">
               Superhôte
             </span>
           )}
 
-          {/* New listing badge */}
           {!property.host.isSuperhost && property.createdAt && Date.now() - property.createdAt < 7 * 24 * 60 * 60 * 1000 && (
             <span className="absolute top-3 left-3 px-2.5 py-1 bg-[#0F4C8A] text-white text-xs font-bold rounded-full shadow-sm">
               Nouveau
             </span>
           )}
 
-          {/* Favorite button */}
           <button
             onClick={(e) => {
               e.preventDefault();
@@ -53,7 +49,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
             />
           </button>
 
-          {/* Image navigation dots */}
           {property.images.length > 1 && (
             <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
               {property.images.map((_, i) => (
@@ -72,7 +67,6 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           )}
         </div>
 
-        {/* Info */}
         <div>
           <div className="flex items-start justify-between gap-2">
             <h3 className="font-semibold text-gray-900 leading-tight line-clamp-1 text-[15px]">

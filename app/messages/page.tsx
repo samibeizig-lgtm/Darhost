@@ -60,13 +60,11 @@ export default function MessagesPage() {
 
       <div className="border border-gray-200 rounded-2xl overflow-hidden shadow-sm" style={{ height: '70vh' }}>
         <div className="flex h-full">
-          {/* Conversation list */}
           <div
             className={`w-full md:w-80 lg:w-96 border-r border-gray-200 flex flex-col bg-white shrink-0 ${
               active ? 'hidden md:flex' : 'flex'
             }`}
           >
-            {/* Search */}
             <div className="p-4 border-b border-gray-200">
               <div className="relative">
                 <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -79,7 +77,6 @@ export default function MessagesPage() {
               </div>
             </div>
 
-            {/* Conversations */}
             <div className="flex-1 overflow-y-auto">
               {filtered.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 text-sm">
@@ -126,10 +123,8 @@ export default function MessagesPage() {
             </div>
           </div>
 
-          {/* Chat thread */}
           {active ? (
             <div className="flex-1 flex flex-col bg-gray-50 min-w-0">
-              {/* Chat header */}
               <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
                 <button
                   onClick={() => setActiveId(null)}
@@ -150,7 +145,6 @@ export default function MessagesPage() {
                 </div>
               </div>
 
-              {/* Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
                 {active.messages.map((msg) => (
                   <div
@@ -184,7 +178,6 @@ export default function MessagesPage() {
                 ))}
               </div>
 
-              {/* Input */}
               <div className="bg-white border-t border-gray-200 p-4">
                 <div className="flex items-center gap-3">
                   <input

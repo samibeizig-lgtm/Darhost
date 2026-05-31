@@ -126,7 +126,6 @@ export default function Header() {
         <div className="flex items-center justify-between h-16 gap-4">
           <DarHostLogo />
 
-          {/* Desktop search */}
           <form
             onSubmit={handleSearch}
             className="hidden lg:flex items-center gap-3 rounded-full px-4 py-2 flex-1 max-w-md transition-shadow"
@@ -154,7 +153,6 @@ export default function Header() {
             </button>
           </form>
 
-          {/* Desktop nav */}
           <nav className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link key={`${link.href}-${link.label}`} href={link.href} className={navClass(link.href)}>
@@ -196,7 +194,6 @@ export default function Header() {
                   <ChevronDown size={14} className="text-white/70 shrink-0" />
                 </button>
 
-                {/* Dropdown — white bg for readability */}
                 {dropdownOpen && (
                   <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-2xl shadow-xl w-56 z-50 overflow-hidden">
                     <div className="px-4 py-3 border-b border-gray-100">
@@ -238,7 +235,6 @@ export default function Header() {
             )}
           </nav>
 
-          {/* Mobile hamburger — only for non-logged-in */}
           {!user && (
             <button
               onClick={() => setMenuOpen(!menuOpen)}
@@ -251,7 +247,6 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Mobile menu — only for non-logged-in users */}
       {!user && menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 px-4 py-4 shadow-lg">
           <form

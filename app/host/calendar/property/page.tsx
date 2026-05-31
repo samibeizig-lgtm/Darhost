@@ -6,16 +6,12 @@ import { ArrowLeft, Settings } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote } from '@/lib/store';
 import { Property } from '@/lib/types';
 
-// ─── Constants ───────────────────────────────────────────────────────────────
-
 const MONTH_NAMES = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
 ];
 const MONTHS_SHORT = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
 const DAY_INITIALS = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
-
-// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface MockReservation {
   id: string;
@@ -40,8 +36,6 @@ interface PropertySettings {
   autoApprove: boolean;
 }
 
-// ─── Storage helpers ──────────────────────────────────────────────────────────
-
 const EMPTY_CAL: CalendarData = { blockedDates: [], priceOverrides: {} };
 const EMPTY_SETTINGS: PropertySettings = {
   basePrice: 0, cleaningFee: 0, weeklyDiscount: 0, monthlyDiscount: 0,
@@ -54,7 +48,7 @@ function loadCal(id: string): CalendarData {
     const raw = localStorage.getItem(`darhost_calendar_${id}`);
     if (!raw) return EMPTY_CAL;
     const parsed = JSON.parse(raw);
-    // backward-compat: map unavailableDates → blockedDates
+
     return {
       blockedDates: parsed.blockedDates ?? parsed.unavailableDates ?? [],
       priceOverrides: parsed.priceOverrides ?? {},
@@ -86,8 +80,6 @@ function loadSettings(id: string, property: Property): PropertySettings {
   } catch { return { ...EMPTY_SETTINGS, basePrice: property.price, cleaningFee: property.cleaningFee, minNights: property.minNights }; }
 }
 
-// ─── Mock reservations ────────────────────────────────────────────────────────
-
 function toStr(d: Date) { return d.toISOString().slice(0, 10); }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 
@@ -118,8 +110,6 @@ function generateReservations(property: Property): MockReservation[] {
   ];
 }
 
-// ─── Date helpers ─────────────────────────────────────────────────────────────
-
 function formatDateFr(s: string) {
   const [, m, d] = s.split('-').map(Number);
   return `${d} ${MONTHS_SHORT[m - 1]}`;
@@ -132,8 +122,6 @@ function expandRange(start: string, end: string): string[] {
   while (d <= e) { dates.push(toStr(d)); d = addDays(d, 1); }
   return dates;
 }
-
-// ─── DayCell ─────────────────────────────────────────────────────────────────
 
 interface DayCellProps {
   dateStr: string;
@@ -157,16 +145,13 @@ function DayCell({
   const isPast = dateStr < todayStr;
   const isToday = dateStr === todayStr;
 
-  // Reservation
   const reservation = reservations.find(r => dateStr >= r.checkIn && dateStr < r.checkOut);
   const isReserved = !!reservation;
   const isResPast = isReserved && reservation!.checkOut <= todayStr;
   const isFirstDay = isReserved && reservation!.checkIn === dateStr;
 
-  // Blocked
   const isBlocked = calData.blockedDates.includes(dateStr);
 
-  // Selection range highlight
   let selRange: [string, string] | null = null;
   if (isSelecting && selStart && hoverDate) {
     selRange = selStart <= hoverDate ? [selStart, hoverDate] : [hoverDate, selStart];
@@ -174,10 +159,8 @@ function DayCell({
   const isInSel = selRange ? dateStr >= selRange[0] && dateStr <= selRange[1] : false;
   const isSelStart = selStart === dateStr;
 
-  // Price
   const price = calData.priceOverrides[dateStr] ?? (settings.basePrice > 0 ? settings.basePrice : basePrice);
 
-  // Connected bar: check neighbors
   const prevStr = toStr(addDays(new Date(dateStr), -1));
   const nextStr = toStr(addDays(new Date(dateStr), 1));
   const prevRes = reservations.find(r => prevStr >= r.checkIn && prevStr < r.checkOut);
@@ -185,7 +168,6 @@ function DayCell({
   const prevConnected = isReserved && prevRes?.id === reservation?.id;
   const nextConnected = isReserved && nextRes?.id === reservation?.id;
 
-  // Styles
   let bg = '';
   let textColor = 'text-gray-700';
   if (isInSel) {
@@ -245,8 +227,6 @@ function DayCell({
     </button>
   );
 }
-
-// ─── MonthGrid ────────────────────────────────────────────────────────────────
 
 interface MonthGridProps {
   year: number;
@@ -309,8 +289,6 @@ function MonthGrid({
   );
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
-
 function PropertyCalendarInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -321,7 +299,6 @@ function PropertyCalendarInner() {
   const [settings, setSettings] = useState<PropertySettings>(EMPTY_SETTINGS);
   const [reservations, setReservations] = useState<MockReservation[]>([]);
 
-  // Selection
   const [selStart, setSelStart] = useState<string | null>(null);
   const [hoverDate, setHoverDate] = useState<string | null>(null);
   const [isSelecting, setIsSelecting] = useState(false);
@@ -354,7 +331,6 @@ function PropertyCalendarInner() {
     }
   }, [property]);
 
-  // Months: 2 before + current + 6 after
   const months = Array.from({ length: 9 }, (_, i) => {
     const d = new Date(today.getFullYear(), today.getMonth() - 2 + i, 1);
     return { year: d.getFullYear(), month: d.getMonth() };
@@ -434,7 +410,6 @@ function PropertyCalendarInner() {
 
   return (
     <div className="max-w-2xl mx-auto" onMouseLeave={() => { if (isSelecting) setHoverDate(null); }}>
-      {/* Sticky header — below the app header (h-16 = 64px = top-16) */}
       <div className="sticky top-16 z-20 bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between shadow-sm">
         <button onClick={() => router.push('/host/calendar')} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-700" />
@@ -453,7 +428,6 @@ function PropertyCalendarInner() {
         </button>
       </div>
 
-      {/* Selection banner — below app header (64px) + calendar header (56px) = 120px */}
       {isSelecting && (
         <div className="sticky top-[7.5rem] z-10 bg-indigo-50 border-b border-indigo-200 px-4 py-2 flex items-center justify-between">
           <p className="text-sm text-indigo-800">
@@ -465,7 +439,6 @@ function PropertyCalendarInner() {
         </div>
       )}
 
-      {/* Calendar scroll */}
       <div className="px-4 pt-4 pb-32">
         {months.map(({ year, month }) => {
           const isCurrentMonth = year === today.getFullYear() && month === today.getMonth();
@@ -491,7 +464,6 @@ function PropertyCalendarInner() {
         })}
       </div>
 
-      {/* Legend */}
       <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-10 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 flex gap-4 text-[10px] text-gray-600 justify-center items-center">
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-100 inline-block" /> Réservé (à venir)</span>
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200 inline-block" /> Réservé (passé)</span>
@@ -499,11 +471,9 @@ function PropertyCalendarInner() {
         <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-gray-300 inline-block" /> Libre</span>
       </div>
 
-      {/* Confirm modal */}
       {pendingRange && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center px-4 pb-4">
           <div className="bg-white rounded-2xl w-full max-w-sm shadow-2xl overflow-hidden">
-            {/* Header */}
             <div className="px-5 pt-5 pb-3">
               <h3 className="font-bold text-gray-900 text-base">Gérer cette période</h3>
               <p className="text-sm text-gray-500 mt-0.5">
@@ -511,7 +481,6 @@ function PropertyCalendarInner() {
               </p>
             </div>
 
-            {/* Tabs */}
             <div className="flex border-b border-gray-200 mx-5">
               {(['avail', 'prix'] as const).map(tab => (
                 <button

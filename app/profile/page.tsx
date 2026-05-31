@@ -54,13 +54,11 @@ export default function ProfilePage() {
   });
   const [selectedHobbies, setSelectedHobbies] = useState<string[]>([]);
 
-  // Bank state
   const [bankForm, setBankForm] = useState({ bankHolder: '', bankName: '', rib: '' });
   const [ribError, setRibError] = useState('');
   const [bankSaved, setBankSaved] = useState(false);
   const [bankSaving, setBankSaving] = useState(false);
 
-  // Identity verification state
   const [idStatus, setIdStatus] = useState<IdentityStatus>('none');
   const [idFront, setIdFront] = useState('');
   const [idBack, setIdBack] = useState('');
@@ -192,10 +190,8 @@ export default function ProfilePage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 pb-24 md:pb-10">
 
-      {/* ── Profile card ── */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-          {/* Avatar */}
           <div className="relative shrink-0">
             <img
               src={avatarPreview}
@@ -208,7 +204,6 @@ export default function ProfilePage() {
             </label>
           </div>
 
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
             <div className="flex flex-wrap items-center gap-3 mt-1.5 text-sm text-gray-500">
@@ -234,7 +229,6 @@ export default function ProfilePage() {
             )}
           </div>
 
-          {/* Stats */}
           <div className="flex items-center gap-3 shrink-0">
             <div className="text-center px-4 py-3 bg-gray-50 rounded-xl min-w-[72px]">
               <div className="text-xl font-bold text-[#0F4C8A]">{avgRating.toFixed(1)}</div>
@@ -251,7 +245,6 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* ── Reset all data ── */}
       <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
         <div>
           <p className="text-sm font-bold text-red-700">Réinitialisation des données</p>
@@ -274,7 +267,6 @@ export default function ProfilePage() {
         </button>
       </div>
 
-      {/* ── Profile form ── */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Informations personnelles</h2>
 
@@ -350,7 +342,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Hobbies */}
           <div className="mt-6">
             <label className="block text-sm font-semibold text-gray-700 mb-3">
               Loisirs &amp; centres d&apos;intérêt
@@ -374,7 +365,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Bio */}
           <div className="mt-6">
             <label className="block text-sm font-semibold text-gray-700 mb-1.5">
               Présentation
@@ -407,7 +397,6 @@ export default function ProfilePage() {
             </button>
           </div>
 
-          {/* Avis reçus */}
           {MOCK_REVIEWS.length > 0 && (
             <div className="mt-10 pt-8 border-t border-gray-200">
               <h3 className="text-base font-bold text-gray-900 mb-4">
@@ -452,7 +441,6 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
-      {/* ── Bank account (hosts only) ── */}
       {user.role === 'host' && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
@@ -536,7 +524,6 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {/* ── Identity verification (hosts only) ── */}
       {user.role === 'host' && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 mb-10 shadow-sm">
           <div className="flex items-center gap-3 mb-6">

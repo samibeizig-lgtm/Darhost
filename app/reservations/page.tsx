@@ -64,7 +64,6 @@ function BookingCard({ b }: { b: Booking }) {
         </div>
       </div>
 
-      {/* Payment CTA */}
       {paymentActive && (
         <div className="mx-3.5 mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
           <div className="flex items-center justify-between">
@@ -81,7 +80,6 @@ function BookingCard({ b }: { b: Booking }) {
         </div>
       )}
 
-      {/* Refused message */}
       {b.status === 'refused' && (
         <div className="mx-3.5 mb-3 px-3 py-2 bg-red-50 border border-red-100 rounded-xl text-xs text-red-700 flex items-center gap-2">
           <AlertCircle size={13} className="shrink-0" />
@@ -89,7 +87,6 @@ function BookingCard({ b }: { b: Booking }) {
         </div>
       )}
 
-      {/* Footer */}
       <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-gray-100 bg-gray-50">
         <Link href={`/properties/${b.propertyId}`} className="text-xs text-[#0F4C8A] font-medium hover:underline">
           Voir le logement
@@ -133,7 +130,6 @@ export default function ReservationsPage() {
         <p className="text-sm text-gray-500 mt-0.5">{bookings.length} réservation{bookings.length !== 1 ? 's' : ''} au total</p>
       </div>
 
-      {/* Active */}
       <section>
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
@@ -157,7 +153,6 @@ export default function ReservationsPage() {
         )}
       </section>
 
-      {/* Past / refused */}
       {past.length > 0 && (
         <section>
           <div className="flex items-center justify-between mb-3">

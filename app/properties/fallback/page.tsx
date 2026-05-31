@@ -30,7 +30,6 @@ export default function PropertyFallback() {
       return;
     }
 
-    // Try to decode property from URL hash (cross-device share link)
     const hash = window.location.hash;
     if (hash.startsWith('#share=')) {
       const property = decodeShareData(hash.slice(7));

@@ -50,13 +50,11 @@ function BookingCard({
             <span className={`shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.cls}`}>{cfg.label}</span>
           </div>
 
-          {/* Guest */}
           <div className="flex items-center gap-1.5 mb-1.5">
             <img src={b.guestAvatar} alt={b.guestName} className="w-4 h-4 rounded-full object-cover" />
             <span className="text-xs font-medium text-gray-700">{b.guestName}</span>
           </div>
 
-          {/* Dates */}
           <div className="flex items-center gap-1 text-xs text-[#0F4C8A] font-medium mb-1">
             <Calendar size={11} className="shrink-0" />
             <span>{fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}</span>
@@ -73,12 +71,10 @@ function BookingCard({
         </div>
       </div>
 
-      {/* Received at */}
       <div className="px-4 pb-3 text-[10px] text-gray-400">
         Reçue le {createdStr}
       </div>
 
-      {/* Pending actions */}
       {onValidate && onRefuse && (
         <div className="flex gap-2 px-4 pb-4">
           <button
@@ -96,7 +92,6 @@ function BookingCard({
         </div>
       )}
 
-      {/* Confirmed payment status */}
       {b.status === 'confirmed' && b.paymentDeadline && (
         <div className="mx-4 mb-4 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2">
           <Clock size={13} className="shrink-0" />
@@ -166,7 +161,6 @@ export default function HostReservationsPage() {
         <p className="text-sm text-gray-500 mt-0.5">Gérez les demandes de vos voyageurs</p>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1">
         {(['pending', 'confirmed', 'past'] as Tab[]).map(t => (
           <button
@@ -188,7 +182,6 @@ export default function HostReservationsPage() {
         ))}
       </div>
 
-      {/* List */}
       {tabBookings.length === 0 ? (
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <BookOpen size={36} className="text-gray-300 mx-auto mb-3" />

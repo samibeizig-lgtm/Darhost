@@ -47,8 +47,6 @@ export function setProfileData(data: ProfileData): void {
   localStorage.setItem('darhost_profile', JSON.stringify(data));
 }
 
-// ── Host bank data ─────────────────────────────────────────────────────────────
-
 export interface HostBankData { bankHolder: string; bankName: string; rib: string; }
 const EMPTY_BANK: HostBankData = { bankHolder: '', bankName: '', rib: '' };
 
@@ -64,15 +62,13 @@ export function setHostBank(data: HostBankData): void {
   localStorage.setItem('darhost_host_bank', JSON.stringify(data));
 }
 
-// ── Identity verification ──────────────────────────────────────────────────────
-
 export type IdentityStatus = 'none' | 'pending' | 'verified';
 
 export function getIdentityStatus(): IdentityStatus {
   if (typeof window === 'undefined') return 'none';
   const v = localStorage.getItem('darhost_identity_status');
   if (v === 'verified' || v === 'pending') return v;
-  // backward compat with old boolean flag
+
   if (localStorage.getItem('darhost_identity_verified') === 'true') return 'verified';
   return 'none';
 }
@@ -81,7 +77,6 @@ export function setIdentityStatus(status: IdentityStatus): void {
   localStorage.setItem('darhost_identity_status', status);
 }
 
-// kept for backward compat
 export function getIdentityVerified(): boolean {
   return getIdentityStatus() === 'verified';
 }
@@ -100,8 +95,6 @@ export async function submitIdentityForReview(userId: string, userName: string):
     });
   } catch {}
 }
-
-// ── Accounts (email → credentials) ───────────────────────────────────────────
 
 export interface StoredAccount {
   id: string;
@@ -162,15 +155,12 @@ export function importSharedProperty(property: Property): void {
   }
 }
 
-// ── Firebase Realtime Database sync ──────────────────────────────────────────
-
 const firebaseUrl = (process.env.NEXT_PUBLIC_FIREBASE_DB_URL ?? '').trim().replace(/\/$/, '');
 
 export function isRemoteConnected(): boolean {
   return !!firebaseUrl;
 }
 
-// Keep old name for backward compat with profile page
 export const isSupabaseConnected = isRemoteConnected;
 
 function stripBase64Images(property: Property): Property {
@@ -236,8 +226,6 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
     return local;
   }
 }
-
-// ── Bookings ──────────────────────────────────────────────────────────────────
 
 export function getBookings(): Booking[] {
   if (typeof window === 'undefined') return [];
@@ -306,8 +294,6 @@ export async function syncBookingsFromRemote(): Promise<Booking[]> {
     return local;
   }
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
 
 export function generateShareLink(property: Property): string {
   if (typeof window === 'undefined') return '';

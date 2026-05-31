@@ -61,8 +61,6 @@ function updatePropertyInStorage(id: string, updates: Partial<Property>) {
   savePropertyRemote(next[idx]).catch(() => {});
 }
 
-// ─── Row helpers ──────────────────────────────────────────────────────────────
-
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center justify-between gap-4 py-4 border-b border-gray-100 last:border-0">
@@ -114,8 +112,6 @@ function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean
   );
 }
 
-// ─── Main ────────────────────────────────────────────────────────────────────
-
 function SettingsInner() {
   const router = useRouter();
   const params = useSearchParams();
@@ -146,7 +142,7 @@ function SettingsInner() {
     if (!property) return;
     setSaving(true);
     saveSettings(id, form);
-    // Also sync cleaningFee and minNights back to the property
+
     updatePropertyInStorage(id, {
       price: form.basePrice,
       cleaningFee: form.cleaningFee,
@@ -182,7 +178,6 @@ function SettingsInner() {
 
   return (
     <div className="max-w-2xl mx-auto pb-24 md:pb-8">
-      {/* Header */}
       <div className="sticky top-0 md:top-16 z-20 bg-white border-b border-gray-200 px-4 h-14 flex items-center gap-4 shadow-sm">
         <button onClick={() => router.push(`/host/calendar/property?id=${id}`)} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-700" />
@@ -195,7 +190,6 @@ function SettingsInner() {
 
       <div className="px-4 py-4 space-y-2">
 
-        {/* Tarifs */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Tarifs</h2>
@@ -219,7 +213,6 @@ function SettingsInner() {
           </div>
         </div>
 
-        {/* Règles */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Règles de réservation</h2>
@@ -245,7 +238,6 @@ function SettingsInner() {
           </div>
         </div>
 
-        {/* Validation */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Validation des réservations</h2>
@@ -262,7 +254,6 @@ function SettingsInner() {
           </div>
         </div>
 
-        {/* Annulation */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Politique d&apos;annulation</h2>
@@ -326,7 +317,6 @@ function SettingsInner() {
           </div>
         </div>
 
-        {/* Save */}
         <div className="pt-2">
           <button
             onClick={handleSave}
@@ -344,7 +334,6 @@ function SettingsInner() {
           </button>
         </div>
 
-        {/* Info note */}
         <p className="text-xs text-gray-400 text-center px-4">
           Le prix de base s&apos;applique uniquement aux jours sans prix spécifique défini sur le calendrier.
           Les prix personnalisés du calendrier sont toujours prioritaires.

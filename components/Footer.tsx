@@ -5,7 +5,6 @@ export default function Footer() {
     <footer className="bg-gray-900 text-gray-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-          {/* Brand */}
           <div>
             <div className="flex items-center gap-2 mb-4">
               <svg width="28" height="34" viewBox="0 0 34 42" fill="none">
@@ -24,7 +23,6 @@ export default function Footer() {
             </p>
           </div>
 
-          {/* Assistance */}
           <div>
             <h4 className="font-semibold text-white mb-4">Assistance</h4>
             <ul className="space-y-2 text-sm">
@@ -44,7 +42,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Communauté */}
           <div>
             <h4 className="font-semibold text-white mb-4">Communauté</h4>
             <ul className="space-y-2 text-sm">
@@ -64,7 +61,6 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* DarHost */}
           <div>
             <h4 className="font-semibold text-white mb-4">DarHost</h4>
             <ul className="space-y-2 text-sm">

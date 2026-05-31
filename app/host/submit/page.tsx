@@ -44,7 +44,6 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
   mer: Anchor,
 };
 
-
 interface FormData {
   type: string;
   categories: string[];
@@ -240,8 +239,6 @@ export default function HostSubmitPage() {
     addSubmittedProperty(newProperty);
     await savePropertyRemote(newProperty);
 
-    // Build a shareable link that embeds property metadata (no base64 photos)
-    // so the listing can be viewed on any device via the share URL
     try {
       const shareable: Property = {
         ...newProperty,
@@ -356,13 +353,11 @@ export default function HostSubmitPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-1">Publier votre logement</h1>
         <p className="text-gray-500 text-sm">Étape {step} sur {STEPS.length}</p>
       </div>
 
-      {/* Progress bar */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-3">
           {STEPS.map((s) => (
@@ -394,10 +389,8 @@ export default function HostSubmitPage() {
         </div>
       </div>
 
-      {/* Step content */}
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-sm">
 
-        {/* Step 1: Type + Categories */}
         {step === 1 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Quel type de bien proposez-vous ?</h2>
@@ -454,7 +447,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 2: Basic info (without name — title is in Step 3) */}
         {step === 2 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Informations de base</h2>
@@ -542,7 +534,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 3: Description */}
         {step === 3 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Décrivez votre logement</h2>
@@ -579,7 +570,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 4: Photos */}
         {step === 4 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Ajoutez des photos</h2>
@@ -643,7 +633,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 5: Amenities */}
         {step === 5 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Quels équipements proposez-vous ?</h2>
@@ -685,7 +674,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 6: Pricing */}
         {step === 6 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Définissez vos tarifs</h2>
@@ -744,7 +732,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 7: House rules */}
         {step === 7 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Règles de la maison</h2>
@@ -839,7 +826,6 @@ export default function HostSubmitPage() {
               </div>
             </div>
 
-            {/* Cancellation policy */}
             <div className="mt-6 pt-5 border-t border-gray-100">
               <h3 className="text-base font-bold text-gray-900 mb-1">Politique d&apos;annulation</h3>
               <p className="text-sm text-gray-500 mb-4">Définissez les conditions d&apos;annulation pour vos voyageurs.</p>
@@ -902,7 +888,6 @@ export default function HostSubmitPage() {
           </div>
         )}
 
-        {/* Step 8: Review (old steps 8-9 moved to Profile) */}
         {step === 8 && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">Récapitulatif</h2>
@@ -940,7 +925,6 @@ export default function HostSubmitPage() {
         )}
       </div>
 
-      {/* Navigation */}
       <div className="flex justify-between items-center">
         <button
           onClick={() => { setStep(Math.max(1, step - 1)); window.scrollTo({ top: 0, behavior: 'smooth' }); }}

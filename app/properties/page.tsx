@@ -159,7 +159,6 @@ function PropertiesPage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Header row */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
@@ -172,7 +171,6 @@ function PropertiesPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Sort */}
           <div className="relative">
             <select
               value={sortBy}
@@ -187,7 +185,6 @@ function PropertiesPage() {
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
 
-          {/* Filters toggle */}
           <button
             onClick={() => setShowFilters(!showFilters)}
             className={`flex items-center gap-2 px-4 py-2 border rounded-full text-sm font-medium transition-colors ${
@@ -207,7 +204,6 @@ function PropertiesPage() {
         </div>
       </div>
 
-      {/* Import panel */}
       <div className="mb-4">
         {!showImport ? (
           <button
@@ -248,7 +244,6 @@ function PropertiesPage() {
         )}
       </div>
 
-      {/* Filter panel */}
       {showFilters && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
@@ -262,7 +257,6 @@ function PropertiesPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Location search */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Destination</label>
               <div className="relative">
@@ -276,7 +270,6 @@ function PropertiesPage() {
               </div>
             </div>
 
-            {/* Price range */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Prix par nuit (DT)</label>
               <div className="flex gap-2">
@@ -298,7 +291,6 @@ function PropertiesPage() {
               </div>
             </div>
 
-            {/* Type */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Type de logement</label>
               <div className="flex flex-wrap gap-2">
@@ -319,7 +311,6 @@ function PropertiesPage() {
             </div>
           </div>
 
-          {/* Categories */}
           <div className="mt-5 pt-5 border-t border-gray-200">
             <label className="block text-sm font-semibold text-gray-700 mb-3">Environnement</label>
             <div className="flex flex-wrap gap-2">
@@ -348,7 +339,6 @@ function PropertiesPage() {
             </div>
           </div>
 
-          {/* Amenities */}
           <div className="mt-5 pt-5 border-t border-gray-200">
             <label className="block text-sm font-semibold text-gray-700 mb-3">Équipements</label>
             <div className="flex flex-wrap gap-2">
@@ -370,7 +360,6 @@ function PropertiesPage() {
         </div>
       )}
 
-      {/* Results */}
       {filtered.length === 0 ? (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">🔍</div>

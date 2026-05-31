@@ -33,8 +33,6 @@ function fmtDate(s: string) {
   return `${d} ${MONTHS_FR[m - 1]} ${y}`;
 }
 
-// ── Booking confirmation modal ────────────────────────────────────────────────
-
 function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: () => void }) {
   const router = useRouter();
   const isConfirmed = booking.status === 'confirmed';
@@ -58,7 +56,6 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
   return (
     <div className="fixed inset-0 bg-black/60 z-[60] flex items-end sm:items-center justify-center px-4 pb-4 sm:pb-0">
       <div className="bg-white rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-        {/* Status header */}
         <div className={`px-6 pt-6 pb-5 text-center ${isConfirmed ? 'bg-green-50' : 'bg-blue-50'}`}>
           <div className={`w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3 ${isConfirmed ? 'bg-green-100' : 'bg-blue-100'}`}>
             {isConfirmed
@@ -75,7 +72,6 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
           </p>
         </div>
 
-        {/* Booking details */}
         <div className="px-6 py-4 space-y-2.5 border-b border-gray-100">
           <div className="flex justify-between text-sm">
             <span className="text-gray-500">Logement</span>
@@ -95,7 +91,6 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
           </div>
         </div>
 
-        {/* Payment section (confirmed only) */}
         {isConfirmed && (
           <div className="px-6 py-4 bg-amber-50 border-b border-amber-100">
             <div className="flex items-center gap-2 mb-1.5">
@@ -114,7 +109,6 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
           </div>
         )}
 
-        {/* Actions */}
         <div className="px-6 py-4 flex gap-3">
           <button
             onClick={onClose}
@@ -133,8 +127,6 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
     </div>
   );
 }
-
-// ── Booking form (shared desktop/mobile) ──────────────────────────────────────
 
 function BookingForm({ property }: { property: Property }) {
   const router = useRouter();
@@ -318,8 +310,6 @@ function BookingForm({ property }: { property: Property }) {
   );
 }
 
-// ── Main PropertyDetail ───────────────────────────────────────────────────────
-
 export default function PropertyDetail({ id }: { id: string }) {
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [liked, setLiked] = useState(false);
@@ -348,7 +338,6 @@ export default function PropertyDetail({ id }: { id: string }) {
   return (
     <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8">
-        {/* Breadcrumb */}
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
           <Link href="/" className="hover:underline">Accueil</Link>
           <span>/</span>
@@ -357,7 +346,6 @@ export default function PropertyDetail({ id }: { id: string }) {
           <span className="text-gray-900 font-medium line-clamp-1">{property.title}</span>
         </div>
 
-        {/* Title row */}
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-1">{property.title}</h1>
@@ -392,7 +380,6 @@ export default function PropertyDetail({ id }: { id: string }) {
           </div>
         </div>
 
-        {/* Photo gallery */}
         <div
           className="grid grid-cols-4 grid-rows-2 gap-2 rounded-2xl overflow-hidden h-72 sm:h-96 mb-8 cursor-pointer"
           onClick={() => setGalleryOpen(true)}
@@ -407,7 +394,6 @@ export default function PropertyDetail({ id }: { id: string }) {
           ))}
         </div>
 
-        {/* Gallery overlay */}
         {galleryOpen && (
           <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
             <button
@@ -422,10 +408,8 @@ export default function PropertyDetail({ id }: { id: string }) {
           </div>
         )}
 
-        {/* Main content + sidebar */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
           <div className="lg:col-span-2 space-y-8">
-            {/* Capacity */}
             <div className="flex flex-wrap gap-4 pb-6 border-b border-gray-200">
               {[
                 { icon: Users, label: `${property.guests} voyageurs` },
@@ -440,7 +424,6 @@ export default function PropertyDetail({ id }: { id: string }) {
               ))}
             </div>
 
-            {/* Host inline */}
             <div className="flex items-start gap-4 pb-6 border-b border-gray-200">
               <img src={property.host.avatar} alt={property.host.name} className="w-14 h-14 rounded-full object-cover" />
               <div>
@@ -454,7 +437,6 @@ export default function PropertyDetail({ id }: { id: string }) {
               </div>
             </div>
 
-            {/* Highlights */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pb-6 border-b border-gray-200">
               {[
                 { icon: Award, title: property.host.isSuperhost ? 'Superhôte' : 'Hôte expérimenté', sub: `${property.host.responseRate}% de taux de réponse` },
@@ -471,13 +453,11 @@ export default function PropertyDetail({ id }: { id: string }) {
               ))}
             </div>
 
-            {/* Description */}
             <div className="pb-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-3">Description</h2>
               <p className="text-gray-700 leading-relaxed">{property.description}</p>
             </div>
 
-            {/* Amenities */}
             <div className="pb-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Équipements</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
@@ -490,7 +470,6 @@ export default function PropertyDetail({ id }: { id: string }) {
               </div>
             </div>
 
-            {/* House rules */}
             <div className="pb-6 border-b border-gray-200">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Règles de la maison</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -506,7 +485,6 @@ export default function PropertyDetail({ id }: { id: string }) {
               </div>
             </div>
 
-            {/* Reviews */}
             <div>
               <div className="flex items-center gap-3 mb-6">
                 <Star size={20} className="fill-[#0F4C8A] text-[#0F4C8A]" />
@@ -533,7 +511,6 @@ export default function PropertyDetail({ id }: { id: string }) {
               </div>
             </div>
 
-            {/* Host section */}
             <div className="border border-gray-200 rounded-2xl p-6 mt-8">
               <div className="flex items-start gap-4 mb-4">
                 <img src={property.host.avatar} alt={property.host.name} className="w-16 h-16 rounded-full object-cover" />
@@ -558,7 +535,6 @@ export default function PropertyDetail({ id }: { id: string }) {
             </div>
           </div>
 
-          {/* Desktop booking sidebar */}
           <div className="hidden lg:block lg:col-span-1">
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg sticky top-24">
               <div className="flex items-baseline gap-1 mb-5">
@@ -578,7 +554,6 @@ export default function PropertyDetail({ id }: { id: string }) {
         </div>
       </div>
 
-      {/* Mobile sticky booking bar */}
       <div className="lg:hidden fixed bottom-16 inset-x-0 z-30 bg-white border-t border-gray-200 px-4 py-3 flex items-center justify-between shadow-lg">
         <div>
           <span className="text-xl font-bold text-gray-900">{property.price} DT</span>
@@ -602,7 +577,6 @@ export default function PropertyDetail({ id }: { id: string }) {
         )}
       </div>
 
-      {/* Mobile booking bottom sheet */}
       {mobileBookingOpen && !isOwnProperty && (
         <div className="lg:hidden fixed inset-0 z-50 flex flex-col justify-end">
           <div className="absolute inset-0 bg-black/60" onClick={() => setMobileBookingOpen(false)} />

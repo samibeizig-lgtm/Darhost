@@ -84,11 +84,11 @@ function seedReservations(properties: Property[]): Reservation[] {
   };
 
   return [
-    make('r1', 0, 0, addDays(today, -2), addDays(today, 3),  2),  // en cours
-    make('r2', 1, 1, today,              addDays(today, 4),  3),  // check-in aujourd'hui
-    make('r3', 2, 2, addDays(today, -5), today,              1),  // check-out aujourd'hui
-    make('r4', 0, 3, addDays(today, 2),  addDays(today, 5),  4),  // à venir J+2
-    make('r5', 1, 4, addDays(today, 7),  addDays(today, 14), 2),  // à venir J+7
+    make('r1', 0, 0, addDays(today, -2), addDays(today, 3),  2),
+    make('r2', 1, 1, today,              addDays(today, 4),  3),
+    make('r3', 2, 2, addDays(today, -5), today,              1),
+    make('r4', 0, 3, addDays(today, 2),  addDays(today, 5),  4),
+    make('r5', 1, 4, addDays(today, 7),  addDays(today, 14), 2),
   ];
 }
 
@@ -131,7 +131,7 @@ export default function HostDashboardPage() {
       const confirmed = allBookings
         .filter(b => b.status === 'confirmed' && myIds.has(b.propertyId))
         .map(bookingToReservation);
-      // Merge seeded mocks + real confirmed bookings (deduplicate by id)
+
       const seeded = seedReservations(props);
       const realIds = new Set(confirmed.map(r => r.id));
       setReservations([...seeded.filter(r => !realIds.has(r.id)), ...confirmed]);
@@ -166,13 +166,11 @@ export default function HostDashboardPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8 space-y-6">
 
-      {/* Welcome */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">Bonjour, {hostName}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{MONTH_NAMES_FR[today.getMonth()]} {today.getFullYear()}</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-[#0F4C8A] text-white rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
@@ -192,7 +190,6 @@ export default function HostDashboardPage() {
         </div>
       </div>
 
-      {/* Today */}
       {todayEvents.length > 0 && (
         <section>
           <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -226,7 +223,6 @@ export default function HostDashboardPage() {
         </section>
       )}
 
-      {/* En cours */}
       {ongoing.length > 0 && (
         <section>
           <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -242,7 +238,6 @@ export default function HostDashboardPage() {
         </section>
       )}
 
-      {/* À venir */}
       {upcoming.length > 0 && (
         <section>
           <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
@@ -258,7 +253,6 @@ export default function HostDashboardPage() {
         </section>
       )}
 
-      {/* Empty state */}
       {properties.length === 0 && (
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <Home size={40} className="text-gray-300 mx-auto mb-3" />

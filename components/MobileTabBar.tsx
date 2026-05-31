@@ -56,7 +56,6 @@ export default function MobileTabBar() {
 
   return (
     <>
-      {/* Fixed bottom tab bar — mobile only */}
       <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-50 safe-area-pb">
         <div className="flex items-stretch h-16">
           {tabs.map((tab) => {
@@ -76,7 +75,6 @@ export default function MobileTabBar() {
             );
           })}
 
-          {/* Burger tab */}
           <button
             onClick={() => setMenuOpen(true)}
             className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
@@ -89,7 +87,6 @@ export default function MobileTabBar() {
         </div>
       </div>
 
-      {/* Bottom sheet overlay */}
       {menuOpen && (
         <div className="md:hidden">
           <div
@@ -97,12 +94,10 @@ export default function MobileTabBar() {
             onClick={() => setMenuOpen(false)}
           />
           <div className="fixed bottom-0 inset-x-0 bg-white rounded-t-2xl z-50 shadow-2xl overflow-hidden">
-            {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
               <div className="w-10 h-1 bg-gray-300 rounded-full" />
             </div>
 
-            {/* User info */}
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
                 <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[#E8F0FB]" />
@@ -120,7 +115,6 @@ export default function MobileTabBar() {
               </button>
             </div>
 
-            {/* Menu items */}
             <div className="px-3 py-3 space-y-1">
               <Link
                 href="/profile"
@@ -148,7 +142,6 @@ export default function MobileTabBar() {
               </button>
             </div>
 
-            {/* Safe area spacer */}
             <div className="h-6" />
           </div>
         </div>

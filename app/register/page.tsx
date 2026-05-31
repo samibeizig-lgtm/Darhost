@@ -98,7 +98,6 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-          {/* Role toggle */}
           <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
             <button
               onClick={() => setRole('guest')}
@@ -124,7 +123,6 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {/* Profile photo upload */}
           <div className="flex flex-col items-center mb-6">
             <label className="relative cursor-pointer group">
               <div className={`w-24 h-24 rounded-full overflow-hidden border-2 flex items-center justify-center transition-colors ${

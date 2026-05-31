@@ -187,7 +187,6 @@ function PaymentInner() {
 
   return (
     <div className="max-w-lg mx-auto pb-24 md:pb-8">
-      {/* Header */}
       <div className="sticky top-0 md:top-16 z-20 bg-white border-b border-gray-200 px-4 h-14 flex items-center gap-4 shadow-sm">
         <button onClick={() => router.back()} className="p-2 rounded-full hover:bg-gray-100 transition-colors">
           <ArrowLeft size={20} className="text-gray-700" />
@@ -200,7 +199,6 @@ function PaymentInner() {
 
       <div className="px-4 py-5 space-y-4">
 
-        {/* Countdown */}
         {timeLeft && (
           <div className="bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 flex items-center gap-3">
             <Clock size={18} className="text-amber-600 shrink-0" />
@@ -211,7 +209,6 @@ function PaymentInner() {
           </div>
         )}
 
-        {/* Booking summary */}
         <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
           <div className="flex gap-3 p-4">
             <img
@@ -239,7 +236,6 @@ function PaymentInner() {
           </div>
         </div>
 
-        {/* Bank transfer instructions */}
         <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 text-xs text-blue-800 space-y-1">
           <p className="font-semibold text-sm mb-1.5">Instructions de virement bancaire</p>
           <p>Effectuez un virement de <strong>{booking.total} DT</strong> depuis votre banque en indiquant la référence :</p>
@@ -247,14 +243,12 @@ function PaymentInner() {
           <p className="mt-1.5">Saisissez ensuite votre banque et votre RIB ci-dessous pour confirmer.</p>
         </div>
 
-        {/* Bank & RIB form */}
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
           <div className="px-4 pt-4 pb-2">
             <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Vos coordonnées bancaires</h3>
           </div>
           <div className="px-4 pb-4 space-y-4">
 
-            {/* Bank selector */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 <Building2 size={14} className="inline mr-1.5 text-gray-500" />
@@ -272,7 +266,6 @@ function PaymentInner() {
               </select>
             </div>
 
-            {/* RIB input */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                 <Hash size={14} className="inline mr-1.5 text-gray-500" />
@@ -319,7 +312,6 @@ function PaymentInner() {
           </div>
         </div>
 
-        {/* Submit */}
         <button
           onClick={handleSubmit}
           disabled={!ribValid || submitting}

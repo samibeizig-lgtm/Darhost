@@ -185,7 +185,6 @@ function EditListingInner() {
 
       <div className="space-y-4">
 
-        {/* General info */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Informations générales</h2>
 
@@ -229,7 +228,6 @@ function EditListingInner() {
           </div>
         </div>
 
-        {/* Pricing & capacity */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Tarifs & Capacité</h2>
 
@@ -277,7 +275,6 @@ function EditListingInner() {
           </div>
         </div>
 
-        {/* Amenities */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Équipements</h2>
@@ -319,11 +316,9 @@ function EditListingInner() {
           </div>
         </div>
 
-        {/* House Rules */}
         <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm space-y-5">
           <h2 className="text-sm font-bold text-gray-500 uppercase tracking-wider">Règles de la maison</h2>
 
-          {/* Check-in / Check-out */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">Arrivée (après)</label>
@@ -351,7 +346,6 @@ function EditListingInner() {
             </div>
           </div>
 
-          {/* Toggles */}
           <div className="space-y-3">
             {([
               { key: 'noSmoking', label: 'Non fumeur', emoji: '🚭' },
@@ -384,7 +378,6 @@ function EditListingInner() {
             ))}
           </div>
 
-          {/* Custom rules */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">Règles personnalisées</label>
             {form.customRules.length > 0 && (
@@ -424,7 +417,6 @@ function EditListingInner() {
           </div>
         </div>
 
-        {/* Visibility */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -450,7 +442,6 @@ function EditListingInner() {
           </div>
         </div>
 
-        {/* Save */}
         <button
           onClick={handleSave}
           disabled={saving}

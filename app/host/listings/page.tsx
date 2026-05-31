@@ -32,7 +32,6 @@ export default function HostListingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
-      {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Mes annonces</h1>
@@ -51,7 +50,6 @@ export default function HostListingsPage() {
         </Link>
       </div>
 
-      {/* Content */}
       {loading ? (
         <div className="flex flex-col gap-4">
           {[1, 2].map((i) => (
@@ -78,7 +76,6 @@ export default function HostListingsPage() {
           {properties.map((property) => (
             <div key={property.id} className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
               <div className="flex gap-4 p-4">
-                {/* Thumbnail */}
                 <div className="relative shrink-0 w-24 h-24 rounded-xl overflow-hidden">
                   <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
                   {property.isDraft === true || property.available === false ? (
@@ -92,7 +89,6 @@ export default function HostListingsPage() {
                   )}
                 </div>
 
-                {/* Info */}
                 <div className="flex-1 min-w-0">
                   <h3 className="font-semibold text-gray-900 text-sm leading-tight line-clamp-2">{property.title}</h3>
                   <p className="text-xs text-gray-500 mt-0.5">{property.location} · {property.type}</p>
@@ -107,7 +103,6 @@ export default function HostListingsPage() {
                 </div>
               </div>
 
-              {/* Actions */}
               <div className="flex border-t border-gray-100">
                 <Link
                   href={`/properties/${property.id}`}
