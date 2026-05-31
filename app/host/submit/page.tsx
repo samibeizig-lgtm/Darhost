@@ -115,6 +115,7 @@ export default function HostSubmitPage() {
   const [newRule, setNewRule] = useState('');
   const [user, setUser] = useState<StoredUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
     setUser(getUser());
@@ -216,6 +217,7 @@ export default function HostSubmitPage() {
   }
 
   async function handleSubmit() {
+    if (submitting) return;
     const idStatus = getIdentityStatus();
     if (idStatus === 'pending') {
       alert("Votre dossier de vérification d'identité est en cours d'examen par un administrateur (délai max 48h). Vous pourrez publier dès validation.");
@@ -225,33 +227,38 @@ export default function HostSubmitPage() {
       alert("Votre identité doit être vérifiée avant de publier une annonce. Rendez-vous dans votre Profil → Vérification d'identité.");
       return;
     }
-    const seed = Date.now();
-    const images = form.photos.length > 0
-      ? await Promise.all(form.photos.map(compressPhoto))
-      : [
-          `https://picsum.photos/seed/${seed}/800/600`,
-          `https://picsum.photos/seed/${seed + 1}/800/600`,
-          `https://picsum.photos/seed/${seed + 2}/800/600`,
-          `https://picsum.photos/seed/${seed + 3}/800/600`,
-          `https://picsum.photos/seed/${seed + 4}/800/600`,
-        ];
-    const newProperty = await buildProperty(seed, images);
-    addSubmittedProperty(newProperty);
-    await savePropertyRemote(newProperty);
-
+    setSubmitting(true);
     try {
-      const shareable: Property = {
-        ...newProperty,
-        images: Array.from({ length: 5 }, (_, i) =>
-          `https://picsum.photos/seed/${seed + i}/800/600`
-        ),
-      };
-      const json = JSON.stringify(shareable);
-      const encoded = btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p) => String.fromCharCode(parseInt(p, 16))));
-      setShareLink(`${window.location.origin}/properties/${newProperty.id}#share=${encoded}`);
-    } catch {}
+      const seed = Date.now();
+      const images = form.photos.length > 0
+        ? await Promise.all(form.photos.map(compressPhoto))
+        : [
+            `https://picsum.photos/seed/${seed}/800/600`,
+            `https://picsum.photos/seed/${seed + 1}/800/600`,
+            `https://picsum.photos/seed/${seed + 2}/800/600`,
+            `https://picsum.photos/seed/${seed + 3}/800/600`,
+            `https://picsum.photos/seed/${seed + 4}/800/600`,
+          ];
+      const newProperty = await buildProperty(seed, images);
+      addSubmittedProperty(newProperty);
+      await savePropertyRemote(newProperty);
 
-    setSubmitted(true);
+      try {
+        const shareable: Property = {
+          ...newProperty,
+          images: Array.from({ length: 5 }, (_, i) =>
+            `https://picsum.photos/seed/${seed + i}/800/600`
+          ),
+        };
+        const json = JSON.stringify(shareable);
+        const encoded = btoa(encodeURIComponent(json).replace(/%([0-9A-F]{2})/g, (_, p) => String.fromCharCode(parseInt(p, 16))));
+        setShareLink(`${window.location.origin}/properties/${newProperty.id}#share=${encoded}`);
+      } catch {}
+
+      setSubmitted(true);
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   if (!authChecked) return null;
@@ -947,10 +954,13 @@ export default function HostSubmitPage() {
           <div className="flex flex-col items-end gap-2">
             <button
               onClick={handleSubmit}
-              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 transition-colors text-sm"
+              disabled={submitting}
+              className="flex items-center gap-2 px-5 py-2.5 bg-green-600 text-white rounded-full font-semibold hover:bg-green-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors text-sm"
             >
-              <Check size={16} />
-              Publier
+              {submitting
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Check size={16} />}
+              {submitting ? 'Publication...' : 'Publier'}
             </button>
             <button
               onClick={handleDraft}
