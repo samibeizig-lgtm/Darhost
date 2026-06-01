@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
@@ -12,6 +12,19 @@ import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties, localitesTunisie } from '@/lib/data';
 import { syncPropertiesFromRemote, getUser } from '@/lib/store';
 import { Property } from '@/lib/types';
+
+const MOBILE_SECTIONS = [
+  { label: 'Plage & Mer', key: 'plage', type: 'category' as const, link: '/properties?category=plage' },
+  { label: 'Médina', key: 'medina', type: 'category' as const, link: '/properties?category=medina' },
+  { label: 'Djerba', key: 'djerba', type: 'city' as const, link: '/properties?location=Djerba' },
+  { label: 'Montagne', key: 'montagne', type: 'category' as const, link: '/properties?category=montagne' },
+  { label: 'Hammamet', key: 'hammamet', type: 'city' as const, link: '/properties?location=Hammamet' },
+  { label: 'Désert', key: 'desert', type: 'category' as const, link: '/properties?category=desert' },
+  { label: 'Tunis', key: 'tunis', type: 'city' as const, link: '/properties?location=Tunis' },
+  { label: 'Piscine', key: 'piscine', type: 'category' as const, link: '/properties?category=piscine' },
+  { label: 'Sousse', key: 'sousse', type: 'city' as const, link: '/properties?location=Sousse' },
+  { label: 'Nature', key: 'nature', type: 'category' as const, link: '/properties?category=nature' },
+];
 
 const categories = [
   { Icon: Palmtree, label: 'Plage', value: 'plage' },
@@ -82,6 +95,19 @@ export default function Home() {
     if (activeCategory) params.set('category', activeCategory);
     router.push(`/properties?${params.toString()}`);
   }
+
+  const mobileSections = useMemo(() =>
+    MOBILE_SECTIONS.map(s => ({
+      ...s,
+      properties: s.type === 'category'
+        ? featured.filter(p => p.categories?.includes(s.key))
+        : featured.filter(p =>
+            p.wilaya?.toLowerCase().includes(s.key) ||
+            p.location?.toLowerCase().includes(s.key)
+          ),
+    })).filter(s => s.properties.length > 0),
+    [featured]
+  );
 
   function handleCategoryClick(value: string) {
     const next = value === activeCategory ? '' : value;
@@ -298,7 +324,38 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      {/* Mobile: sections horizontales par thème / ville */}
+      <section className="md:hidden pt-6 pb-4 space-y-7">
+        {(mobileSections.length > 0 ? mobileSections : [{ label: 'Tous les logements', key: 'all', type: 'category' as const, link: '/properties', properties: featured }])
+          .map((section) => (
+          <div key={section.key}>
+            <div className="flex items-center justify-between px-4 mb-3">
+              <h2 className="text-[15px] font-bold text-gray-900">{section.label}</h2>
+              <Link href={section.link} className="text-xs font-semibold text-[#0F4C8A]">Voir tout →</Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto px-4 scrollbar-hide">
+              {section.properties.slice(0, 8).map((p) => (
+                <Link href={`/properties/${p.id}`} key={p.id} className="w-36 shrink-0 pb-1">
+                  <div className="w-36 h-36 rounded-2xl overflow-hidden bg-gray-100 mb-2">
+                    <img
+                      src={p.images?.[0]}
+                      alt={p.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <p className="text-xs font-semibold text-gray-800 truncate leading-tight">{p.title}</p>
+                  <p className="text-xs font-bold text-[#0F4C8A] mt-0.5">
+                    {p.price} DT<span className="text-gray-400 font-normal">/nuit</span>
+                  </p>
+                </Link>
+              ))}
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Desktop: grille classique */}
+      <section className="hidden md:block max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
@@ -306,14 +363,10 @@ export default function Home() {
             </h2>
             <p className="text-gray-500 mt-1">Les meilleures adresses sélectionnées pour vous</p>
           </div>
-          <Link
-            href="/properties"
-            className="text-[#0F4C8A] font-semibold hover:underline text-sm sm:text-base"
-          >
+          <Link href="/properties" className="text-[#0F4C8A] font-semibold hover:underline text-sm sm:text-base">
             Voir tout →
           </Link>
         </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {featured.map((property) => (
             <PropertyCard key={property.id} property={property} />
