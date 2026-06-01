@@ -12,8 +12,8 @@ import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/st
 const HOST_TABS = [
   { href: '/host/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { href: '/host/listings', icon: Building2, label: 'Annonces' },
-  { href: '/host/reservations', icon: BookOpen, label: 'Réservations' },
-  { href: '/host/calendar', icon: Calendar, label: 'Calendrier' },
+  { href: '/host/reservations', icon: BookOpen, label: 'Réserv.' },
+  { href: '/host/calendar', icon: Calendar, label: 'Agenda' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
 ];
 
@@ -64,7 +64,7 @@ export default function MobileTabBar() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
                   active ? 'text-[#0F4C8A]' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
