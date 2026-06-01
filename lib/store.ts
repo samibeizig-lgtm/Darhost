@@ -117,6 +117,14 @@ export function saveAccount(account: StoredAccount): void {
   const all = getAccounts();
   all[account.email.toLowerCase()] = account;
   localStorage.setItem('darhost_accounts', JSON.stringify(all));
+  if (firebaseUrl) {
+    const safeKey = account.id;
+    fetch(`${firebaseUrl}/accounts/${safeKey}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(account),
+    }).catch(() => {});
+  }
 }
 
 export function findAccount(email: string, password: string): StoredAccount | null {
@@ -161,12 +169,32 @@ export function isRemoteConnected(): boolean {
   return !!firebaseUrl;
 }
 
+export async function syncAccountsFromRemote(): Promise<void> {
+  if (!firebaseUrl) return;
+  try {
+    const res = await fetch(`${firebaseUrl}/accounts.json`);
+    if (!res.ok) return;
+    const data: Record<string, StoredAccount> | null = await res.json();
+    if (!data) return;
+    const local = getAccounts();
+    let changed = false;
+    for (const account of Object.values(data)) {
+      const key = account.email.toLowerCase();
+      if (!local[key]) { local[key] = account; changed = true; }
+    }
+    if (changed && typeof window !== 'undefined') {
+      localStorage.setItem('darhost_accounts', JSON.stringify(local));
+    }
+  } catch {}
+}
+
 export async function clearAllRemoteData(): Promise<void> {
   if (!firebaseUrl) return;
   try {
     await Promise.all([
       fetch(`${firebaseUrl}/annonces.json`, { method: 'DELETE' }),
       fetch(`${firebaseUrl}/bookings.json`, { method: 'DELETE' }),
+      fetch(`${firebaseUrl}/accounts.json`, { method: 'DELETE' }),
       fetch(`${firebaseUrl}/identityRequests.json`, { method: 'DELETE' }),
     ]);
   } catch {}

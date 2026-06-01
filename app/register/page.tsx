@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Camera, Plus } from 'lucide-react';
-import { setUser, saveAccount, emailExists } from '@/lib/store';
+import { setUser, saveAccount, emailExists, syncAccountsFromRemote } from '@/lib/store';
 
 export default function RegisterPage() {
   const [role, setRole] = useState<'guest' | 'host'>('guest');
@@ -38,7 +38,7 @@ export default function RegisterPage() {
     reader.readAsDataURL(file);
   }
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     if (!form.firstName || !form.lastName || !form.email || !form.password) {
@@ -61,24 +61,24 @@ export default function RegisterPage() {
       setError("Vous devez accepter les conditions d'utilisation.");
       return;
     }
+    setLoading(true);
+    await syncAccountsFromRemote();
     if (emailExists(form.email)) {
+      setLoading(false);
       setError('Un compte existe déjà avec cet e-mail.');
       return;
     }
-    setLoading(true);
-    setTimeout(() => {
-      const account = {
-        id: `u-${Date.now()}`,
-        name: `${form.firstName} ${form.lastName}`,
-        email: form.email,
-        role,
-        avatar,
-        password: form.password,
-      };
-      saveAccount(account);
-      setUser({ id: account.id, name: account.name, email: account.email, role, avatar });
-      window.location.href = redirect;
-    }, 900);
+    const account = {
+      id: `u-${Date.now()}`,
+      name: `${form.firstName} ${form.lastName}`,
+      email: form.email,
+      role,
+      avatar,
+      password: form.password,
+    };
+    saveAccount(account);
+    setUser({ id: account.id, name: account.name, email: account.email, role, avatar });
+    window.location.href = redirect;
   }
 
   return (

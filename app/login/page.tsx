@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { setUser, findAccount } from '@/lib/store';
+import { setUser, findAccount, syncAccountsFromRemote } from '@/lib/store';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +18,7 @@ export default function LoginPage() {
     setRedirect(params.get('redirect') ?? '/');
   }, []);
 
-  function handleSubmit(e: React.FormEvent) {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
     if (!email || !password) {
@@ -26,16 +26,15 @@ export default function LoginPage() {
       return;
     }
     setLoading(true);
-    setTimeout(() => {
-      const account = findAccount(email, password);
-      if (!account) {
-        setLoading(false);
-        setError('E-mail ou mot de passe incorrect.');
-        return;
-      }
-      setUser({ id: account.id, name: account.name, email: account.email, role: account.role, avatar: account.avatar });
-      window.location.href = redirect;
-    }, 900);
+    await syncAccountsFromRemote();
+    const account = findAccount(email, password);
+    if (!account) {
+      setLoading(false);
+      setError('E-mail ou mot de passe incorrect.');
+      return;
+    }
+    setUser({ id: account.id, name: account.name, email: account.email, role: account.role, avatar: account.avatar });
+    window.location.href = redirect;
   }
 
   return (
