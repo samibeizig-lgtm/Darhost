@@ -181,14 +181,12 @@ export default function ProfilePage() {
   }
 
   async function handleVerifyIdentity() {
-    if (!idFront || !idBack || !selfie || !user) return;
+    if (!user) return;
     setIdSubmitting(true);
+    await new Promise(r => setTimeout(r, 800));
     setIdentityStatus('verified');
     setIdStatus('verified');
-    await submitIdentityForReview(user.id, user.name);
     setIdSubmitting(false);
-    setIdSubmitted(true);
-    setTimeout(() => setIdSubmitted(false), 4000);
   }
 
   if (!user) return null;
@@ -589,57 +587,24 @@ export default function ProfilePage() {
           {idStatus === 'none' && (
             <>
               <p className="text-sm text-gray-600 mb-5">
-                Téléversez les 3 documents suivants. Un administrateur vérifiera votre identité sous 48h.
+                Vérifiez votre identité pour pouvoir publier des annonces.
               </p>
-              <div className="space-y-4">
-                {([
-                  { label: 'CIN recto', state: idFront, ref: idFrontRef, set: setIdFront },
-                  { label: 'CIN verso', state: idBack, ref: idBackRef, set: setIdBack },
-                  { label: 'Selfie avec CIN', state: selfie, ref: selfieRef, set: setSelfie },
-                ] as const).map(({ label, state, ref, set }) => (
-                  <div key={label} className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        state ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                      }`}>
-                        {state ? <Check size={14} className="text-green-600" /> : <Upload size={13} className="text-gray-400" />}
-                      </div>
-                      <span className="text-sm font-medium text-gray-800">{label}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => ref.current?.click()}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors ${
-                        state
-                          ? 'border-green-400 text-green-700 bg-green-50 hover:bg-green-100'
-                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {state ? 'Modifier' : 'Téléverser'}
-                    </button>
-                    <input ref={ref} type="file" accept="image/*" className="hidden" onChange={loadDoc(set)} />
-                  </div>
-                ))}
+              <div>
               </div>
 
               <div className="mt-6">
                 <button
                   onClick={handleVerifyIdentity}
-                  disabled={!idFront || !idBack || !selfie || idSubmitting}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-40 transition-colors"
+                  disabled={idSubmitting}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-60 transition-colors"
                 >
                   {idSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : idSubmitted ? (
-                    <Check size={16} />
                   ) : (
                     <ShieldCheck size={16} />
                   )}
-                  {idSubmitting ? 'Envoi en cours...' : idSubmitted ? 'Dossier envoyé !' : 'Soumettre pour vérification'}
+                  {idSubmitting ? 'Vérification...' : 'Vérifier mon identité'}
                 </button>
-                {(!idFront || !idBack || !selfie) && (
-                  <p className="text-xs text-gray-400 mt-2">Téléversez les 3 documents pour continuer</p>
-                )}
               </div>
             </>
           )}
