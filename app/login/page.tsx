@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount } from '@/lib/store';
+import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount, isRemoteConnected } from '@/lib/store';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -12,11 +12,14 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [redirect, setRedirect] = useState('/');
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'no-firebase'>('idle');
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get('redirect') ?? '/');
-    syncAccountsFromRemote();
+    if (!isRemoteConnected()) { setSyncStatus('no-firebase'); return; }
+    setSyncStatus('syncing');
+    syncAccountsFromRemote().then(() => setSyncStatus('ok'));
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -60,6 +63,20 @@ export default function LoginPage() {
           <h1 className="text-2xl font-bold text-gray-900">Bon retour !</h1>
           <p className="text-gray-500 mt-1">Connectez-vous à votre compte Hostn</p>
         </div>
+
+        {syncStatus === 'no-firebase' && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl px-4 py-3">
+            ⚠️ Synchronisation désactivée — ajoutez <code className="font-mono bg-amber-100 px-1 rounded">NEXT_PUBLIC_FIREBASE_DB_URL</code> dans les variables d&apos;environnement Cloudflare Pages et redéployez.
+          </div>
+        )}
+        {syncStatus === 'syncing' && (
+          <div className="mb-4 text-center text-xs text-gray-400">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse inline-block" />
+              Synchronisation des comptes…
+            </span>
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
