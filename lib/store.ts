@@ -186,8 +186,8 @@ export function isRemoteConnected(): boolean {
   return !!firebaseUrl;
 }
 
-export async function syncAccountsFromRemote(): Promise<void> {
-  if (!firebaseUrl) return;
+export async function syncAccountsFromRemote(): Promise<number> {
+  if (!firebaseUrl) return 0;
   try {
     const res = await fetch(`${firebaseUrl}/accounts.json`);
     const data: Record<string, StoredAccount> | null = res.ok ? await res.json() : null;
@@ -213,7 +213,8 @@ export async function syncAccountsFromRemote(): Promise<void> {
         }).catch(() => {});
       }
     }
-  } catch {}
+    return remoteAccounts.length;
+  } catch { return 0; }
 }
 
 export async function clearAllRemoteData(): Promise<void> {

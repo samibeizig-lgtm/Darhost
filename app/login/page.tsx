@@ -13,13 +13,14 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const [redirect, setRedirect] = useState('/');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'no-firebase'>('idle');
+  const [remoteCount, setRemoteCount] = useState<number | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get('redirect') ?? '/');
     if (!isRemoteConnected()) { setSyncStatus('no-firebase'); return; }
     setSyncStatus('syncing');
-    syncAccountsFromRemote().then(() => setSyncStatus('ok'));
+    syncAccountsFromRemote().then((n) => { setRemoteCount(n); setSyncStatus('ok'); });
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -75,6 +76,16 @@ export default function LoginPage() {
               <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse inline-block" />
               Synchronisation des comptes…
             </span>
+          </div>
+        )}
+        {syncStatus === 'ok' && remoteCount === 0 && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl px-4 py-3">
+            ⚠️ Firebase connecté mais aucun compte trouvé dans la base. Le compte mobile n&apos;a pas été synchronisé — recréez-le sur mobile après le redéploiement.
+          </div>
+        )}
+        {syncStatus === 'ok' && remoteCount !== null && remoteCount > 0 && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-xs rounded-xl px-4 py-3">
+            ✓ {remoteCount} compte{remoteCount > 1 ? 's' : ''} synchronisé{remoteCount > 1 ? 's' : ''} depuis Firebase.
           </div>
         )}
 
