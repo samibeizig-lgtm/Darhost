@@ -118,11 +118,11 @@ export function saveAccount(account: StoredAccount): void {
   all[account.email.toLowerCase()] = account;
   localStorage.setItem('darhost_accounts', JSON.stringify(all));
   if (firebaseUrl) {
-    const safeKey = account.id;
-    fetch(`${firebaseUrl}/accounts/${safeKey}.json`, {
+    const remote = { ...account, avatar: account.avatar.startsWith('data:') ? '' : account.avatar };
+    fetch(`${firebaseUrl}/accounts/${account.id}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(account),
+      body: JSON.stringify(remote),
     }).catch(() => {});
   }
 }

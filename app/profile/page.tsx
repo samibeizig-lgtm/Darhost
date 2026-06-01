@@ -194,11 +194,17 @@ export default function ProfilePage() {
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           <div className="relative shrink-0">
-            <img
-              src={avatarPreview}
-              alt={user.name}
-              className="w-24 h-24 rounded-full object-cover ring-4 ring-[#E8F0FB]"
-            />
+            {avatarPreview ? (
+              <img
+                src={avatarPreview}
+                alt={user.name}
+                className="w-24 h-24 rounded-full object-cover ring-4 ring-[#E8F0FB]"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-[#0F4C8A] ring-4 ring-[#E8F0FB] flex items-center justify-center text-white text-4xl font-bold">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <label className="absolute bottom-0 right-0 w-8 h-8 bg-[#0F4C8A] text-white rounded-full flex items-center justify-center hover:bg-[#0A3566] transition-colors cursor-pointer shadow-sm">
               <Camera size={14} />
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />

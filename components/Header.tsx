@@ -184,7 +184,13 @@ export default function Header() {
                   className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-full hover:bg-white/15 transition-colors"
                   style={{ border: '1px solid rgba(255,255,255,0.4)' }}
                 >
-                  <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-7 h-7 rounded-full object-cover shrink-0" />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-white/30 flex items-center justify-center shrink-0 text-white text-xs font-bold">
+                      {user.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="hidden xl:flex flex-col items-start leading-none">
                     <span className="text-xs font-semibold text-white max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
                     <span className="text-[10px] font-medium mt-0.5 text-white/70">
