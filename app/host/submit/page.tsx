@@ -183,7 +183,7 @@ export default function HostSubmitPage() {
       ],
       host: {
         id: user?.id ?? 'u-new',
-        name: user?.name ?? 'Hôte DarHost',
+        name: user?.name ?? 'Hôte Hostn',
         avatar: user?.avatar ?? 'https://i.pravatar.cc/150?img=12',
         joinDate: new Date().toLocaleDateString('fr-TN', { month: 'long', year: 'numeric' }),
         responseRate: 100,
@@ -273,7 +273,7 @@ export default function HostSubmitPage() {
           </div>
           <h1 className="text-2xl font-bold text-gray-900 mb-3">Connexion requise</h1>
           <p className="text-gray-500 mb-8">
-            Vous devez être connecté pour soumettre un logement sur DarHost.
+            Vous devez être connecté pour soumettre un logement sur Hostn.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
@@ -704,7 +704,7 @@ export default function HostSubmitPage() {
                   <p className="text-xs text-gray-500 mt-1">
                     Vous gagnerez environ{' '}
                     <strong>{Math.round(Number(form.pricePerNight) * 0.88)} DT</strong> par nuit après
-                    les frais de service DarHost (12%).
+                    les frais de service Hostn (12%).
                   </p>
                 )}
               </div>

@@ -12,7 +12,7 @@ export default function Footer() {
                 <path d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z" fill="white" />
                 <circle cx="21" cy="32" r="1.8" fill="#3B82F6" />
               </svg>
-              <span className="text-xl font-bold text-white">DarHost</span>
+              <span className="text-xl font-bold text-white">Hostn</span>
             </div>
             <p className="text-sm leading-relaxed">
               La plateforme de location de logements incontournable en Tunisie. Villas, riads,
@@ -48,7 +48,7 @@ export default function Footer() {
               {[
                 { label: 'Devenir hôte', href: '/host/submit' },
                 { label: 'Forum des hôtes', href: '#' },
-                { label: 'Blog DarHost', href: '#' },
+                { label: 'Blog Hostn', href: '#' },
                 { label: 'Partenaires', href: '#' },
                 { label: 'Voyageurs responsables', href: '#' },
               ].map((item) => (
@@ -62,7 +62,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">DarHost</h4>
+            <h4 className="font-semibold text-white mb-4">Hostn</h4>
             <ul className="space-y-2 text-sm">
               {['À propos', 'Actualités', 'Investisseurs', 'Emplois', 'Presse'].map((item) => (
                 <li key={item}>
@@ -76,7 +76,7 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
-          <p>© 2024 DarHost, Inc. Tous droits réservés. 🇹🇳 Tunisie</p>
+          <p>© 2024 Hostn, Inc. Tous droits réservés. 🇹🇳 Tunisie</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="#" className="hover:text-white transition-colors">
               Confidentialité

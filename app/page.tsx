@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   Search, MapPin, Calendar, Users, Star, Shield, Clock, Award,
-  Umbrella, Landmark, Mountain, Sun, Waves, Leaf, Building2, Anchor,
+  Landmark, Mountain, Sun, Waves, Leaf, Building2, Anchor, Palmtree,
   Home as HomeIcon,
 } from 'lucide-react';
 import PropertyCard from '@/components/PropertyCard';
@@ -14,7 +14,7 @@ import { syncPropertiesFromRemote, getUser } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 const categories = [
-  { Icon: Umbrella, label: 'Plage', value: 'plage' },
+  { Icon: Palmtree, label: 'Plage', value: 'plage' },
   { Icon: Landmark, label: 'Médina', value: 'medina' },
   { Icon: Mountain, label: 'Montagne', value: 'montagne' },
   { Icon: Sun, label: 'Désert', value: 'desert' },
@@ -39,6 +39,28 @@ export default function Home() {
   const [guests, setGuests] = useState('1');
   const [activeCategory, setActiveCategory] = useState('');
   const [featured, setFeatured] = useState<Property[]>(mockProperties.slice(0, 8));
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const locationRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onClickOutside(e: MouseEvent) {
+      if (locationRef.current && !locationRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    }
+    document.addEventListener('mousedown', onClickOutside);
+    return () => document.removeEventListener('mousedown', onClickOutside);
+  }, []);
+
+  function handleLocationChange(val: string) {
+    setLocation(val);
+    if (val.trim().length === 0) { setSuggestions([]); setShowSuggestions(false); return; }
+    const q = val.toLowerCase();
+    const matches = localitesTunisie.filter(l => l.toLowerCase().includes(q)).slice(0, 8);
+    setSuggestions(matches);
+    setShowSuggestions(matches.length > 0);
+  }
 
   useEffect(() => {
 
@@ -119,21 +141,34 @@ export default function Home() {
             className="bg-white rounded-2xl shadow-2xl p-2 max-w-4xl mx-auto"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-1">
-              <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
+              <div ref={locationRef} className="relative flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <MapPin size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
                   <label className="block text-xs font-bold text-gray-700 mb-0.5">Destination</label>
                   <input
                     value={location}
-                    onChange={(e) => setLocation(e.target.value)}
+                    onChange={(e) => handleLocationChange(e.target.value)}
+                    onFocus={() => location.trim() && setShowSuggestions(suggestions.length > 0)}
                     placeholder="Où allez-vous ?"
-                    list="localities-hero"
+                    autoComplete="off"
                     className="w-full text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
                   />
-                  <datalist id="localities-hero">
-                    {localitesTunisie.map((l) => <option key={l} value={l} />)}
-                  </datalist>
                 </div>
+                {showSuggestions && (
+                  <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                    {suggestions.map((s) => (
+                      <button
+                        key={s}
+                        type="button"
+                        onMouseDown={() => { setLocation(s); setShowSuggestions(false); }}
+                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 text-left"
+                      >
+                        <MapPin size={13} className="text-gray-300 shrink-0" />
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
@@ -295,7 +330,7 @@ export default function Home() {
             Partagez votre bien et gagnez de l&apos;argent
           </h2>
           <p className="text-blue-100 text-lg mb-8 max-w-2xl mx-auto">
-            Devenez hôte sur DarHost et générez des revenus supplémentaires en accueillant des
+            Devenez hôte sur Hostn et générez des revenus supplémentaires en accueillant des
             voyageurs du monde entier dans votre logement tunisien.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">

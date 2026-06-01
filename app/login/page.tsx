@@ -47,10 +47,10 @@ export default function LoginPage() {
               <path d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z" fill="white" />
               <circle cx="21" cy="32" r="1.8" fill="#0F4C8A" />
             </svg>
-            <span className="text-3xl font-extrabold text-[#0F4C8A]">DarHost</span>
+            <span className="text-3xl font-extrabold text-[#0F4C8A]">Hostn</span>
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">Bon retour !</h1>
-          <p className="text-gray-500 mt-1">Connectez-vous à votre compte DarHost</p>
+          <p className="text-gray-500 mt-1">Connectez-vous à votre compte Hostn</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
