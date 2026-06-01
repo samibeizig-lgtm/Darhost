@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { setUser, findAccount, syncAccountsFromRemote } from '@/lib/store';
+import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount } from '@/lib/store';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -28,7 +28,14 @@ export default function LoginPage() {
     }
     setLoading(true);
     await syncAccountsFromRemote();
-    const account = findAccount(email, password);
+    let account = findAccount(email, password);
+    if (!account) {
+      const remote = await fetchAccountFromRemote(email);
+      if (remote) {
+        saveAccount(remote);
+        if (remote.password === password) account = remote;
+      }
+    }
     if (!account) {
       setLoading(false);
       setError('E-mail ou mot de passe incorrect.');

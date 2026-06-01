@@ -113,18 +113,35 @@ export function getAccounts(): Record<string, StoredAccount> {
   } catch { return {}; }
 }
 
+function emailToKey(email: string): string {
+  return email.toLowerCase().replace(/\./g, ',');
+}
+
+function stripAvatar(account: StoredAccount): StoredAccount {
+  return { ...account, avatar: account.avatar.startsWith('data:') ? '' : account.avatar };
+}
+
 export function saveAccount(account: StoredAccount): void {
   const all = getAccounts();
   all[account.email.toLowerCase()] = account;
   localStorage.setItem('darhost_accounts', JSON.stringify(all));
   if (firebaseUrl) {
-    const remote = { ...account, avatar: account.avatar.startsWith('data:') ? '' : account.avatar };
-    fetch(`${firebaseUrl}/accounts/${account.id}.json`, {
+    fetch(`${firebaseUrl}/accounts/${emailToKey(account.email)}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(remote),
+      body: JSON.stringify(stripAvatar(account)),
     }).catch(() => {});
   }
+}
+
+export async function fetchAccountFromRemote(email: string): Promise<StoredAccount | null> {
+  if (!firebaseUrl) return null;
+  try {
+    const res = await fetch(`${firebaseUrl}/accounts/${emailToKey(email)}.json`);
+    if (!res.ok) return null;
+    const data: StoredAccount | null = await res.json();
+    return data && data.id ? data : null;
+  } catch { return null; }
 }
 
 export function findAccount(email: string, password: string): StoredAccount | null {
@@ -189,10 +206,10 @@ export async function syncAccountsFromRemote(): Promise<void> {
 
     for (const account of Object.values(local)) {
       if (!remoteIds.has(account.id)) {
-        fetch(`${firebaseUrl}/accounts/${account.id}.json`, {
+        fetch(`${firebaseUrl}/accounts/${emailToKey(account.email)}.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(account),
+          body: JSON.stringify(stripAvatar(account)),
         }).catch(() => {});
       }
     }
