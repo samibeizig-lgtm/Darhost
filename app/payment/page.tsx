@@ -217,9 +217,17 @@ function PaymentInner() {
               <CreditCard size={18} className="text-[#0F4C8A]" />
               <span className="text-sm font-bold text-gray-900">Paiement par carte</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/40px-Mastercard-logo.svg.png" alt="Mastercard" className="h-5" />
-              <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/60px-Visa_Inc._logo.svg.png" alt="Visa" className="h-4" />
+            <div className="flex items-center gap-2">
+              {/* Visa */}
+              <div className="h-6 px-1.5 bg-[#1A1F71] rounded flex items-center">
+                <span className="text-white font-extrabold italic text-xs tracking-tight">VISA</span>
+              </div>
+              {/* Mastercard */}
+              <svg width="32" height="20" viewBox="0 0 32 20" fill="none">
+                <circle cx="11" cy="10" r="9" fill="#EB001B" />
+                <circle cx="21" cy="10" r="9" fill="#F79E1B" />
+                <path d="M16 3.8a9 9 0 0 1 0 12.4A9 9 0 0 1 16 3.8z" fill="#FF5F00" />
+              </svg>
             </div>
           </div>
           <div className="px-4 py-5 space-y-3">
