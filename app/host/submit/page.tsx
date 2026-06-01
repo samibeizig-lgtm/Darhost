@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react';
 import {
   Check, ChevronRight, ChevronLeft, X, Plus, LogIn, Upload,
   Home, Building2, Landmark, Building, BedDouble,
-  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock,
+  Umbrella, Mountain, Sun, Waves, Leaf, Anchor, Lock, Palmtree,
+  CigaretteOff, PartyPopper, PawPrint, Moon,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -34,7 +35,7 @@ const PROPERTY_TYPES = [
 ];
 
 const CATEGORY_ICONS: Record<string, React.ElementType> = {
-  plage: Umbrella,
+  plage: Palmtree,
   medina: Landmark,
   montagne: Mountain,
   desert: Sun,
@@ -661,7 +662,7 @@ export default function HostSubmitPage() {
                               : 'border-gray-200 text-gray-700 hover:border-gray-300 bg-white'
                           }`}
                         >
-                          <span className="text-xl leading-none w-7 text-center emoji-blue">{item.emoji}</span>
+                          <item.Icon size={20} className={selected ? 'text-[#0F4C8A] shrink-0' : 'text-[#5B8AC5] shrink-0'} />
                           <span className="flex-1 leading-tight">{item.label}</span>
                           <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${
                             selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'
@@ -773,18 +774,21 @@ export default function HostSubmitPage() {
               </div>
 
               {[
-                { key: 'noSmoking', label: 'Interdit de fumer', desc: 'Pas de cigarette ni chicha à l\'intérieur' },
-                { key: 'noParties', label: 'Pas de fêtes', desc: 'Pas d\'événements ou soirées non autorisés' },
-                { key: 'noPets', label: 'Animaux non admis', desc: 'Les animaux de compagnie ne sont pas acceptés' },
-                { key: 'noNoise', label: 'Calme après 22h', desc: 'Pas de nuisances sonores après 22h00' },
-              ].map(({ key, label, desc }) => (
+                { key: 'noSmoking', label: 'Interdit de fumer', desc: 'Pas de cigarette ni chicha à l\'intérieur', Icon: CigaretteOff },
+                { key: 'noParties', label: 'Pas de fêtes', desc: 'Pas d\'événements ou soirées non autorisés', Icon: PartyPopper },
+                { key: 'noPets', label: 'Animaux non admis', desc: 'Les animaux de compagnie ne sont pas acceptés', Icon: PawPrint },
+                { key: 'noNoise', label: 'Calme après 22h', desc: 'Pas de nuisances sonores après 22h00', Icon: Moon },
+              ].map(({ key, label, desc, Icon }) => (
                 <div
                   key={key}
                   className="flex items-center justify-between p-4 border border-gray-200 rounded-xl"
                 >
-                  <div>
-                    <div className="font-medium text-gray-900 text-sm">{label}</div>
-                    <div className="text-xs text-gray-500">{desc}</div>
+                  <div className="flex items-center gap-3">
+                    <Icon size={20} className="text-[#0F4C8A] shrink-0" />
+                    <div>
+                      <div className="font-medium text-gray-900 text-sm">{label}</div>
+                      <div className="text-xs text-gray-500">{desc}</div>
+                    </div>
                   </div>
                   <button
                     type="button"

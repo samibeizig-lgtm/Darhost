@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { Save, Check, ArrowLeft, Plus, X, Star, Upload, GripVertical, Image } from 'lucide-react';
+import { Save, Check, ArrowLeft, Plus, X, Star, Upload, GripVertical, Image, CigaretteOff, PartyPopper, PawPrint, Moon } from 'lucide-react';
 import {
   getUser,
   getSubmittedProperties,
@@ -459,7 +459,7 @@ function EditListingInner() {
                             selected ? 'border-[#0F4C8A] bg-[#E8F0FB] text-[#0F4C8A] font-medium' : 'border-gray-200 text-gray-700 hover:border-gray-300'
                           }`}
                         >
-                          <span className="text-xl leading-none w-7 text-center emoji-blue">{item.emoji}</span>
+                          <item.Icon size={20} className={selected ? 'text-[#0F4C8A] shrink-0' : 'text-[#5B8AC5] shrink-0'} />
                           <span className="flex-1 leading-tight">{item.label}</span>
                           <span className={`w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 ${selected ? 'bg-[#0F4C8A] border-[#0F4C8A]' : 'border-gray-300'}`}>
                             {selected && <Check size={12} className="text-white" />}
@@ -607,14 +607,14 @@ function EditListingInner() {
 
             <div className="space-y-1">
               {([
-                { key: 'noSmoking', label: 'Non fumeur', emoji: '🚭' },
-                { key: 'noParties', label: 'Pas de fêtes', emoji: '🎉' },
-                { key: 'noPets', label: 'Animaux non admis', emoji: '🐾' },
-                { key: 'noNoise', label: 'Calme nocturne (après 22h)', emoji: '🌙' },
-              ] as const).map(({ key, label, emoji }) => (
+                { key: 'noSmoking', label: 'Non fumeur', Icon: CigaretteOff },
+                { key: 'noParties', label: 'Pas de fêtes', Icon: PartyPopper },
+                { key: 'noPets', label: 'Animaux non admis', Icon: PawPrint },
+                { key: 'noNoise', label: 'Calme nocturne (après 22h)', Icon: Moon },
+              ] as const).map(({ key, label, Icon }) => (
                 <div key={key} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-0">
                   <span className="flex items-center gap-2.5 text-sm font-medium text-gray-800">
-                    <span className="emoji-blue text-base">{emoji}</span>
+                    <Icon size={18} className="text-[#0F4C8A] shrink-0" />
                     {label}
                   </span>
                   <button
