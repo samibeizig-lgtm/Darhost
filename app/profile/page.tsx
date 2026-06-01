@@ -61,9 +61,6 @@ export default function ProfilePage() {
   const [bankSaved, setBankSaved] = useState(false);
   const [bankSaving, setBankSaving] = useState(false);
 
-  const [cloudSyncing, setCloudSyncing] = useState(false);
-  const [cloudMsg, setCloudMsg] = useState('');
-
   const [idStatus, setIdStatus] = useState<IdentityStatus>('none');
   const [idFront, setIdFront] = useState('');
   const [idBack, setIdBack] = useState('');
@@ -98,6 +95,12 @@ export default function ProfilePage() {
     const bank = getHostBank();
     setBankForm({ bankHolder: bank.bankHolder, bankName: bank.bankName, rib: bank.rib });
     setIdStatus(getIdentityStatus());
+
+    // Auto-sync account to Firebase silently (covers accounts created before the fix)
+    if (isRemoteConnected()) {
+      const account = getAccounts()[u.email.toLowerCase()];
+      if (account) saveAccount(account);
+    }
   }, [router]);
 
   function toggleHobby(hobby: string) {
@@ -255,47 +258,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-
-      {isRemoteConnected() && (
-        <div className="bg-[#E8F0FB] border border-[#B8D0F0] rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-bold text-[#0F4C8A]">Accès multi-appareils</p>
-            <p className="text-xs text-[#3B6EA8] mt-0.5">
-              {cloudMsg || 'Synchroniser ce compte vers le cloud pour y accéder depuis un autre appareil'}
-            </p>
-          </div>
-          <button
-            onClick={async () => {
-              if (!user) return;
-              setCloudSyncing(true);
-              setCloudMsg('');
-              const accounts = getAccounts();
-              const account = accounts[user.email.toLowerCase()];
-              if (!account) { setCloudMsg('Compte introuvable en local.'); setCloudSyncing(false); return; }
-              try {
-                const res = await fetch(
-                  `${(process.env.NEXT_PUBLIC_FIREBASE_DB_URL ?? '').trim().replace(/\/$/, '')}/accounts/${user.email.toLowerCase().replace(/\./g, ',')}.json`,
-                  { method: 'PUT', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ ...account, avatar: account.avatar.startsWith('data:') ? '' : account.avatar }) }
-                );
-                setCloudMsg(res.ok ? '✓ Compte synchronisé — connectez-vous sur le web !' : 'Erreur lors de la synchronisation.');
-              } catch {
-                setCloudMsg('Erreur réseau — vérifiez votre connexion.');
-              }
-              setCloudSyncing(false);
-            }}
-            disabled={cloudSyncing}
-            className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-[#0F4C8A] text-white rounded-xl font-bold text-sm hover:bg-[#0A3566] transition-colors disabled:opacity-60"
-          >
-            {cloudSyncing ? (
-              <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin inline-block" />
-            ) : (
-              <Upload size={14} />
-            )}
-            Synchroniser
-          </button>
-        </div>
-      )}
 
       <div className="bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 flex items-center justify-between gap-4">
         <div>
