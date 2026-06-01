@@ -4,20 +4,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, ChevronRight, Plus } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote } from '@/lib/store';
+import { getUser, syncPropertiesFromRemote, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property } from '@/lib/types';
 
 function toStr(d: Date) { return d.toISOString().slice(0, 10); }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
-
-function seedReservations(property: Property) {
-  const today = new Date();
-  const make = (ci: number, n: number) => ({
-    checkIn: toStr(addDays(today, ci)),
-    checkOut: toStr(addDays(today, ci + n)),
-  });
-  return [make(-30, 5), make(-15, 3), make(-2, 5), make(8, 4), make(20, 5)];
-}
 
 function getMonthStats(reservations: { checkIn: string; checkOut: string }[], year: number, month: number) {
   const daysInMonth = new Date(year, month + 1, 0).getDate();
@@ -47,6 +38,8 @@ export default function CalendarListPage() {
   }, [router]);
 
   const active = properties.filter(p => p.available && !p.isDraft);
+  cancelExpiredBookings();
+  const allBookings = getBookings().filter(b => b.status === 'confirmed' || b.status === 'pending');
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
@@ -69,7 +62,7 @@ export default function CalendarListPage() {
       ) : (
         <div className="space-y-3">
           {active.map(property => {
-            const res = seedReservations(property);
+            const res = allBookings.filter(b => b.propertyId === property.id);
             const { occupancy, count } = getMonthStats(res, today.getFullYear(), today.getMonth());
             return (
               <button
