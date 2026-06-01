@@ -148,7 +148,6 @@ export default function Home() {
                   <input
                     value={location}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    onFocus={() => location.trim() && setShowSuggestions(suggestions.length > 0)}
                     placeholder="Où allez-vous ?"
                     autoComplete="off"
                     className="w-full text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
@@ -161,9 +160,9 @@ export default function Home() {
                         key={s}
                         type="button"
                         onMouseDown={() => { setLocation(s); setShowSuggestions(false); }}
-                        className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm text-gray-500 hover:bg-gray-50 text-left"
+                        className="w-full flex items-center gap-2.5 px-4 py-3 text-base text-gray-400 hover:bg-gray-50 hover:text-gray-600 text-left transition-colors"
                       >
-                        <MapPin size={13} className="text-gray-300 shrink-0" />
+                        <MapPin size={14} className="text-gray-300 shrink-0" />
                         {s}
                       </button>
                     ))}

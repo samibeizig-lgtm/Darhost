@@ -16,6 +16,7 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get('redirect') ?? '/');
+    syncAccountsFromRemote();
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {

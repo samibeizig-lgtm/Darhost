@@ -173,17 +173,28 @@ export async function syncAccountsFromRemote(): Promise<void> {
   if (!firebaseUrl) return;
   try {
     const res = await fetch(`${firebaseUrl}/accounts.json`);
-    if (!res.ok) return;
-    const data: Record<string, StoredAccount> | null = await res.json();
-    if (!data) return;
+    const data: Record<string, StoredAccount> | null = res.ok ? await res.json() : null;
+    const remoteAccounts = data ? Object.values(data) : [];
+    const remoteIds = new Set(remoteAccounts.map(a => a.id));
     const local = getAccounts();
-    let changed = false;
-    for (const account of Object.values(data)) {
+
+    let localChanged = false;
+    for (const account of remoteAccounts) {
       const key = account.email.toLowerCase();
-      if (!local[key]) { local[key] = account; changed = true; }
+      if (!local[key]) { local[key] = account; localChanged = true; }
     }
-    if (changed && typeof window !== 'undefined') {
+    if (localChanged && typeof window !== 'undefined') {
       localStorage.setItem('darhost_accounts', JSON.stringify(local));
+    }
+
+    for (const account of Object.values(local)) {
+      if (!remoteIds.has(account.id)) {
+        fetch(`${firebaseUrl}/accounts/${account.id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(account),
+        }).catch(() => {});
+      }
     }
   } catch {}
 }
