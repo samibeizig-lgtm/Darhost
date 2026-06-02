@@ -7,10 +7,10 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
           <div>
             <div className="flex items-center gap-2 mb-4">
-              <svg width="28" height="34" viewBox="0 0 34 42" fill="none">
-                <path d="M1 42V17C1 7.611 8.163 1 17 1C25.837 1 33 7.611 33 17V42H1Z" fill="#3B82F6" />
-                <path d="M9 42V22C9 16.477 12.686 13 17 13C21.314 13 25 16.477 25 22V42H9Z" fill="white" />
-                <circle cx="21" cy="32" r="1.8" fill="#3B82F6" />
+              <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                <path d="M16 3L3 13v16h26V13L16 3z" fill="white" fillOpacity="0.15" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+                <circle cx="16" cy="14" r="3" fill="white" />
+                <path d="M9 24c0-3.866 3.134-7 7-7s7 3.134 7 7" fill="white" />
               </svg>
               <span className="text-xl font-bold text-white">Hostn</span>
             </div>

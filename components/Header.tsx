@@ -12,17 +12,18 @@ import { localitesTunisie } from '@/lib/data';
 
 const TEAL = 'rgb(10, 186, 181)';
 
-function HouseIcon({ className = '' }: { className?: string }) {
+function HostIcon({ className = '' }: { className?: string }) {
   return (
     <svg
-      width="28" height="28" viewBox="0 0 24 24"
-      fill="none" stroke="white" strokeWidth="2"
-      strokeLinecap="round" strokeLinejoin="round"
-      className={className} aria-hidden="true"
+      width="32" height="32" viewBox="0 0 32 32"
+      fill="none" aria-hidden="true" className={className}
     >
-      <path d="M4 12C4 7.582 7.582 4 12 4C16.418 4 20 7.582 20 12" />
-      <rect x="4" y="11.5" width="16" height="9.5" rx="2.5" />
-      <circle cx="12" cy="16.5" r="2" />
+      {/* House shape */}
+      <path d="M16 3L3 13v16h26V13L16 3z" fill="white" fillOpacity="0.15" stroke="white" strokeWidth="1.8" strokeLinejoin="round" />
+      {/* Person head */}
+      <circle cx="16" cy="14" r="3" fill="white" />
+      {/* Person body / welcoming arms */}
+      <path d="M9 24c0-3.866 3.134-7 7-7s7 3.134 7 7" fill="white" />
     </svg>
   );
 }
@@ -30,7 +31,7 @@ function HouseIcon({ className = '' }: { className?: string }) {
 function HostnLogo() {
   return (
     <Link href="/" className="flex items-center gap-2 shrink-0">
-      <HouseIcon />
+      <HostIcon />
       <span className="text-white font-extrabold text-xl tracking-tight">Hostn</span>
     </Link>
   );
