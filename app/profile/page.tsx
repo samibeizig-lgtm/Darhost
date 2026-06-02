@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Star, Camera, MapPin, Save, Check, Plus, ShieldCheck, Building2, Upload, AlertCircle, Trash2 } from 'lucide-react';
+import { Star, Camera, MapPin, Save, Check, Plus, ShieldCheck, Building2, Upload, AlertCircle, Trash2, Fingerprint } from 'lucide-react';
 import {
   getUser, setUser as persistUser,
   getProfileData, setProfileData,
@@ -15,6 +15,7 @@ import {
 } from '@/lib/store';
 import { TUNISIAN_BANKS, validateRib, formatRibDisplay } from '@/lib/banks';
 import { useLanguage } from '@/lib/i18n';
+import { isBiometricSupported, getBiometricCredential, registerBiometric, removeBiometric } from '@/lib/biometric';
 
 const HOBBIES_LIST = [
   'Voyages', 'Cuisine', 'Sport', 'Lecture', 'Musique', 'Cinéma',
@@ -63,6 +64,11 @@ export default function ProfilePage() {
   const [bankSaved, setBankSaved] = useState(false);
   const [bankSaving, setBankSaving] = useState(false);
 
+  const [biometricEnabled, setBiometricEnabled] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
+  const [biometricMsg, setBiometricMsg] = useState('');
+  const [biometricSupported, setBiometricSupported] = useState(false);
+
   const [idStatus, setIdStatus] = useState<IdentityStatus>('none');
   const [idFront, setIdFront] = useState('');
   const [idBack, setIdBack] = useState('');
@@ -97,6 +103,9 @@ export default function ProfilePage() {
     const bank = getHostBank();
     setBankForm({ bankHolder: bank.bankHolder, bankName: bank.bankName, rib: bank.rib });
     setIdStatus(getIdentityStatus());
+
+    setBiometricSupported(isBiometricSupported());
+    setBiometricEnabled(isBiometricSupported() && !!getBiometricCredential());
 
     // Auto-sync account to Firebase silently (covers accounts created before the fix)
     if (isRemoteConnected()) {
@@ -180,6 +189,26 @@ export default function ProfilePage() {
       reader.onload = () => setter(reader.result as string);
       reader.readAsDataURL(file);
     };
+  }
+
+  async function handleEnableBiometric() {
+    if (!user) return;
+    setBiometricLoading(true);
+    setBiometricMsg('');
+    const ok = await registerBiometric(user.email);
+    setBiometricLoading(false);
+    if (ok) {
+      setBiometricEnabled(true);
+      setBiometricMsg(t('auth.biometric_enable') + ' ✓');
+    } else {
+      setBiometricMsg(t('auth.biometric_error'));
+    }
+  }
+
+  function handleDisableBiometric() {
+    removeBiometric();
+    setBiometricEnabled(false);
+    setBiometricMsg('');
   }
 
   async function handleVerifyIdentity() {
@@ -456,6 +485,56 @@ export default function ProfilePage() {
             </div>
           )}
         </div>
+      {biometricSupported && (
+        <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 shadow-sm">
+          <div className="flex items-center gap-3 mb-5">
+            <div className="w-10 h-10 bg-[#E8F0FB] rounded-xl flex items-center justify-center shrink-0">
+              <Fingerprint size={20} className="text-[#0F4C8A]" />
+            </div>
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">{t('auth.biometric_login')}</h2>
+              <p className="text-xs text-gray-500">
+                {biometricEnabled
+                  ? 'Votre empreinte est enregistrée sur cet appareil'
+                  : 'Activez la connexion par empreinte digitale'}
+              </p>
+            </div>
+          </div>
+
+          {biometricMsg && (
+            <div className={`mb-4 text-sm rounded-xl px-4 py-3 border ${
+              biometricEnabled
+                ? 'bg-green-50 border-green-200 text-green-700'
+                : 'bg-red-50 border-red-200 text-red-700'
+            }`}>
+              {biometricMsg}
+            </div>
+          )}
+
+          {biometricEnabled ? (
+            <button
+              type="button"
+              onClick={handleDisableBiometric}
+              className="flex items-center gap-2 px-5 py-2.5 border border-red-200 text-red-600 rounded-xl font-semibold text-sm hover:bg-red-50 transition-colors"
+            >
+              Désactiver l&apos;empreinte
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={handleEnableBiometric}
+              disabled={biometricLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-xl font-semibold text-sm hover:bg-[#0A3566] disabled:opacity-60 transition-colors"
+            >
+              {biometricLoading
+                ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                : <Fingerprint size={16} />}
+              {t('auth.biometric_enable')}
+            </button>
+          )}
+        </div>
+      )}
+
       {user.role === 'host' && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mt-6 shadow-sm">
           <div className="flex items-center gap-3 mb-6">
