@@ -13,10 +13,10 @@ import { useLanguage, Locale } from '@/lib/i18n';
 
 const TEAL = 'rgb(10, 186, 181)';
 
-const LANG_OPTIONS: { locale: Locale; flag: string; label: string }[] = [
-  { locale: 'fr', flag: '🇫🇷', label: 'Français' },
-  { locale: 'en', flag: '🇬🇧', label: 'English' },
-  { locale: 'ar', flag: '🇸🇦', label: 'العربية' },
+const LANG_OPTIONS: { locale: Locale; label: string }[] = [
+  { locale: 'fr', label: 'Fr' },
+  { locale: 'en', label: 'Eng' },
+  { locale: 'ar', label: 'Ar' },
 ];
 
 function HostnLogo() {
@@ -222,28 +222,26 @@ export default function Header() {
             <div className="relative" ref={langDropdownRef}>
               <button
                 onClick={() => setLangDropdownOpen(!langDropdownOpen)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium text-white/90 hover:bg-white/15 transition-colors"
+                className="flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-semibold text-white/90 hover:bg-white/15 transition-colors"
                 style={{ border: '1px solid rgba(255,255,255,0.3)' }}
                 aria-label="Change language"
               >
-                <span>{currentLang.flag}</span>
-                <span className="text-xs font-semibold">{currentLang.locale.toUpperCase()}</span>
-                <ChevronDown size={12} className="text-white/70" />
+                {currentLang.label}
+                <ChevronDown size={11} className="text-white/70" />
               </button>
               {langDropdownOpen && (
-                <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-xl w-40 z-50 overflow-hidden">
+                <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-xl w-32 z-50 overflow-hidden">
                   {LANG_OPTIONS.map((opt) => (
                     <button
                       key={opt.locale}
                       onClick={() => { setLocale(opt.locale); setLangDropdownOpen(false); }}
-                      className={`w-full flex items-center gap-2.5 px-4 py-2.5 text-sm transition-colors ${
+                      className={`w-full flex items-center px-4 py-2.5 text-sm transition-colors ${
                         locale === opt.locale
                           ? 'bg-[#E8F0FB] text-[#0F4C8A] font-semibold'
                           : 'text-gray-700 hover:bg-gray-50'
                       }`}
                     >
-                      <span>{opt.flag}</span>
-                      <span>{opt.label}</span>
+                      {opt.label}
                     </button>
                   ))}
                 </div>
@@ -314,15 +312,30 @@ export default function Header() {
             )}
           </nav>
 
-          {!user && (
-            <button
-              onClick={() => setMenuOpen(!menuOpen)}
-              className="md:hidden p-2 rounded-full text-white hover:bg-white/15 transition-colors"
-              aria-label="Menu"
-            >
-              {menuOpen ? <X size={24} /> : <Menu size={24} />}
-            </button>
-          )}
+          <div className="md:hidden flex items-center gap-1">
+            {LANG_OPTIONS.map((opt) => (
+              <button
+                key={opt.locale}
+                onClick={() => setLocale(opt.locale)}
+                className={`px-2 py-1 rounded-full text-xs font-semibold transition-colors ${
+                  locale === opt.locale
+                    ? 'bg-white text-[rgb(10,186,181)]'
+                    : 'text-white/75 hover:text-white'
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+            {!user && (
+              <button
+                onClick={() => setMenuOpen(!menuOpen)}
+                className="p-2 rounded-full text-white hover:bg-white/15 transition-colors ml-1"
+                aria-label="Menu"
+              >
+                {menuOpen ? <X size={24} /> : <Menu size={24} />}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -364,26 +377,6 @@ export default function Header() {
             </Link>
           </div>
 
-          {/* Mobile language switcher */}
-          <div className="mt-4 pt-4 border-t border-gray-200">
-            <p className="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Language / Langue / اللغة</p>
-            <div className="flex gap-2">
-              {LANG_OPTIONS.map((opt) => (
-                <button
-                  key={opt.locale}
-                  onClick={() => { setLocale(opt.locale); setMenuOpen(false); }}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium border transition-colors ${
-                    locale === opt.locale
-                      ? 'bg-[#0F4C8A] text-white border-[#0F4C8A]'
-                      : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                  }`}
-                >
-                  <span>{opt.flag}</span>
-                  <span>{opt.locale.toUpperCase()}</span>
-                </button>
-              ))}
-            </div>
-          </div>
         </div>
       )}
     </header>
