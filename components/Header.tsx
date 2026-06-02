@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu, X, MessageSquare, User, Home, Search,
-  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight,
+  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight, Building2,
 } from 'lucide-react';
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
@@ -38,18 +38,16 @@ function HostnLogo() {
 
 const hostLinks = [
   { href: '/host/dashboard', label: 'Accueil', icon: Home },
-  { href: '/host/listings', label: 'Mes annonces', icon: MessageSquare },
-  { href: '/host/calendar', label: 'Calendrier', icon: Calendar },
-  { href: '/host/reservations', label: 'Réservations', icon: BookOpen },
-  { href: '/messages', label: 'Messagerie', icon: MessageSquare },
-  { href: '/profile', label: 'Profil', icon: User },
+  { href: '/host/listings', label: 'Annonces', icon: Building2 },
+  { href: '/host/calendar', label: 'Agenda', icon: Calendar },
+  { href: '/host/reservations', label: 'Réserv.', icon: BookOpen },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
 ];
 
 const guestLinks = [
-  { href: '/reservations', label: 'Mes réservations', icon: BookOpen },
-  { href: '/properties', label: 'Rechercher', icon: Search },
-  { href: '/messages', label: 'Messagerie', icon: MessageSquare },
-  { href: '/profile', label: 'Profil', icon: User },
+  { href: '/reservations', label: 'Réserv.', icon: BookOpen },
+  { href: '/properties', label: 'Explorer', icon: Search },
+  { href: '/messages', label: 'Messages', icon: MessageSquare },
 ];
 
 const publicLinks = [
@@ -108,7 +106,7 @@ export default function Header() {
 
   function navClass(href: string) {
     const active = pathname === href || (href !== '/' && pathname.startsWith(href));
-    return `flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+    return `flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
       active ? 'bg-white/25 text-white' : 'text-white/85 hover:bg-white/15'
     }`;
   }
