@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu, X, MessageSquare, User, Home, Search,
-  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight, Building2,
+  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight, Building2, MapPin,
 } from 'lucide-react';
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
@@ -39,7 +39,7 @@ function HostnLogo() {
 const hostLinks = [
   { href: '/host/dashboard', label: 'Accueil', icon: Home },
   { href: '/host/listings', label: 'Annonces', icon: Building2 },
-  { href: '/host/calendar', label: 'Agenda', icon: Calendar },
+  { href: '/host/calendar', label: 'Calendrier', icon: Calendar },
   { href: '/host/reservations', label: 'Réserv.', icon: BookOpen },
   { href: '/messages', label: 'Messages', icon: MessageSquare },
 ];
@@ -59,7 +59,10 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [user, setUser] = useState<StoredUser | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLFormElement>(null);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -70,16 +73,38 @@ export default function Header() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setDropdownOpen(false);
       }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  function handleLocationChange(val: string) {
+    setSearchQuery(val);
+    if (val.trim().length === 0) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
+    const q = val.toLowerCase();
+    const matches = localitesTunisie.filter(l => l.toLowerCase().includes(q)).slice(0, 8);
+    setSuggestions(matches);
+    setShowSuggestions(matches.length > 0);
+  }
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault();
     const q = searchQuery.trim();
     router.push(q ? `/properties?location=${encodeURIComponent(q)}` : '/properties');
     setMenuOpen(false);
+    setShowSuggestions(false);
+  }
+
+  function selectLocation(location: string) {
+    setSearchQuery(location);
+    setShowSuggestions(false);
   }
 
   function handleLogout() {
@@ -126,20 +151,19 @@ export default function Header() {
 
           <form
             onSubmit={handleSearch}
-            className="hidden lg:flex items-center gap-3 rounded-full px-4 py-2 flex-1 max-w-md transition-shadow"
+            className="hidden lg:flex items-center gap-3 rounded-full px-4 py-2 flex-1 max-w-md transition-shadow relative"
             style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.35)' }}
+            ref={searchRef}
           >
+            <Search size={14} style={{ color: 'rgba(255,255,255,0.7)' }} className="shrink-0" />
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleLocationChange(e.target.value)}
               placeholder="Où allez-vous ?"
-              list="localities-desktop"
-              className="flex-1 text-sm outline-none bg-transparent min-w-0 text-white placeholder-white/60"
+              autoComplete="off"
+              className="flex-1 text-sm outline-none bg-transparent min-w-0 text-gray-600 placeholder-gray-400"
             />
-            <datalist id="localities-desktop">
-              {localitesTunisie.map((l) => <option key={l} value={l} />)}
-            </datalist>
             <span className="w-px h-4 shrink-0" style={{ background: 'rgba(255,255,255,0.35)' }} />
             <span className="text-sm shrink-0 hidden xl:block text-white/70">Tunisie</span>
             <button
@@ -149,6 +173,21 @@ export default function Header() {
             >
               <Search size={14} style={{ color: TEAL }} />
             </button>
+            {showSuggestions && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-50 overflow-hidden">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onMouseDown={() => selectLocation(s)}
+                    className="w-full flex items-center gap-2.5 px-4 py-3 text-sm text-gray-400 hover:bg-gray-50 hover:text-gray-600 text-left transition-colors"
+                  >
+                    <MapPin size={14} className="text-gray-300 shrink-0" />
+                    {s}
+                  </button>
+                ))}
+              </div>
+            )}
           </form>
 
           <nav className="hidden md:flex items-center gap-1">
