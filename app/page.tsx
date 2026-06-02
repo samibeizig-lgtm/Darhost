@@ -139,7 +139,7 @@ export default function Home() {
             src={src}
             alt=""
             aria-hidden="true"
-            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-1000"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-[2500ms]"
             style={{ opacity: i === heroIndex ? 1 : 0 }}
           />
         ))}
