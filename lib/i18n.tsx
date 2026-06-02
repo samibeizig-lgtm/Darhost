@@ -284,6 +284,13 @@ const translationsData: Record<Locale, Translations> = {
     'footer.sitemap': 'Plan du site',
     'footer.contact': 'Contact',
     'footer.legal': 'Légal',
+    'auth.biometric_login': 'Connexion par empreinte',
+    'auth.biometric_enable': 'Activer la connexion par empreinte',
+    'auth.biometric_enabled': 'Connexion biométrique activée',
+    'auth.biometric_disable': 'Désactiver',
+    'auth.biometric_not_supported': 'Non supporté sur cet appareil',
+    'auth.biometric_error': 'Échec de la reconnaissance biométrique',
+    'auth.or': 'ou',
   },
 
   en: {
@@ -563,6 +570,13 @@ const translationsData: Record<Locale, Translations> = {
     'footer.sitemap': 'Sitemap',
     'footer.contact': 'Contact',
     'footer.legal': 'Legal',
+    'auth.biometric_login': 'Login with fingerprint',
+    'auth.biometric_enable': 'Enable fingerprint login',
+    'auth.biometric_enabled': 'Biometric login enabled',
+    'auth.biometric_disable': 'Disable',
+    'auth.biometric_not_supported': 'Not supported on this device',
+    'auth.biometric_error': 'Biometric authentication failed',
+    'auth.or': 'or',
   },
 
   ar: {
@@ -842,6 +856,13 @@ const translationsData: Record<Locale, Translations> = {
     'footer.sitemap': 'خريطة الموقع',
     'footer.contact': 'تواصل معنا',
     'footer.legal': 'قانوني',
+    'auth.biometric_login': 'الدخول ببصمة الإصبع',
+    'auth.biometric_enable': 'تفعيل الدخول بالبصمة',
+    'auth.biometric_enabled': 'تم تفعيل الدخول البيومتري',
+    'auth.biometric_disable': 'تعطيل',
+    'auth.biometric_not_supported': 'غير مدعوم على هذا الجهاز',
+    'auth.biometric_error': 'فشل التحقق البيومتري',
+    'auth.or': 'أو',
   },
 };
 
