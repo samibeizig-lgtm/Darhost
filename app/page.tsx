@@ -13,6 +13,13 @@ import { properties as mockProperties, localitesTunisie } from '@/lib/data';
 import { syncPropertiesFromRemote, getUser } from '@/lib/store';
 import { Property } from '@/lib/types';
 
+const HERO_IMAGES = [
+  'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://plus.unsplash.com/premium_photo-1682377521625-c656fc1ff3e1?q=80&w=1170&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+  'https://images.unsplash.com/photo-1602343168117-bb8ffe3e2e9f?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MTl8fHZpbGxhfGVufDB8fDB8fHww',
+];
+
 const MOBILE_SECTIONS = [
   { label: 'Plage & Mer', key: 'plage', type: 'category' as const, link: '/properties?category=plage' },
   { label: 'Médina', key: 'medina', type: 'category' as const, link: '/properties?category=medina' },
@@ -51,6 +58,12 @@ export default function Home() {
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState('1');
   const [activeCategory, setActiveCategory] = useState('');
+  const [heroIndex, setHeroIndex] = useState(0);
+
+  useEffect(() => {
+    const t = setInterval(() => setHeroIndex(i => (i + 1) % HERO_IMAGES.length), 5000);
+    return () => clearInterval(t);
+  }, []);
   const [featured, setFeatured] = useState<Property[]>(mockProperties.slice(0, 8));
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -120,13 +133,17 @@ export default function Home() {
   return (
     <div>
       <section className="relative text-white">
-        <img
-          src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
-        />
-        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
+        {HERO_IMAGES.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt=""
+            aria-hidden="true"
+            className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-1000"
+            style={{ opacity: i === heroIndex ? 1 : 0 }}
+          />
+        ))}
+        <div className="absolute inset-0 bg-black/35 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="text-center mb-10">
@@ -278,6 +295,22 @@ export default function Home() {
               </div>
             </div>
           </form>
+
+          <div className="flex justify-center gap-2 mt-6">
+            {HERO_IMAGES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setHeroIndex(i)}
+                aria-label={`Image ${i + 1}`}
+                className="transition-all duration-300 rounded-full"
+                style={{
+                  width: i === heroIndex ? 24 : 8,
+                  height: 8,
+                  background: i === heroIndex ? 'white' : 'rgba(255,255,255,0.45)',
+                }}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
