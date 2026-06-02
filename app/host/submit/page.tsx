@@ -14,6 +14,7 @@ import { AMENITY_CATEGORIES } from '@/lib/amenities';
 import { getIdentityStatus } from '@/lib/store';
 import { getUser, addSubmittedProperty, savePropertyRemote, uploadImage, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const STEPS = [
   { n: 1, label: 'Type de bien' },
@@ -114,6 +115,7 @@ async function processPhoto(file: File): Promise<string> {
 
 export default function HostSubmitPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormData>(INITIAL);
   const [submitted, setSubmitted] = useState(false);

@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
 import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount, isRemoteConnected } from '@/lib/store';
+import { useLanguage } from '@/lib/i18n';
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -61,8 +63,8 @@ export default function LoginPage() {
             </svg>
             <span className="text-3xl font-extrabold text-[#0F4C8A]">Hostn</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Bon retour !</h1>
-          <p className="text-gray-500 mt-1">Connectez-vous à votre compte Hostn</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.login_title')}</h1>
+          <p className="text-gray-500 mt-1">{t('auth.login_subtitle')}</p>
         </div>
 
         {syncStatus === 'no-firebase' && (
@@ -98,7 +100,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Adresse e-mail</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('auth.email')}</label>
               <div className="relative">
                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -114,7 +116,7 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-semibold text-gray-700">Mot de passe</label>
+                <label className="text-sm font-semibold text-gray-700">{t('auth.password')}</label>
                 <Link href="#" className="text-sm text-[#0F4C8A] hover:underline font-medium">
                   Mot de passe oublié ?
                 </Link>
@@ -147,19 +149,19 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Connexion...
+                  {t('common.loading')}
                 </>
               ) : (
-                'Se connecter'
+                t('auth.login_btn')
               )}
             </button>
           </form>
 
           <div className="mt-5 text-center">
             <p className="text-sm text-gray-600">
-              Pas encore de compte ?{' '}
+              {t('auth.no_account')}{' '}
               <Link href={`/register?redirect=${encodeURIComponent(redirect)}`} className="text-[#0F4C8A] font-semibold hover:underline">
-                S&apos;inscrire gratuitement
+                {t('nav.register')}
               </Link>
             </p>
           </div>

@@ -1,6 +1,10 @@
+'use client';
+
 import Link from 'next/link';
+import { useLanguage } from '@/lib/i18n';
 
 export default function Footer() {
+  const { t } = useLanguage();
   return (
     <footer className="bg-gray-900 text-gray-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -15,23 +19,21 @@ export default function Footer() {
               <span className="text-xl font-bold text-white">Hostn</span>
             </div>
             <p className="text-sm leading-relaxed">
-              La plateforme de location de logements incontournable en Tunisie. Villas, riads,
-              appartements et chalets authentiques.
+              {t('footer.tagline')}
             </p>
             <p className="text-xs mt-4 text-gray-500">
-              Appel gratuit : <span className="text-gray-300">+216 70 000 000</span>
+              {t('footer.free_call')} : <span className="text-gray-300">+216 70 000 000</span>
             </p>
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">Assistance</h4>
+            <h4 className="font-semibold text-white mb-4">{t('footer.assistance')}</h4>
             <ul className="space-y-2 text-sm">
               {[
-                "Centre d'aide",
-                "Options d'annulation",
-                'Protocole de sécurité',
-                'Signaler un problème',
-                'Accessibilité',
+                t('footer.help'),
+                t('footer.cancellation_policy'),
+                t('footer.security_protocol'),
+                t('footer.report'),
               ].map((item) => (
                 <li key={item}>
                   <Link href="#" className="hover:text-white transition-colors">
@@ -43,14 +45,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">Communauté</h4>
+            <h4 className="font-semibold text-white mb-4">{t('footer.community')}</h4>
             <ul className="space-y-2 text-sm">
               {[
-                { label: 'Devenir hôte', href: '/host/submit' },
-                { label: 'Forum des hôtes', href: '#' },
-                { label: 'Blog Hostn', href: '#' },
-                { label: 'Partenaires', href: '#' },
-                { label: 'Voyageurs responsables', href: '#' },
+                { label: t('footer.become_host'), href: '/host/submit' },
+                { label: t('footer.host_forum'), href: '#' },
+                { label: t('footer.blog'), href: '#' },
+                { label: t('footer.partners'), href: '#' },
               ].map((item) => (
                 <li key={item.label}>
                   <Link href={item.href} className="hover:text-white transition-colors">
@@ -62,9 +63,15 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-semibold text-white mb-4">Hostn</h4>
+            <h4 className="font-semibold text-white mb-4">{t('footer.company')}</h4>
             <ul className="space-y-2 text-sm">
-              {['À propos', 'Actualités', 'Investisseurs', 'Emplois', 'Presse'].map((item) => (
+              {[
+                t('footer.about'),
+                t('footer.news'),
+                t('footer.investors'),
+                t('footer.jobs'),
+                t('footer.press'),
+              ].map((item) => (
                 <li key={item}>
                   <Link href="#" className="hover:text-white transition-colors">
                     {item}
@@ -76,16 +83,16 @@ export default function Footer() {
         </div>
 
         <div className="border-t border-gray-800 mt-10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
-          <p>© 2024 Hostn, Inc. Tous droits réservés. 🇹🇳 Tunisie</p>
+          <p>{t('footer.copyright')}</p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link href="/confidentialite" className="hover:text-white transition-colors">
-              Confidentialité
+              {t('footer.privacy')}
             </Link>
             <Link href="/conditions" className="hover:text-white transition-colors">
-              Conditions d&apos;utilisation
+              {t('footer.terms')}
             </Link>
             <Link href="#" className="hover:text-white transition-colors">
-              Plan du site
+              {t('footer.sitemap')}
             </Link>
           </div>
         </div>

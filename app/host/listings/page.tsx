@@ -6,9 +6,11 @@ import { useRouter } from 'next/navigation';
 import { Plus, Star, Eye, Share2, Check, Pencil, Trash2 } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, generateShareLink, deleteProperty } from '@/lib/store';
 import { Property } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 export default function HostListingsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -43,7 +45,7 @@ export default function HostListingsPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mes annonces</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('host.active_listings')}</h1>
           {!loading && (
             <p className="text-sm text-gray-500 mt-0.5">
               {properties.length} logement{properties.length !== 1 ? 's' : ''} publié{properties.length !== 1 ? 's' : ''}
@@ -55,7 +57,7 @@ export default function HostListingsPage() {
           className="flex items-center gap-2 px-4 py-2.5 bg-[#0F4C8A] text-white rounded-xl font-semibold text-sm hover:bg-[#0A3566] transition-colors shrink-0"
         >
           <Plus size={16} />
-          Nouvelle annonce
+          {t('host.new_listing')}
         </Link>
       </div>
 
@@ -89,11 +91,11 @@ export default function HostListingsPage() {
                   <img src={property.images[0]} alt={property.title} className="w-full h-full object-cover" />
                   {property.isDraft === true || property.available === false ? (
                     <span className="absolute top-1.5 right-1.5 bg-gray-400 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                      Brouillon
+                      {t('host.listing_draft')}
                     </span>
                   ) : (
                     <span className="absolute top-1.5 right-1.5 bg-green-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                      Actif
+                      {t('host.listing_active')}
                     </span>
                   )}
                 </div>
@@ -118,7 +120,7 @@ export default function HostListingsPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   <Eye size={15} />
-                  Voir
+                  {t('host.view')}
                 </Link>
                 <div className="w-px bg-gray-100" />
                 <Link
@@ -126,7 +128,7 @@ export default function HostListingsPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors"
                 >
                   <Pencil size={15} />
-                  Modifier
+                  {t('host.edit_listing')}
                 </Link>
                 <div className="w-px bg-gray-100" />
                 <button
@@ -134,7 +136,7 @@ export default function HostListingsPage() {
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-[#0F4C8A] hover:bg-[#E8F0FB] transition-colors"
                 >
                   {copiedId === property.id ? <Check size={15} /> : <Share2 size={15} />}
-                  {copiedId === property.id ? 'Copié !' : 'Partager'}
+                  {copiedId === property.id ? t('common.copied') : t('common.share')}
                 </button>
                 <div className="w-px bg-gray-100" />
                 <button
@@ -145,7 +147,7 @@ export default function HostListingsPage() {
                   {deletingId === property.id
                     ? <div className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
                     : <Trash2 size={15} />}
-                  Supprimer
+                  {t('host.delete_listing')}
                 </button>
               </div>
             </div>

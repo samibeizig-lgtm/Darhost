@@ -11,6 +11,7 @@ import {
 import { properties } from '@/lib/data';
 import { syncPropertiesFromRemote, getUser, saveBooking, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
 
@@ -130,6 +131,7 @@ function BookingConfirmModal({ booking, onClose }: { booking: Booking; onClose: 
 
 function BookingForm({ property }: { property: Property }) {
   const router = useRouter();
+  const { t } = useLanguage();
   const todayStr = new Date().toISOString().slice(0, 10);
   const minNights = property.minNights || 1;
 
@@ -222,7 +224,7 @@ function BookingForm({ property }: { property: Property }) {
       <div className="border border-gray-300 rounded-xl overflow-hidden mb-3">
         <div className="grid grid-cols-2">
           <div className="p-3 border-r border-gray-300">
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">Arrivée</label>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">{t('property.checkin')}</label>
             <input
               type="date"
               value={checkIn}
@@ -232,7 +234,7 @@ function BookingForm({ property }: { property: Property }) {
             />
           </div>
           <div className="p-3">
-            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">Départ</label>
+            <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">{t('property.checkout')}</label>
             <input
               type="date"
               value={checkOut}
@@ -244,7 +246,7 @@ function BookingForm({ property }: { property: Property }) {
           </div>
         </div>
         <div className="p-3 border-t border-gray-300">
-          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">Voyageurs</label>
+          <label className="block text-xs font-bold text-gray-700 uppercase tracking-wide mb-1">{t('property.guests')}</label>
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-900">{guests} voyageur{guests > 1 ? 's' : ''}</span>
             <div className="flex items-center gap-3">
@@ -282,8 +284,8 @@ function BookingForm({ property }: { property: Property }) {
         }`}
       >
         {completing
-          ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Traitement...</>
-          : canReserve ? 'Réserver' : 'Sélectionnez vos dates'}
+          ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />{t('payment.processing')}</>
+          : canReserve ? t('property.book') : t('search.checkin_placeholder')}
       </button>
 
       <p className="text-center text-xs text-gray-500 mb-4">Vous ne serez pas encore débité</p>
@@ -295,15 +297,15 @@ function BookingForm({ property }: { property: Property }) {
             <span className="text-gray-900">{basePrice * nights} DT</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Frais de ménage</span>
+            <span className="text-gray-600">{t('property.cleaning_fee')}</span>
             <span className="text-gray-900">{cleaningFee} DT</span>
           </div>
           <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Frais de service Hostn</span>
+            <span className="text-gray-600">{t('property.service_fee')}</span>
             <span className="text-gray-900">{serviceFee} DT</span>
           </div>
           <div className="flex justify-between font-bold pt-3 border-t border-gray-200">
-            <span>Total</span>
+            <span>{t('property.total')}</span>
             <span>{total} DT</span>
           </div>
         </div>
@@ -321,6 +323,7 @@ function BookingForm({ property }: { property: Property }) {
 }
 
 export default function PropertyDetail({ id }: { id: string }) {
+  const { t } = useLanguage();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [liked, setLiked] = useState(false);
   const [property, setProperty] = useState<Property | null | undefined>(undefined);
@@ -353,8 +356,8 @@ export default function PropertyDetail({ id }: { id: string }) {
   if (property === undefined) return null;
   if (!property) return (
     <div className="max-w-7xl mx-auto px-4 py-20 text-center">
-      <h1 className="text-2xl font-bold text-gray-900 mb-2">Logement introuvable</h1>
-      <Link href="/properties" className="text-[#0F4C8A] underline">Voir tous les logements</Link>
+      <h1 className="text-2xl font-bold text-gray-900 mb-2">{t('property.not_found')}</h1>
+      <Link href="/properties" className="text-[#0F4C8A] underline">{t('property.back_to_listings')}</Link>
     </div>
   );
 
@@ -362,9 +365,9 @@ export default function PropertyDetail({ id }: { id: string }) {
     <>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pb-28 lg:pb-8">
         <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-          <Link href="/" className="hover:underline">Accueil</Link>
+          <Link href="/" className="hover:underline">{t('nav.home')}</Link>
           <span>/</span>
-          <Link href="/properties" className="hover:underline">Logements</Link>
+          <Link href="/properties" className="hover:underline">{t('nav.listings')}</Link>
           <span>/</span>
           <span className="text-gray-900 font-medium line-clamp-1">{property.title}</span>
         </div>
@@ -391,14 +394,14 @@ export default function PropertyDetail({ id }: { id: string }) {
           <div className="flex items-center gap-2 shrink-0">
             <button className="flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors">
               <Share size={16} />
-              <span className="hidden sm:inline">Partager</span>
+              <span className="hidden sm:inline">{t('property.share')}</span>
             </button>
             <button
               onClick={() => setLiked(!liked)}
               className="flex items-center gap-2 px-3 py-2 rounded-full border border-gray-300 text-sm font-medium hover:bg-gray-50 transition-colors"
             >
               <Heart size={16} className={liked ? 'fill-red-500 text-red-500' : ''} />
-              <span className="hidden sm:inline">Sauvegarder</span>
+              <span className="hidden sm:inline">{t('property.save')}</span>
             </button>
           </div>
         </div>
@@ -450,7 +453,7 @@ export default function PropertyDetail({ id }: { id: string }) {
             <div className="flex items-start gap-4 pb-6 border-b border-gray-200">
               <img src={property.host.avatar} alt={property.host.name} className="w-14 h-14 rounded-full object-cover" />
               <div>
-                <h3 className="font-semibold text-gray-900">Logement proposé par {property.host.name}</h3>
+                <h3 className="font-semibold text-gray-900">{t('property.hosted_by')} {property.host.name}</h3>
                 <div className="flex flex-wrap gap-2 mt-1">
                   {property.host.isSuperhost && (
                     <span className="text-xs bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full font-medium">Superhôte</span>
@@ -482,7 +485,7 @@ export default function PropertyDetail({ id }: { id: string }) {
             </div>
 
             <div className="pb-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Équipements</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{t('property.amenities')}</h2>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {property.amenities.map((amenity) => (
                   <div key={amenity} className="flex items-center gap-3 text-gray-700">
@@ -494,7 +497,7 @@ export default function PropertyDetail({ id }: { id: string }) {
             </div>
 
             <div className="pb-6 border-b border-gray-200">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Règles de la maison</h2>
+              <h2 className="text-xl font-bold text-gray-900 mb-4">{t('property.rules')}</h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {property.houseRules.map((rule) => (
                   <div key={rule.title} className="flex items-start gap-3">
@@ -548,12 +551,12 @@ export default function PropertyDetail({ id }: { id: string }) {
               </div>
               <p className="text-gray-700 text-sm leading-relaxed mb-4">{property.host.bio}</p>
               <div className="flex flex-wrap gap-4 text-sm text-gray-600 mb-4">
-                <span>Taux de réponse : <strong>{property.host.responseRate}%</strong></span>
-                <span>Délai de réponse : <strong>{property.host.responseTime}</strong></span>
+                <span>{t('property.response_rate')} : <strong>{property.host.responseRate}%</strong></span>
+                <span>{t('property.response_time')} : <strong>{property.host.responseTime}</strong></span>
               </div>
               <Link href="/messages" className="inline-flex items-center gap-2 px-5 py-3 border border-gray-900 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors">
                 <MessageSquare size={16} />
-                Contacter {property.host.name.split(' ')[0]}
+                {t('property.contact_host')}
               </Link>
             </div>
           </div>
@@ -562,12 +565,12 @@ export default function PropertyDetail({ id }: { id: string }) {
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-lg sticky top-24">
               <div className="flex items-baseline gap-1 mb-5">
                 <span className="text-2xl font-bold text-gray-900">{property.price} DT</span>
-                <span className="text-gray-500">/ nuit</span>
+                <span className="text-gray-500">{t('property.per_night')}</span>
               </div>
               {isOwnProperty ? (
                 <div className="flex items-center gap-2 p-4 bg-[#E8F0FB] rounded-xl text-sm text-[#0F4C8A] font-semibold">
                   <Shield size={16} className="shrink-0" />
-                  C&apos;est votre annonce
+                  {t('property.own_property')}
                 </div>
               ) : (
                 <BookingForm property={property} />

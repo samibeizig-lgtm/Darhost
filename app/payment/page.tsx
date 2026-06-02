@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { ArrowLeft, Clock, CheckCircle, XCircle, AlertCircle, CreditCard, Lock, Shield } from 'lucide-react';
 import { getUser, getBookings, updateBookingStatus } from '@/lib/store';
 import { Booking } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
 
@@ -39,6 +40,7 @@ function useCountdown(deadline: number | undefined) {
 
 function PaymentInner() {
   const router = useRouter();
+  const { t } = useLanguage();
   const params = useSearchParams();
   const bookingId = params.get('id') ?? '';
 
@@ -161,7 +163,7 @@ function PaymentInner() {
           <ArrowLeft size={20} className="text-gray-700" />
         </button>
         <div>
-          <p className="font-bold text-gray-900 text-sm">Paiement sécurisé</p>
+          <p className="font-bold text-gray-900 text-sm">{t('payment.title')}</p>
           <p className="text-xs text-gray-500 truncate max-w-[240px]">{booking.propertyTitle}</p>
         </div>
         <div className="ml-auto flex items-center gap-1 text-green-600">
@@ -204,7 +206,7 @@ function PaymentInner() {
               <span>{booking.total} DT</span>
             </div>
             <div className="flex justify-between text-sm font-bold text-gray-900 border-t border-gray-100 pt-1.5 mt-1.5">
-              <span>Total à payer</span>
+              <span>{t('payment.total')}</span>
               <span className="text-[#0F4C8A]">{booking.total} DT</span>
             </div>
           </div>
@@ -232,7 +234,7 @@ function PaymentInner() {
           </div>
           <div className="px-4 py-5 space-y-3">
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Numéro de carte</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t('payment.card_number')}</label>
               <div className="flex items-center gap-2 px-3 py-2.5 border border-gray-300 rounded-xl bg-gray-50">
                 <CreditCard size={16} className="text-gray-400 shrink-0" />
                 <span className="text-sm text-gray-400 tracking-widest">•••• •••• •••• ••••</span>
@@ -240,16 +242,16 @@ function PaymentInner() {
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">Expiration</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t('payment.expiry')}</label>
                 <div className="px-3 py-2.5 border border-gray-300 rounded-xl bg-gray-50 text-sm text-gray-400">MM / AA</div>
               </div>
               <div>
-                <label className="block text-xs font-semibold text-gray-600 mb-1.5">CVV</label>
+                <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t('payment.cvv')}</label>
                 <div className="px-3 py-2.5 border border-gray-300 rounded-xl bg-gray-50 text-sm text-gray-400">•••</div>
               </div>
             </div>
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1.5">Nom sur la carte</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1.5">{t('payment.cardholder')}</label>
               <div className="px-3 py-2.5 border border-gray-300 rounded-xl bg-gray-50 text-sm text-gray-400">PRÉNOM NOM</div>
             </div>
           </div>
@@ -263,12 +265,12 @@ function PaymentInner() {
           {paying ? (
             <>
               <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              Traitement en cours…
+              {t('payment.processing')}
             </>
           ) : (
             <>
               <Lock size={16} />
-              Payer {booking.total} DT
+              {t('payment.pay_btn')} {booking.total} DT
             </>
           )}
         </button>

@@ -12,6 +12,7 @@ import PropertyCard from '@/components/PropertyCard';
 import { properties as mockProperties, localitesTunisie } from '@/lib/data';
 import { syncPropertiesFromRemote, getUser } from '@/lib/store';
 import { Property } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const HERO_IMAGES = [
   'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -21,44 +22,48 @@ const HERO_IMAGES = [
 ];
 
 const MOBILE_SECTIONS = [
-  { label: 'Plage & Mer', key: 'plage', type: 'category' as const, link: '/properties?category=plage' },
-  { label: 'Médina', key: 'medina', type: 'category' as const, link: '/properties?category=medina' },
-  { label: 'Djerba', key: 'djerba', type: 'city' as const, link: '/properties?location=Djerba' },
-  { label: 'Montagne', key: 'montagne', type: 'category' as const, link: '/properties?category=montagne' },
-  { label: 'Hammamet', key: 'hammamet', type: 'city' as const, link: '/properties?location=Hammamet' },
-  { label: 'Désert', key: 'desert', type: 'category' as const, link: '/properties?category=desert' },
-  { label: 'Tunis', key: 'tunis', type: 'city' as const, link: '/properties?location=Tunis' },
-  { label: 'Piscine', key: 'piscine', type: 'category' as const, link: '/properties?category=piscine' },
-  { label: 'Sousse', key: 'sousse', type: 'city' as const, link: '/properties?location=Sousse' },
-  { label: 'Nature', key: 'nature', type: 'category' as const, link: '/properties?category=nature' },
+  { labelKey: 'home.cat_beach', key: 'plage', type: 'category' as const, link: '/properties?category=plage' },
+  { labelKey: 'home.cat_medina', key: 'medina', type: 'category' as const, link: '/properties?category=medina' },
+  { labelKey: 'Djerba', key: 'djerba', type: 'city' as const, link: '/properties?location=Djerba' },
+  { labelKey: 'home.cat_mountain', key: 'montagne', type: 'category' as const, link: '/properties?category=montagne' },
+  { labelKey: 'Hammamet', key: 'hammamet', type: 'city' as const, link: '/properties?location=Hammamet' },
+  { labelKey: 'home.cat_desert', key: 'desert', type: 'category' as const, link: '/properties?category=desert' },
+  { labelKey: 'Tunis', key: 'tunis', type: 'city' as const, link: '/properties?location=Tunis' },
+  { labelKey: 'home.cat_pool', key: 'piscine', type: 'category' as const, link: '/properties?category=piscine' },
+  { labelKey: 'Sousse', key: 'sousse', type: 'city' as const, link: '/properties?location=Sousse' },
+  { labelKey: 'home.cat_nature', key: 'nature', type: 'category' as const, link: '/properties?category=nature' },
 ];
 
-const categories = [
-  { Icon: Palmtree, label: 'Plage', value: 'plage' },
-  { Icon: Landmark, label: 'Médina', value: 'medina' },
-  { Icon: Mountain, label: 'Montagne', value: 'montagne' },
-  { Icon: Sun, label: 'Désert', value: 'desert' },
-  { Icon: Waves, label: 'Piscine', value: 'piscine' },
-  { Icon: Leaf, label: 'Nature', value: 'nature' },
-  { Icon: Building2, label: 'Historique', value: 'historique' },
-  { Icon: Anchor, label: 'Bord de mer', value: 'mer' },
+const CATEGORY_DEFS = [
+  { Icon: Palmtree, labelKey: 'home.cat_beach', value: 'plage' },
+  { Icon: Landmark, labelKey: 'home.cat_medina', value: 'medina' },
+  { Icon: Mountain, labelKey: 'home.cat_mountain', value: 'montagne' },
+  { Icon: Sun, labelKey: 'home.cat_desert', value: 'desert' },
+  { Icon: Waves, labelKey: 'home.cat_pool', value: 'piscine' },
+  { Icon: Leaf, labelKey: 'home.cat_nature', value: 'nature' },
+  { Icon: Building2, labelKey: 'home.cat_historic', value: 'historique' },
+  { Icon: Anchor, labelKey: 'home.cat_sea', value: 'mer' },
 ];
 
-const stats = [
-  { icon: Award, value: '500+', label: 'Logements vérifiés' },
-  { icon: Star, value: '4.8', label: 'Note moyenne' },
-  { icon: Users, value: '12 000+', label: 'Voyageurs satisfaits' },
-  { icon: Shield, value: '100%', label: 'Paiements sécurisés' },
+const STAT_DEFS = [
+  { icon: Award, value: '500+', labelKey: 'home.stat1_label' },
+  { icon: Star, value: '4.8', labelKey: 'home.stat2_label' },
+  { icon: Users, value: '12 000+', labelKey: 'home.stat3_label' },
+  { icon: Shield, value: '100%', labelKey: 'home.stat4_label' },
 ];
 
 export default function Home() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [location, setLocation] = useState('');
   const [checkIn, setCheckIn] = useState('');
   const [checkOut, setCheckOut] = useState('');
   const [guests, setGuests] = useState('1');
   const [activeCategory, setActiveCategory] = useState('');
   const [heroIndex, setHeroIndex] = useState(0);
+
+  const categories = CATEGORY_DEFS.map(c => ({ ...c, label: t(c.labelKey) }));
+  const stats = STAT_DEFS.map(s => ({ ...s, label: t(s.labelKey) }));
 
   useEffect(() => {
     const t = setInterval(() => setHeroIndex(i => (i + 1) % HERO_IMAGES.length), 5000);
@@ -112,6 +117,7 @@ export default function Home() {
   const mobileSections = useMemo(() =>
     MOBILE_SECTIONS.map(s => ({
       ...s,
+      label: s.labelKey.startsWith('home.') ? t(s.labelKey) : s.labelKey,
       properties: s.type === 'category'
         ? featured.filter(p => p.categories?.includes(s.key))
         : featured.filter(p =>
@@ -119,7 +125,7 @@ export default function Home() {
             p.location?.toLowerCase().includes(s.key)
           ),
     })).filter(s => s.properties.length > 0),
-    [featured]
+    [featured, t]
   );
 
   function handleCategoryClick(value: string) {
@@ -148,16 +154,15 @@ export default function Home() {
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="text-center mb-10">
             <p className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium mb-5">
-              🇹🇳 La plateforme #1 de location en Tunisie
+              {t('home.badge')}
             </p>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-4">
-              Votre maison
+              {t('home.title')}
               <br />
-              <span className="text-[#F5E6C8]">en Tunisie</span>
+              <span className="text-[#F5E6C8]">{t('home.title2')}</span>
             </h1>
             <p className="text-lg sm:text-xl text-blue-100 max-w-2xl mx-auto">
-              Découvrez les plus belles demeures tunisiennes — villas bord de mer, riads de médina,
-              chalets de montagne et oasis du désert.
+              {t('home.subtitle')}
             </p>
           </div>
 
@@ -167,11 +172,11 @@ export default function Home() {
               <div ref={locationRef} className="relative flex items-center gap-3 px-4 py-3 rounded-xl border border-gray-200">
                 <MapPin size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-bold text-gray-700 mb-0.5">Destination</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('search.destination')}</label>
                   <input
                     value={location}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    placeholder="Où allez-vous ?"
+                    placeholder={t('search.where')}
                     autoComplete="off"
                     className="w-full text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
                   />
@@ -196,7 +201,7 @@ export default function Home() {
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200">
                   <Calendar size={16} className="text-[#0F4C8A] shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-bold text-gray-700 mb-0.5">Arrivée</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('search.checkin')}</label>
                     <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)}
                       className="w-full text-xs text-gray-700 outline-none bg-transparent" />
                   </div>
@@ -204,7 +209,7 @@ export default function Home() {
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200">
                   <Calendar size={16} className="text-[#0F4C8A] shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-bold text-gray-700 mb-0.5">Départ</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('search.checkout')}</label>
                     <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)}
                       className="w-full text-xs text-gray-700 outline-none bg-transparent" />
                   </div>
@@ -214,7 +219,7 @@ export default function Home() {
                 <div className="flex items-center gap-2 px-4 py-3 rounded-xl border border-gray-200 flex-1">
                   <Users size={16} className="text-[#0F4C8A] shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-bold text-gray-700 mb-0.5">Voyageurs</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('property.guests')}</label>
                     <input type="number" min="1" max="20" value={guests}
                       onChange={(e) => setGuests(e.target.value)}
                       className="w-full text-sm text-gray-700 outline-none bg-transparent" />
@@ -223,7 +228,7 @@ export default function Home() {
                 <button type="submit"
                   className="bg-[#0F4C8A] text-white rounded-xl px-5 py-3.5 font-semibold flex items-center gap-2 hover:bg-[#0A3566] transition-colors shrink-0">
                   <Search size={18} />
-                  <span className="text-sm">Chercher</span>
+                  <span className="text-sm">{t('search.btn')}</span>
                 </button>
               </div>
             </div>
@@ -233,11 +238,11 @@ export default function Home() {
               <div ref={desktopLocationRef} className="relative flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <MapPin size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-bold text-gray-700 mb-0.5">Destination</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('search.destination')}</label>
                   <input
                     value={location}
                     onChange={(e) => handleLocationChange(e.target.value)}
-                    placeholder="Où allez-vous ?"
+                    placeholder={t('search.where')}
                     autoComplete="off"
                     className="w-full text-sm text-gray-700 placeholder-gray-400 outline-none bg-transparent"
                   />
@@ -262,7 +267,7 @@ export default function Home() {
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <Calendar size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-bold text-gray-700 mb-0.5">Arrivée</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('search.checkin')}</label>
                   <input type="date" value={checkIn} onChange={(e) => setCheckIn(e.target.value)}
                     className="w-full text-sm text-gray-700 outline-none bg-transparent" />
                 </div>
@@ -271,7 +276,7 @@ export default function Home() {
               <div className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-200">
                 <Calendar size={18} className="text-[#0F4C8A] shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <label className="block text-xs font-bold text-gray-700 mb-0.5">Départ</label>
+                  <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('search.checkout')}</label>
                   <input type="date" value={checkOut} onChange={(e) => setCheckOut(e.target.value)}
                     className="w-full text-sm text-gray-700 outline-none bg-transparent" />
                 </div>
@@ -281,7 +286,7 @@ export default function Home() {
                 <div className="flex items-center gap-3 px-3 py-1 flex-1">
                   <Users size={18} className="text-[#0F4C8A] shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <label className="block text-xs font-bold text-gray-700 mb-0.5">Voyageurs</label>
+                    <label className="block text-xs font-bold text-gray-700 mb-0.5">{t('property.guests')}</label>
                     <input type="number" min="1" max="20" value={guests}
                       onChange={(e) => setGuests(e.target.value)}
                       className="w-full text-sm text-gray-700 outline-none bg-transparent" />
@@ -290,7 +295,7 @@ export default function Home() {
                 <button type="submit"
                   className="bg-[#0F4C8A] text-white rounded-xl px-5 py-3 font-semibold flex items-center gap-2 hover:bg-[#0A3566] transition-colors shrink-0">
                   <Search size={18} />
-                  <span>Rechercher</span>
+                  <span>{t('search.btn')}</span>
                 </button>
               </div>
             </div>
@@ -341,12 +346,12 @@ export default function Home() {
 
       {/* Mobile: sections horizontales par thème / ville */}
       <section className="md:hidden pt-6 pb-4 space-y-7">
-        {(mobileSections.length > 0 ? mobileSections : [{ label: 'Tous les logements', key: 'all', type: 'category' as const, link: '/properties', properties: featured }])
+        {(mobileSections.length > 0 ? mobileSections : [{ label: t('home.featured'), key: 'all', type: 'category' as const, link: '/properties', properties: featured }])
           .map((section) => (
           <div key={section.key}>
             <div className="flex items-center justify-between px-4 mb-3">
               <h2 className="text-[15px] font-bold text-gray-900">{section.label}</h2>
-              <Link href={section.link} className="text-xs font-semibold text-[#0F4C8A]">Voir tout →</Link>
+              <Link href={section.link} className="text-xs font-semibold text-[#0F4C8A]">{t('home.see_all')} →</Link>
             </div>
             <div className="flex gap-3 overflow-x-auto px-4 scrollbar-hide">
               {section.properties.slice(0, 8).map((p) => (
@@ -360,7 +365,7 @@ export default function Home() {
                   </div>
                   <p className="text-xs font-semibold text-gray-800 truncate leading-tight">{p.title}</p>
                   <p className="text-xs font-bold text-[#0F4C8A] mt-0.5">
-                    {p.price} DT<span className="text-gray-400 font-normal">/nuit</span>
+                    {p.price} DT<span className="text-gray-400 font-normal">{t('common.per_night')}</span>
                   </p>
                 </Link>
               ))}
@@ -374,12 +379,11 @@ export default function Home() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Logements populaires
+              {t('home.featured')}
             </h2>
-            <p className="text-gray-500 mt-1">Les meilleures adresses sélectionnées pour vous</p>
           </div>
           <Link href="/properties" className="text-[#0F4C8A] font-semibold hover:underline text-sm sm:text-base">
-            Voir tout →
+            {t('home.see_all')} →
           </Link>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">

@@ -4,8 +4,10 @@ import { useState } from 'react';
 import { Send, Search, ArrowLeft } from 'lucide-react';
 import { conversations as initialConversations } from '@/lib/data';
 import { Conversation } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 export default function MessagesPage() {
+  const { t } = useLanguage();
   const [convs, setConvs] = useState<Conversation[]>(initialConversations);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState('');
@@ -51,7 +53,7 @@ export default function MessagesPage() {
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
+          <h1 className="text-2xl font-bold text-gray-900">{t('messages.title')}</h1>
           {totalUnread > 0 && (
             <p className="text-sm text-[#0F4C8A] font-medium">{totalUnread} non lu{totalUnread > 1 ? 's' : ''}</p>
           )}
@@ -80,7 +82,7 @@ export default function MessagesPage() {
             <div className="flex-1 overflow-y-auto">
               {filtered.length === 0 ? (
                 <div className="p-8 text-center text-gray-500 text-sm">
-                  Aucune conversation trouvée
+                  {t('messages.no_messages')}
                 </div>
               ) : (
                 filtered.map((conv) => (
@@ -184,7 +186,7 @@ export default function MessagesPage() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    placeholder={`Envoyer un message à ${active.participantName.split(' ')[0]}...`}
+                    placeholder={t('messages.type')}
                     className="flex-1 px-4 py-3 bg-gray-100 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
                   />
                   <button
@@ -201,9 +203,9 @@ export default function MessagesPage() {
             <div className="hidden md:flex flex-1 items-center justify-center bg-gray-50">
               <div className="text-center">
                 <div className="text-6xl mb-4">💬</div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">Vos messages</h3>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">{t('messages.title')}</h3>
                 <p className="text-gray-500 text-sm">
-                  Sélectionnez une conversation pour commencer
+                  {t('messages.no_messages_sub')}
                 </p>
               </div>
             </div>

@@ -8,6 +8,7 @@ import {
   getUser, syncPropertiesFromRemote, syncBookingsFromRemote, updateBookingStatus, cancelExpiredBookings,
 } from '@/lib/store';
 import { Booking } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
 
@@ -106,6 +107,7 @@ function BookingCard({
 
 export default function HostReservationsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>('pending');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -157,8 +159,8 @@ export default function HostReservationsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Réservations</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Gérez les demandes de vos voyageurs</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('host.reservations_title')}</h1>
+        <p className="text-sm text-gray-500 mt-0.5">{t('host.guest')}</p>
       </div>
 
       <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1">

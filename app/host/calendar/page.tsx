@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Calendar, ChevronRight, Plus } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 function toStr(d: Date) { return d.toISOString().slice(0, 10); }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
@@ -26,6 +27,7 @@ function getMonthStats(reservations: { checkIn: string; checkOut: string }[], ye
 
 export default function CalendarListPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const today = new Date();
@@ -44,8 +46,8 @@ export default function CalendarListPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Calendrier</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Gérez vos disponibilités et réservations</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('nav.calendar')}</h1>
+        <p className="text-sm text-gray-500 mt-0.5">{t('host.reservations_title')}</p>
       </div>
 
       {loading ? (
@@ -53,10 +55,10 @@ export default function CalendarListPage() {
       ) : active.length === 0 ? (
         <div className="text-center py-20 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <Calendar size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="font-semibold text-gray-700 mb-1">Aucun logement actif</p>
-          <p className="text-sm text-gray-400 mb-5">Publiez un logement pour gérer son calendrier.</p>
+          <p className="font-semibold text-gray-700 mb-1">{t('host.no_listings')}</p>
+          <p className="text-sm text-gray-400 mb-5">{t('submit.publish_btn')}</p>
           <Link href="/host/submit" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-full font-semibold text-sm hover:bg-[#0A3566] transition-colors">
-            <Plus size={15} /> Créer une annonce
+            <Plus size={15} /> {t('host.new_listing')}
           </Link>
         </div>
       ) : (

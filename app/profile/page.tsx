@@ -14,6 +14,7 @@ import {
   StoredUser,
 } from '@/lib/store';
 import { TUNISIAN_BANKS, validateRib, formatRibDisplay } from '@/lib/banks';
+import { useLanguage } from '@/lib/i18n';
 
 const HOBBIES_LIST = [
   'Voyages', 'Cuisine', 'Sport', 'Lecture', 'Musique', 'Cinéma',
@@ -40,6 +41,7 @@ const MOCK_REVIEWS = [
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [user, setUserState] = useState<StoredUser | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);

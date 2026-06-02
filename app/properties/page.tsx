@@ -11,6 +11,7 @@ import { properties as mockProperties, CATEGORIES } from '@/lib/data';
 import { PropertyType } from '@/lib/types';
 import { syncPropertiesFromRemote, importSharedProperty } from '@/lib/store';
 import { Property } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const AMENITIES_LIST = [
   'WiFi', 'Piscine', 'Climatisation', 'Cuisine équipée',
@@ -31,6 +32,7 @@ const CATEGORY_ICONS: Record<string, React.ElementType> = {
 };
 
 function PropertiesPage() {
+  const { t } = useLanguage();
   const searchParams = useSearchParams();
   const locationParam = searchParams.get('location') ?? '';
   const categoryParam = searchParams.get('category') ?? '';
@@ -162,11 +164,10 @@ function PropertiesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {location ? `Logements à ${location}` : 'Tous les logements'}
+            {location ? `${t('properties.title')} — ${location}` : t('properties.title')}
           </h1>
           <p className="text-gray-500 text-sm mt-0.5">
-            {filtered.length} logement{filtered.length !== 1 ? 's' : ''} disponible
-            {filtered.length !== 1 ? 's' : ''}
+            {filtered.length} {t('properties.results')}
           </p>
         </div>
 
@@ -177,10 +178,10 @@ function PropertiesPage() {
               onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
               className="appearance-none pl-3 pr-8 py-2 border border-gray-300 rounded-full text-sm font-medium text-gray-700 bg-white hover:border-gray-400 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
             >
-              <option value="default">Trier par : Recommandés</option>
-              <option value="price-asc">Prix croissant</option>
-              <option value="price-desc">Prix décroissant</option>
-              <option value="rating">Mieux notés</option>
+              <option value="default">{t('properties.sort_default')}</option>
+              <option value="price-asc">{t('properties.sort_price_asc')}</option>
+              <option value="price-desc">{t('properties.sort_price_desc')}</option>
+              <option value="rating">{t('properties.sort_rating')}</option>
             </select>
             <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none" />
           </div>
@@ -194,7 +195,7 @@ function PropertiesPage() {
             }`}
           >
             <SlidersHorizontal size={16} />
-            Filtres
+            {t('properties.filters')}
             {hasFilters && (
               <span className="bg-white/30 text-white text-xs rounded-full px-1.5 py-0.5">
                 {activeFilterCount}
@@ -214,19 +215,19 @@ function PropertiesPage() {
           </button>
         ) : (
           <div className="bg-[#E8F0FB] border border-[#B8D0F0] rounded-xl p-4">
-            <p className="text-sm font-semibold text-[#0F4C8A] mb-2">Importer une annonce partagée</p>
+            <p className="text-sm font-semibold text-[#0F4C8A] mb-2">{t('properties.import_link')}</p>
             <div className="flex gap-2">
               <input
                 value={importLink}
                 onChange={(e) => setImportLink(e.target.value)}
-                placeholder="Collez le lien de partage ici…"
+                placeholder={t('properties.import_link')}
                 className="flex-1 px-3 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] bg-white"
               />
               <button
                 onClick={handleImport}
                 className="px-4 py-2 bg-[#0F4C8A] text-white rounded-xl text-sm font-semibold hover:bg-[#0A3566] transition-colors"
               >
-                Importer
+                {t('properties.import_btn')}
               </button>
               <button
                 onClick={() => { setShowImport(false); setImportMsg(''); }}
@@ -247,7 +248,7 @@ function PropertiesPage() {
       {showFilters && (
         <div className="bg-white border border-gray-200 rounded-2xl p-6 mb-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
-            <h3 className="font-bold text-gray-900">Filtres</h3>
+            <h3 className="font-bold text-gray-900">{t('properties.filters')}</h3>
             {hasFilters && (
               <button onClick={clearFilters} className="text-sm text-[#0F4C8A] hover:underline font-medium flex items-center gap-1">
                 <X size={14} />
@@ -258,7 +259,7 @@ function PropertiesPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Destination</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('search.destination')}</label>
               <div className="relative">
                 <MapPin size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -271,11 +272,11 @@ function PropertiesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Prix par nuit (DT)</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('properties.price_range')}</label>
               <div className="flex gap-2">
                 <input
                   type="number"
-                  placeholder="Min"
+                  placeholder={t('properties.min')}
                   value={minPrice}
                   onChange={(e) => setMinPrice(e.target.value)}
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
@@ -283,7 +284,7 @@ function PropertiesPage() {
                 <span className="flex items-center text-gray-400">—</span>
                 <input
                   type="number"
-                  placeholder="Max"
+                  placeholder={t('properties.max')}
                   value={maxPrice}
                   onChange={(e) => setMaxPrice(e.target.value)}
                   className="w-full px-3 py-2.5 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A]"
@@ -292,7 +293,7 @@ function PropertiesPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Type de logement</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-2">{t('properties.type')}</label>
               <div className="flex flex-wrap gap-2">
                 {TYPES.map((type) => (
                   <button
@@ -340,7 +341,7 @@ function PropertiesPage() {
           </div>
 
           <div className="mt-5 pt-5 border-t border-gray-200">
-            <label className="block text-sm font-semibold text-gray-700 mb-3">Équipements</label>
+            <label className="block text-sm font-semibold text-gray-700 mb-3">{t('properties.amenities_label')}</label>
             <div className="flex flex-wrap gap-2">
               {AMENITIES_LIST.map((a) => (
                 <button
@@ -363,13 +364,13 @@ function PropertiesPage() {
       {filtered.length === 0 ? (
         <div className="text-center py-20">
           <div className="text-6xl mb-4">🔍</div>
-          <h3 className="text-xl font-semibold text-gray-800 mb-2">Aucun logement trouvé</h3>
-          <p className="text-gray-500 mb-6">Essayez de modifier vos filtres de recherche</p>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">{t('properties.no_results')}</h3>
+          <p className="text-gray-500 mb-6">{t('properties.no_results_sub')}</p>
           <button
             onClick={clearFilters}
             className="px-6 py-3 bg-[#0F4C8A] text-white rounded-full font-medium hover:bg-[#0A3566] transition-colors"
           >
-            Effacer les filtres
+            {t('properties.reset')}
           </button>
         </div>
       ) : (
@@ -385,7 +386,7 @@ function PropertiesPage() {
 
 export default function PropertiesPageWrapper() {
   return (
-    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-500">Chargement...</div>}>
+    <Suspense fallback={<div className="max-w-7xl mx-auto px-4 py-8 text-center text-gray-500">...</div>}>
       <PropertiesPage />
     </Suspense>
   );
