@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount, isRemoteConnected } from '@/lib/store';
+import { Eye, EyeOff, Mail, Lock, Fingerprint } from 'lucide-react';
+import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount, isRemoteConnected, getAccounts } from '@/lib/store';
 import { useLanguage } from '@/lib/i18n';
+import { isBiometricSupported, getBiometricCredential, authenticateBiometric } from '@/lib/biometric';
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -16,39 +17,59 @@ export default function LoginPage() {
   const [redirect, setRedirect] = useState('/');
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'no-firebase'>('idle');
   const [remoteCount, setRemoteCount] = useState<number | null>(null);
+  const [hasBiometric, setHasBiometric] = useState(false);
+  const [biometricLoading, setBiometricLoading] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get('redirect') ?? '/');
+    setHasBiometric(isBiometricSupported() && !!getBiometricCredential());
     if (!isRemoteConnected()) { setSyncStatus('no-firebase'); return; }
     setSyncStatus('syncing');
     syncAccountsFromRemote().then((n) => { setRemoteCount(n); setSyncStatus('ok'); });
   }, []);
 
+  function loginUser(account: { id: string; name: string; email: string; role: 'host' | 'guest'; avatar: string }) {
+    setUser({ id: account.id, name: account.name, email: account.email, role: account.role, avatar: account.avatar });
+    window.location.href = redirect;
+  }
+
+  async function handleBiometric() {
+    setBiometricLoading(true);
+    setError('');
+    try {
+      const email = await authenticateBiometric();
+      if (!email) { setError(t('auth.biometric_error')); setBiometricLoading(false); return; }
+      await syncAccountsFromRemote();
+      const accounts = getAccounts();
+      const account = accounts[email.toLowerCase()];
+      if (!account) {
+        const remote = await fetchAccountFromRemote(email);
+        if (remote) { saveAccount(remote); loginUser(remote); return; }
+        setError(t('auth.invalid'));
+        setBiometricLoading(false);
+        return;
+      }
+      loginUser(account);
+    } catch {
+      setError(t('auth.biometric_error'));
+      setBiometricLoading(false);
+    }
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError('');
-    if (!email || !password) {
-      setError('Veuillez remplir tous les champs.');
-      return;
-    }
+    if (!email || !password) { setError('Veuillez remplir tous les champs.'); return; }
     setLoading(true);
     await syncAccountsFromRemote();
     let account = findAccount(email, password);
     if (!account) {
       const remote = await fetchAccountFromRemote(email);
-      if (remote) {
-        saveAccount(remote);
-        if (remote.password === password) account = remote;
-      }
+      if (remote) { saveAccount(remote); if (remote.password === password) account = remote; }
     }
-    if (!account) {
-      setLoading(false);
-      setError('E-mail ou mot de passe incorrect.');
-      return;
-    }
-    setUser({ id: account.id, name: account.name, email: account.email, role: account.role, avatar: account.avatar });
-    window.location.href = redirect;
+    if (!account) { setLoading(false); setError(t('auth.invalid')); return; }
+    loginUser(account);
   }
 
   return (
@@ -80,11 +101,6 @@ export default function LoginPage() {
             </span>
           </div>
         )}
-        {syncStatus === 'ok' && remoteCount === 0 && (
-          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl px-4 py-3">
-            ⚠️ Firebase connecté mais aucun compte trouvé dans la base. Le compte mobile n&apos;a pas été synchronisé — recréez-le sur mobile après le redéploiement.
-          </div>
-        )}
         {syncStatus === 'ok' && remoteCount !== null && remoteCount > 0 && (
           <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-xs rounded-xl px-4 py-3">
             ✓ {remoteCount} compte{remoteCount > 1 ? 's' : ''} synchronisé{remoteCount > 1 ? 's' : ''} depuis Firebase.
@@ -92,68 +108,66 @@ export default function LoginPage() {
         )}
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
+
+          {/* Bouton empreinte si enregistrée */}
+          {hasBiometric && (
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={handleBiometric}
+                disabled={biometricLoading}
+                className="w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold text-white transition-colors disabled:opacity-60"
+                style={{ background: 'linear-gradient(135deg, #0F4C8A, #1a6bb5)' }}
+              >
+                {biometricLoading ? (
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <Fingerprint size={22} />
+                )}
+                {t('auth.biometric_login')}
+              </button>
+              <div className="flex items-center gap-3 mt-5 mb-1">
+                <div className="flex-1 h-px bg-gray-200" />
+                <span className="text-xs text-gray-400 font-medium">{t('auth.or')}</span>
+                <div className="flex-1 h-px bg-gray-200" />
+              </div>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-xl px-4 py-3">
                 {error}
               </div>
             )}
-
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('auth.email')}</label>
               <div className="relative">
                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="votre@email.com"
-                  autoComplete="email"
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] focus:border-transparent"
-                />
+                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)}
+                  placeholder="votre@email.com" autoComplete="email"
+                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] focus:border-transparent" />
               </div>
             </div>
-
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-sm font-semibold text-gray-700">{t('auth.password')}</label>
-                <Link href="#" className="text-sm text-[#0F4C8A] hover:underline font-medium">
-                  Mot de passe oublié ?
-                </Link>
+                <Link href="#" className="text-sm text-[#0F4C8A] hover:underline font-medium">Mot de passe oublié ?</Link>
               </div>
               <div className="relative">
                 <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Votre mot de passe"
-                  autoComplete="current-password"
-                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] focus:border-transparent"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                >
+                <input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Votre mot de passe" autoComplete="current-password"
+                  className="w-full pl-11 pr-12 py-3 border border-gray-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F4C8A] focus:border-transparent" />
+                <button type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-[#0F4C8A] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#0A3566] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {loading ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  {t('common.loading')}
-                </>
-              ) : (
-                t('auth.login_btn')
-              )}
+            <button type="submit" disabled={loading}
+              className="w-full bg-[#0F4C8A] text-white py-3.5 rounded-xl font-bold text-base hover:bg-[#0A3566] disabled:opacity-60 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2">
+              {loading ? <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />{t('common.loading')}</> : t('auth.login_btn')}
             </button>
           </form>
 
@@ -164,24 +178,6 @@ export default function LoginPage() {
                 {t('nav.register')}
               </Link>
             </p>
-          </div>
-
-          <div className="mt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex-1 h-px bg-gray-200" />
-              <span className="text-xs text-gray-400 font-medium">ou continuer avec</span>
-              <div className="flex-1 h-px bg-gray-200" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                <span className="text-lg">G</span>
-                Google
-              </button>
-              <button className="flex items-center justify-center gap-2 px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                <span className="text-lg">f</span>
-                Facebook
-              </button>
-            </div>
           </div>
         </div>
 
