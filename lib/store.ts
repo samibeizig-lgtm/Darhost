@@ -264,11 +264,10 @@ function stripBase64Images(property: Property): Property {
 export async function savePropertyRemote(property: Property): Promise<void> {
   if (!firebaseUrl) return;
   try {
-    const safe = stripBase64Images(property);
     await fetch(`${firebaseUrl}/annonces/${property.id}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(safe),
+      body: JSON.stringify(property),
     });
   } catch {}
 }
@@ -292,11 +291,10 @@ export async function pushLocalPropertiesToRemote(): Promise<{ count: number; er
   let lastError: string | null = null;
   for (const property of local) {
     try {
-      const safe = stripBase64Images(property);
       const res = await fetch(`${firebaseUrl}/annonces/${property.id}.json`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(safe),
+        body: JSON.stringify(property),
       });
       if (res.ok) { count++; } else { lastError = `PUT échoué (${res.status})`; }
     } catch (e) {
@@ -315,25 +313,20 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
     const data: Record<string, Property> | null = await res.json();
     const remote = data ? Object.values(data) : [];
     const remoteIds = new Set(remote.map((p) => p.id));
-    const localById = new Map(local.map((p) => [p.id, p]));
 
     // Push local-only properties to Firebase (bidirectional sync)
     for (const p of local) {
       if (!remoteIds.has(p.id)) {
-        const safe = stripBase64Images(p);
         fetch(`${firebaseUrl}/annonces/${p.id}.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(safe),
+          body: JSON.stringify(p),
         }).catch(() => {});
       }
     }
 
-    // Prefer local version when it exists (local has real photos, remote has placeholders)
-    const merged = [
-      ...remote.map((p) => localById.get(p.id) ?? p),
-      ...local.filter((p) => !remoteIds.has(p.id)),
-    ];
+    // Firebase is the source of truth — remote takes priority
+    const merged = [...remote, ...local.filter((p) => !remoteIds.has(p.id))];
     if (typeof window !== 'undefined') {
       localStorage.setItem('darhost_submitted_properties', JSON.stringify(merged));
     }

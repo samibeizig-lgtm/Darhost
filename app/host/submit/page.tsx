@@ -92,7 +92,7 @@ function compressPhoto(file: File): Promise<string> {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => {
-      const MAX = 800;
+      const MAX = 500;
       let { width, height } = img;
       if (width > MAX) { height = Math.round(height * MAX / width); width = MAX; }
       const canvas = document.createElement('canvas');
@@ -100,7 +100,7 @@ function compressPhoto(file: File): Promise<string> {
       canvas.height = height;
       canvas.getContext('2d')!.drawImage(img, 0, 0, width, height);
       URL.revokeObjectURL(url);
-      resolve(canvas.toDataURL('image/jpeg', 0.72));
+      resolve(canvas.toDataURL('image/jpeg', 0.6));
     };
     img.src = url;
   });
@@ -108,6 +108,7 @@ function compressPhoto(file: File): Promise<string> {
 
 async function processPhoto(file: File): Promise<string> {
   const base64 = await compressPhoto(file);
+  // If ImgBB is configured, upload to CDN; otherwise store base64 directly in Firebase
   return uploadImage(base64);
 }
 
