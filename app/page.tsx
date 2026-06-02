@@ -119,33 +119,14 @@ export default function Home() {
 
   return (
     <div>
-      <section className="relative bg-gradient-to-br from-[#051C44] via-[#0F4C8A] to-[#1B6FBF] text-white">
+      <section className="relative text-white">
         <img
-          src="https://images.unsplash.com/photo-1607869861980-da5f9b8b4969?q=80&w=1170&auto=format&fit=crop"
+          src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?q=80&w=1074&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
           alt=""
           aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover opacity-75 mix-blend-overlay pointer-events-none select-none"
+          className="absolute inset-0 w-full h-full object-cover pointer-events-none select-none"
         />
-
-        <div className="absolute inset-0 overflow-hidden pointer-events-none select-none">
-          <svg
-            className="absolute -right-24 -top-24 opacity-10"
-            width="500"
-            height="500"
-            viewBox="0 0 500 500"
-          >
-            <circle cx="250" cy="250" r="200" stroke="white" strokeWidth="60" fill="none" />
-            <circle cx="250" cy="250" r="120" stroke="white" strokeWidth="40" fill="none" />
-          </svg>
-          <svg
-            className="absolute -left-16 bottom-0 opacity-10"
-            width="300"
-            height="300"
-            viewBox="0 0 300 300"
-          >
-            <path d="M0 300 V100 Q0 0 150 0 Q300 0 300 100 V300Z" fill="white" />
-          </svg>
-        </div>
+        <div className="absolute inset-0 bg-black/30 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="text-center mb-10">

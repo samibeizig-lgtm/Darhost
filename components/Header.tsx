@@ -162,7 +162,7 @@ export default function Header() {
               onChange={(e) => handleLocationChange(e.target.value)}
               placeholder="Où allez-vous ?"
               autoComplete="off"
-              className="flex-1 text-sm outline-none bg-transparent min-w-0 text-gray-600 placeholder-gray-400"
+              className="flex-1 text-sm outline-none bg-transparent min-w-0 text-white placeholder-white/60"
             />
             <span className="w-px h-4 shrink-0" style={{ background: 'rgba(255,255,255,0.35)' }} />
             <span className="text-sm shrink-0 hidden xl:block text-white/70">Tunisie</span>
