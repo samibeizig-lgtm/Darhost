@@ -181,6 +181,26 @@ export function importSharedProperty(property: Property): void {
 }
 
 const firebaseUrl = (process.env.NEXT_PUBLIC_FIREBASE_DB_URL ?? '').trim().replace(/\/$/, '');
+const cloudinaryCloud = (process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? '').trim();
+const cloudinaryPreset = (process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ?? '').trim();
+
+export async function uploadImage(base64: string): Promise<string> {
+  if (!cloudinaryCloud || !cloudinaryPreset) return base64;
+  try {
+    const fd = new FormData();
+    fd.append('file', base64);
+    fd.append('upload_preset', cloudinaryPreset);
+    const res = await fetch(
+      `https://api.cloudinary.com/v1_1/${cloudinaryCloud}/image/upload`,
+      { method: 'POST', body: fd }
+    );
+    if (!res.ok) return base64;
+    const data = await res.json();
+    return (data.secure_url as string) ?? base64;
+  } catch {
+    return base64;
+  }
+}
 
 export function isRemoteConnected(): boolean {
   return !!firebaseUrl;

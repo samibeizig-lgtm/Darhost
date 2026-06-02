@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
 import { AMENITY_CATEGORIES } from '@/lib/amenities';
 import { getIdentityStatus } from '@/lib/store';
-import { getUser, addSubmittedProperty, savePropertyRemote, StoredUser } from '@/lib/store';
+import { getUser, addSubmittedProperty, savePropertyRemote, uploadImage, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 
 const STEPS = [
@@ -104,6 +104,11 @@ function compressPhoto(file: File): Promise<string> {
     };
     img.src = url;
   });
+}
+
+async function processPhoto(file: File): Promise<string> {
+  const base64 = await compressPhoto(file);
+  return uploadImage(base64);
 }
 
 export default function HostSubmitPage() {
@@ -203,7 +208,7 @@ export default function HostSubmitPage() {
   async function handleDraft() {
     const seed = Date.now();
     const images = form.photos.length > 0
-      ? await Promise.all(form.photos.map(compressPhoto))
+      ? await Promise.all(form.photos.map(processPhoto))
       : [
           `https://picsum.photos/seed/${seed}/800/600`,
           `https://picsum.photos/seed/${seed + 1}/800/600`,
@@ -232,7 +237,7 @@ export default function HostSubmitPage() {
     try {
       const seed = Date.now();
       const images = form.photos.length > 0
-        ? await Promise.all(form.photos.map(compressPhoto))
+        ? await Promise.all(form.photos.map(processPhoto))
         : [
             `https://picsum.photos/seed/${seed}/800/600`,
             `https://picsum.photos/seed/${seed + 1}/800/600`,
