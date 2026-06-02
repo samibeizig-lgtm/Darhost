@@ -3,6 +3,9 @@ import './globals.css';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import MobileTabBar from '@/components/MobileTabBar';
+import NavigationLoader from '@/components/NavigationLoader';
+import { LanguageProvider } from '@/lib/i18n';
+import LanguageSync from '@/components/LanguageSync';
 
 export const metadata: Metadata = {
   title: 'Hostn — Votre logement en Tunisie',
@@ -16,10 +19,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <head />
       <body className="min-h-screen bg-white text-gray-900 flex flex-col">
-        <Header />
-        <main className="flex-1 pb-16 md:pb-0">{children}</main>
-        <div className="hidden md:block"><Footer /></div>
-        <MobileTabBar />
+        <LanguageProvider>
+          <LanguageSync />
+          <Header />
+          <main className="flex-1 pb-16 md:pb-0">{children}</main>
+          <Footer />
+          <MobileTabBar />
+          <NavigationLoader />
+        </LanguageProvider>
       </body>
     </html>
   );

@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const MONTHS_FR = [
   'jan', 'fév', 'mars', 'avr', 'mai', 'juin',
@@ -68,6 +69,7 @@ function bookingToReservation(b: Booking): Reservation {
 
 export default function HostDashboardPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [loading, setLoading] = useState(true);
@@ -122,7 +124,7 @@ export default function HostDashboardPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8 space-y-6">
 
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Bonjour, {hostName}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('host.welcome')}, {hostName}</h1>
         <p className="text-sm text-gray-500 mt-0.5">{MONTH_NAMES_FR[today.getMonth()]} {today.getFullYear()}</p>
       </div>
 
@@ -130,7 +132,7 @@ export default function HostDashboardPage() {
         <div className="bg-[#0F4C8A] text-white rounded-2xl p-4">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp size={16} className="opacity-80" />
-            <span className="text-xs font-medium opacity-80">Revenus du mois</span>
+            <span className="text-xs font-medium opacity-80">{t('host.this_month')}</span>
           </div>
           <div className="text-2xl font-extrabold">{monthRevenue.toLocaleString('fr-TN')} DT</div>
           <div className="text-xs opacity-60 mt-0.5">{reservations.filter(r => r.checkIn.startsWith(monthPrefix)).length} réservation(s)</div>
@@ -138,7 +140,7 @@ export default function HostDashboardPage() {
         <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
             <Home size={16} className="text-[#0F4C8A]" />
-            <span className="text-xs font-medium text-gray-500">Annonces actives</span>
+            <span className="text-xs font-medium text-gray-500">{t('host.active_listings')}</span>
           </div>
           <div className="text-2xl font-extrabold text-gray-900">{activeListings}</div>
           <Link href="/host/listings" className="text-xs text-[#0F4C8A] font-semibold mt-0.5 block hover:underline">Voir mes annonces →</Link>
@@ -211,14 +213,14 @@ export default function HostDashboardPage() {
       {properties.length === 0 && (
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <Home size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="font-semibold text-gray-700 mb-1">Aucune annonce publiée</p>
-          <p className="text-sm text-gray-400 mb-5">Publiez votre premier logement pour recevoir des réservations.</p>
+          <p className="font-semibold text-gray-700 mb-1">{t('host.no_listings')}</p>
+          <p className="text-sm text-gray-400 mb-5">{t('submit.identity_required')}</p>
           <Link
             href="/host/submit"
             className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-full font-semibold text-sm hover:bg-[#0A3566] transition-colors"
           >
             <Plus size={15} />
-            Créer une annonce
+            {t('host.new_listing')}
           </Link>
         </div>
       )}

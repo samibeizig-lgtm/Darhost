@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { Calendar, MapPin, Users, Star, Clock, CheckCircle, Search, AlertCircle, XCircle, BookOpen } from 'lucide-react';
 import { getUser, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
 import { Booking } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
 
@@ -99,6 +100,7 @@ function BookingCard({ b }: { b: Booking }) {
 
 export default function ReservationsPage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -126,8 +128,8 @@ export default function ReservationsPage() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8 space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Mes réservations</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{bookings.length} réservation{bookings.length !== 1 ? 's' : ''} au total</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('bookings.title')}</h1>
+        <p className="text-sm text-gray-500 mt-0.5">{bookings.length} {t('bookings.all')}</p>
       </div>
 
       <section>
@@ -143,7 +145,7 @@ export default function ReservationsPage() {
         {active.length === 0 ? (
           <div className="text-center py-10 bg-white border border-gray-200 rounded-2xl shadow-sm">
             <Calendar size={32} className="text-gray-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500 mb-1">Aucune réservation active</p>
+            <p className="text-sm text-gray-500 mb-1">{t('bookings.no_bookings')}</p>
             <Link href="/properties" className="inline-flex items-center gap-1.5 mt-3 text-sm font-semibold text-[#0F4C8A] hover:underline">
               <Search size={14} /> Trouver un logement
             </Link>
@@ -168,8 +170,8 @@ export default function ReservationsPage() {
       {bookings.length === 0 && (
         <div className="text-center py-20 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <BookOpen size={40} className="text-gray-300 mx-auto mb-3" />
-          <p className="font-semibold text-gray-700 mb-1">Aucune réservation</p>
-          <p className="text-sm text-gray-400 mb-5">Trouvez votre prochain séjour en Tunisie</p>
+          <p className="font-semibold text-gray-700 mb-1">{t('bookings.no_bookings')}</p>
+          <p className="text-sm text-gray-400 mb-5">{t('bookings.no_bookings_sub')}</p>
           <Link href="/properties" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-full font-semibold text-sm hover:bg-[#0A3566] transition-colors">
             <Search size={15} /> Explorer les logements
           </Link>

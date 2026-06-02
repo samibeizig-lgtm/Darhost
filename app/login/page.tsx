@@ -3,20 +3,26 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import { setUser, findAccount, syncAccountsFromRemote } from '@/lib/store';
+import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount, isRemoteConnected } from '@/lib/store';
+import { useLanguage } from '@/lib/i18n';
 
 export default function LoginPage() {
+  const { t } = useLanguage();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [redirect, setRedirect] = useState('/');
+  const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'ok' | 'no-firebase'>('idle');
+  const [remoteCount, setRemoteCount] = useState<number | null>(null);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get('redirect') ?? '/');
-    syncAccountsFromRemote();
+    if (!isRemoteConnected()) { setSyncStatus('no-firebase'); return; }
+    setSyncStatus('syncing');
+    syncAccountsFromRemote().then((n) => { setRemoteCount(n); setSyncStatus('ok'); });
   }, []);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -28,7 +34,14 @@ export default function LoginPage() {
     }
     setLoading(true);
     await syncAccountsFromRemote();
-    const account = findAccount(email, password);
+    let account = findAccount(email, password);
+    if (!account) {
+      const remote = await fetchAccountFromRemote(email);
+      if (remote) {
+        saveAccount(remote);
+        if (remote.password === password) account = remote;
+      }
+    }
     if (!account) {
       setLoading(false);
       setError('E-mail ou mot de passe incorrect.');
@@ -50,9 +63,33 @@ export default function LoginPage() {
             </svg>
             <span className="text-3xl font-extrabold text-[#0F4C8A]">Hostn</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Bon retour !</h1>
-          <p className="text-gray-500 mt-1">Connectez-vous à votre compte Hostn</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.login_title')}</h1>
+          <p className="text-gray-500 mt-1">{t('auth.login_subtitle')}</p>
         </div>
+
+        {syncStatus === 'no-firebase' && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl px-4 py-3">
+            ⚠️ Synchronisation désactivée — ajoutez <code className="font-mono bg-amber-100 px-1 rounded">NEXT_PUBLIC_FIREBASE_DB_URL</code> dans les variables d&apos;environnement Cloudflare Pages et redéployez.
+          </div>
+        )}
+        {syncStatus === 'syncing' && (
+          <div className="mb-4 text-center text-xs text-gray-400">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse inline-block" />
+              Synchronisation des comptes…
+            </span>
+          </div>
+        )}
+        {syncStatus === 'ok' && remoteCount === 0 && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 text-amber-800 text-xs rounded-xl px-4 py-3">
+            ⚠️ Firebase connecté mais aucun compte trouvé dans la base. Le compte mobile n&apos;a pas été synchronisé — recréez-le sur mobile après le redéploiement.
+          </div>
+        )}
+        {syncStatus === 'ok' && remoteCount !== null && remoteCount > 0 && (
+          <div className="mb-4 bg-green-50 border border-green-200 text-green-700 text-xs rounded-xl px-4 py-3">
+            ✓ {remoteCount} compte{remoteCount > 1 ? 's' : ''} synchronisé{remoteCount > 1 ? 's' : ''} depuis Firebase.
+          </div>
+        )}
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5">
@@ -63,7 +100,7 @@ export default function LoginPage() {
             )}
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1.5">Adresse e-mail</label>
+              <label className="block text-sm font-semibold text-gray-700 mb-1.5">{t('auth.email')}</label>
               <div className="relative">
                 <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                 <input
@@ -79,7 +116,7 @@ export default function LoginPage() {
 
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="text-sm font-semibold text-gray-700">Mot de passe</label>
+                <label className="text-sm font-semibold text-gray-700">{t('auth.password')}</label>
                 <Link href="#" className="text-sm text-[#0F4C8A] hover:underline font-medium">
                   Mot de passe oublié ?
                 </Link>
@@ -112,19 +149,19 @@ export default function LoginPage() {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Connexion...
+                  {t('common.loading')}
                 </>
               ) : (
-                'Se connecter'
+                t('auth.login_btn')
               )}
             </button>
           </form>
 
           <div className="mt-5 text-center">
             <p className="text-sm text-gray-600">
-              Pas encore de compte ?{' '}
+              {t('auth.no_account')}{' '}
               <Link href={`/register?redirect=${encodeURIComponent(redirect)}`} className="text-[#0F4C8A] font-semibold hover:underline">
-                S&apos;inscrire gratuitement
+                {t('nav.register')}
               </Link>
             </p>
           </div>

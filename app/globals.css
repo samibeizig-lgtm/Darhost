@@ -51,3 +51,16 @@ body {
 .emoji-blue {
   filter: sepia(1) saturate(5) hue-rotate(195deg) brightness(0.75);
 }
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes navdot {
+  0%, 100% { transform: translateY(0); opacity: 0.4; }
+  50%       { transform: translateY(-8px); opacity: 1; }
+}

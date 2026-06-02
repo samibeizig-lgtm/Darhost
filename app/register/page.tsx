@@ -4,8 +4,10 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, User, Phone, Camera, Plus } from 'lucide-react';
 import { setUser, saveAccount, emailExists, syncAccountsFromRemote } from '@/lib/store';
+import { useLanguage } from '@/lib/i18n';
 
 export default function RegisterPage() {
+  const { t } = useLanguage();
   const [role, setRole] = useState<'guest' | 'host'>('guest');
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', password: '', confirm: '',
@@ -93,8 +95,8 @@ export default function RegisterPage() {
             </svg>
             <span className="text-3xl font-extrabold text-[#0F4C8A]">Hostn</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">Créer un compte</h1>
-          <p className="text-gray-500 mt-1">Rejoignez la communauté Hostn</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('auth.register_title')}</h1>
+          <p className="text-gray-500 mt-1">{t('auth.register_subtitle')}</p>
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
@@ -105,7 +107,7 @@ export default function RegisterPage() {
                 role === 'guest' ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              Je suis voyageur
+              {t('auth.role_guest')}
             </button>
             <button
               onClick={() => setRole('host')}
@@ -113,7 +115,7 @@ export default function RegisterPage() {
                 role === 'host' ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-600 hover:text-gray-800'
               }`}
             >
-              Je suis hôte
+              {t('auth.role_host')}
             </button>
           </div>
 
@@ -286,19 +288,19 @@ export default function RegisterPage() {
               {loading ? (
                 <>
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Création du compte...
+                  {t('common.loading')}
                 </>
               ) : (
-                'Créer mon compte'
+                t('auth.register_btn')
               )}
             </button>
           </form>
 
           <div className="mt-5 text-center">
             <p className="text-sm text-gray-600">
-              Déjà un compte ?{' '}
+              {t('auth.have_account')}{' '}
               <Link href={`/login?redirect=${encodeURIComponent(redirect)}`} className="text-[#0F4C8A] font-semibold hover:underline">
-                Se connecter
+                {t('nav.login')}
               </Link>
             </p>
           </div>

@@ -113,18 +113,35 @@ export function getAccounts(): Record<string, StoredAccount> {
   } catch { return {}; }
 }
 
+function emailToKey(email: string): string {
+  return email.toLowerCase().replace(/\./g, ',');
+}
+
+function stripAvatar(account: StoredAccount): StoredAccount {
+  return { ...account, avatar: account.avatar.startsWith('data:') ? '' : account.avatar };
+}
+
 export function saveAccount(account: StoredAccount): void {
   const all = getAccounts();
   all[account.email.toLowerCase()] = account;
   localStorage.setItem('darhost_accounts', JSON.stringify(all));
   if (firebaseUrl) {
-    const safeKey = account.id;
-    fetch(`${firebaseUrl}/accounts/${safeKey}.json`, {
+    fetch(`${firebaseUrl}/accounts/${emailToKey(account.email)}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(account),
+      body: JSON.stringify(stripAvatar(account)),
     }).catch(() => {});
   }
+}
+
+export async function fetchAccountFromRemote(email: string): Promise<StoredAccount | null> {
+  if (!firebaseUrl) return null;
+  try {
+    const res = await fetch(`${firebaseUrl}/accounts/${emailToKey(email)}.json`);
+    if (!res.ok) return null;
+    const data: StoredAccount | null = await res.json();
+    return data && data.id ? data : null;
+  } catch { return null; }
 }
 
 export function findAccount(email: string, password: string): StoredAccount | null {
@@ -164,13 +181,33 @@ export function importSharedProperty(property: Property): void {
 }
 
 const firebaseUrl = (process.env.NEXT_PUBLIC_FIREBASE_DB_URL ?? '').trim().replace(/\/$/, '');
+const imgbbKey = (process.env.NEXT_PUBLIC_IMGBB_API_KEY ?? '').trim();
+
+export async function uploadImage(base64: string): Promise<string> {
+  if (!imgbbKey) return base64;
+  try {
+    // ImgBB expects pure base64 without the data URL prefix
+    const raw = base64.includes(',') ? base64.split(',')[1] : base64;
+    const fd = new FormData();
+    fd.append('image', raw);
+    const res = await fetch(`https://api.imgbb.com/1/upload?key=${imgbbKey}`, {
+      method: 'POST',
+      body: fd,
+    });
+    if (!res.ok) return base64;
+    const data = await res.json();
+    return (data?.data?.url as string) ?? base64;
+  } catch {
+    return base64;
+  }
+}
 
 export function isRemoteConnected(): boolean {
   return !!firebaseUrl;
 }
 
-export async function syncAccountsFromRemote(): Promise<void> {
-  if (!firebaseUrl) return;
+export async function syncAccountsFromRemote(): Promise<number> {
+  if (!firebaseUrl) return 0;
   try {
     const res = await fetch(`${firebaseUrl}/accounts.json`);
     const data: Record<string, StoredAccount> | null = res.ok ? await res.json() : null;
@@ -189,14 +226,15 @@ export async function syncAccountsFromRemote(): Promise<void> {
 
     for (const account of Object.values(local)) {
       if (!remoteIds.has(account.id)) {
-        fetch(`${firebaseUrl}/accounts/${account.id}.json`, {
+        fetch(`${firebaseUrl}/accounts/${emailToKey(account.email)}.json`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(account),
+          body: JSON.stringify(stripAvatar(account)),
         }).catch(() => {});
       }
     }
-  } catch {}
+    return remoteAccounts.length;
+  } catch { return 0; }
 }
 
 export async function clearAllRemoteData(): Promise<void> {
@@ -226,11 +264,10 @@ function stripBase64Images(property: Property): Property {
 export async function savePropertyRemote(property: Property): Promise<void> {
   if (!firebaseUrl) return;
   try {
-    const safe = stripBase64Images(property);
     await fetch(`${firebaseUrl}/annonces/${property.id}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(safe),
+      body: JSON.stringify(property),
     });
   } catch {}
 }
@@ -254,11 +291,10 @@ export async function pushLocalPropertiesToRemote(): Promise<{ count: number; er
   let lastError: string | null = null;
   for (const property of local) {
     try {
-      const safe = stripBase64Images(property);
       const res = await fetch(`${firebaseUrl}/annonces/${property.id}.json`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(safe),
+        body: JSON.stringify(property),
       });
       if (res.ok) { count++; } else { lastError = `PUT échoué (${res.status})`; }
     } catch (e) {
@@ -275,9 +311,21 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
     const res = await fetch(`${firebaseUrl}/annonces.json`);
     if (!res.ok) return local;
     const data: Record<string, Property> | null = await res.json();
-    if (!data) return local;
-    const remote = Object.values(data);
+    const remote = data ? Object.values(data) : [];
     const remoteIds = new Set(remote.map((p) => p.id));
+
+    // Push local-only properties to Firebase (bidirectional sync)
+    for (const p of local) {
+      if (!remoteIds.has(p.id)) {
+        fetch(`${firebaseUrl}/annonces/${p.id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(p),
+        }).catch(() => {});
+      }
+    }
+
+    // Firebase is the source of truth — remote takes priority
     const merged = [...remote, ...local.filter((p) => !remoteIds.has(p.id))];
     if (typeof window !== 'undefined') {
       localStorage.setItem('darhost_submitted_properties', JSON.stringify(merged));

@@ -12,8 +12,8 @@ import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/st
 const HOST_TABS = [
   { href: '/host/dashboard', icon: LayoutDashboard, label: 'Accueil' },
   { href: '/host/listings', icon: Building2, label: 'Annonces' },
-  { href: '/host/reservations', icon: BookOpen, label: 'Réservations' },
-  { href: '/host/calendar', icon: Calendar, label: 'Calendrier' },
+  { href: '/host/reservations', icon: BookOpen, label: 'Réserv.' },
+  { href: '/host/calendar', icon: Calendar, label: 'Agenda' },
   { href: '/messages', icon: MessageSquare, label: 'Messages' },
 ];
 
@@ -64,7 +64,7 @@ export default function MobileTabBar() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
+                className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
                   active ? 'text-[#0F4C8A]' : 'text-gray-400 hover:text-gray-600'
                 }`}
               >
@@ -100,7 +100,13 @@ export default function MobileTabBar() {
 
             <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
               <div className="flex items-center gap-3">
-                <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[#E8F0FB]" />
+                {user.avatar ? (
+                  <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[#E8F0FB]" />
+                ) : (
+                  <div className="w-11 h-11 rounded-full bg-[#0F4C8A] flex items-center justify-center ring-2 ring-[#E8F0FB] text-white font-bold text-lg">
+                    {user.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
                 <div>
                   <p className="font-bold text-gray-900 text-sm">{user.name}</p>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${

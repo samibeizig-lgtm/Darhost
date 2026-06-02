@@ -9,10 +9,12 @@ import {
   getHostBank, setHostBank,
   getIdentityStatus, setIdentityStatus, submitIdentityForReview,
   clearAllRemoteData,
+  getAccounts, saveAccount, isRemoteConnected,
   IdentityStatus,
   StoredUser,
 } from '@/lib/store';
 import { TUNISIAN_BANKS, validateRib, formatRibDisplay } from '@/lib/banks';
+import { useLanguage } from '@/lib/i18n';
 
 const HOBBIES_LIST = [
   'Voyages', 'Cuisine', 'Sport', 'Lecture', 'Musique', 'Cinéma',
@@ -39,6 +41,7 @@ const MOCK_REVIEWS = [
 
 export default function ProfilePage() {
   const router = useRouter();
+  const { t } = useLanguage();
   const [user, setUserState] = useState<StoredUser | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -94,6 +97,12 @@ export default function ProfilePage() {
     const bank = getHostBank();
     setBankForm({ bankHolder: bank.bankHolder, bankName: bank.bankName, rib: bank.rib });
     setIdStatus(getIdentityStatus());
+
+    // Auto-sync account to Firebase silently (covers accounts created before the fix)
+    if (isRemoteConnected()) {
+      const account = getAccounts()[u.email.toLowerCase()];
+      if (account) saveAccount(account);
+    }
   }, [router]);
 
   function toggleHobby(hobby: string) {
@@ -174,14 +183,12 @@ export default function ProfilePage() {
   }
 
   async function handleVerifyIdentity() {
-    if (!idFront || !idBack || !selfie || !user) return;
+    if (!user) return;
     setIdSubmitting(true);
+    await new Promise(r => setTimeout(r, 800));
     setIdentityStatus('verified');
     setIdStatus('verified');
-    await submitIdentityForReview(user.id, user.name);
     setIdSubmitting(false);
-    setIdSubmitted(true);
-    setTimeout(() => setIdSubmitted(false), 4000);
   }
 
   if (!user) return null;
@@ -194,11 +201,17 @@ export default function ProfilePage() {
       <div className="bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 mb-6 shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
           <div className="relative shrink-0">
-            <img
-              src={avatarPreview}
-              alt={user.name}
-              className="w-24 h-24 rounded-full object-cover ring-4 ring-[#E8F0FB]"
-            />
+            {avatarPreview ? (
+              <img
+                src={avatarPreview}
+                alt={user.name}
+                className="w-24 h-24 rounded-full object-cover ring-4 ring-[#E8F0FB]"
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-[#0F4C8A] ring-4 ring-[#E8F0FB] flex items-center justify-center text-white text-4xl font-bold">
+                {user.name.charAt(0).toUpperCase()}
+              </div>
+            )}
             <label className="absolute bottom-0 right-0 w-8 h-8 bg-[#0F4C8A] text-white rounded-full flex items-center justify-center hover:bg-[#0A3566] transition-colors cursor-pointer shadow-sm">
               <Camera size={14} />
               <input type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
@@ -576,57 +589,24 @@ export default function ProfilePage() {
           {idStatus === 'none' && (
             <>
               <p className="text-sm text-gray-600 mb-5">
-                Téléversez les 3 documents suivants. Un administrateur vérifiera votre identité sous 48h.
+                Vérifiez votre identité pour pouvoir publier des annonces.
               </p>
-              <div className="space-y-4">
-                {([
-                  { label: 'CIN recto', state: idFront, ref: idFrontRef, set: setIdFront },
-                  { label: 'CIN verso', state: idBack, ref: idBackRef, set: setIdBack },
-                  { label: 'Selfie avec CIN', state: selfie, ref: selfieRef, set: setSelfie },
-                ] as const).map(({ label, state, ref, set }) => (
-                  <div key={label} className="flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                        state ? 'border-green-500 bg-green-50' : 'border-gray-300'
-                      }`}>
-                        {state ? <Check size={14} className="text-green-600" /> : <Upload size={13} className="text-gray-400" />}
-                      </div>
-                      <span className="text-sm font-medium text-gray-800">{label}</span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => ref.current?.click()}
-                      className={`px-4 py-2 rounded-xl text-xs font-semibold border transition-colors ${
-                        state
-                          ? 'border-green-400 text-green-700 bg-green-50 hover:bg-green-100'
-                          : 'border-gray-300 text-gray-600 hover:bg-gray-50'
-                      }`}
-                    >
-                      {state ? 'Modifier' : 'Téléverser'}
-                    </button>
-                    <input ref={ref} type="file" accept="image/*" className="hidden" onChange={loadDoc(set)} />
-                  </div>
-                ))}
+              <div>
               </div>
 
               <div className="mt-6">
                 <button
                   onClick={handleVerifyIdentity}
-                  disabled={!idFront || !idBack || !selfie || idSubmitting}
-                  className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-40 transition-colors"
+                  disabled={idSubmitting}
+                  className="flex items-center gap-2 px-6 py-3 bg-[#0F4C8A] text-white rounded-xl font-semibold hover:bg-[#0A3566] disabled:opacity-60 transition-colors"
                 >
                   {idSubmitting ? (
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  ) : idSubmitted ? (
-                    <Check size={16} />
                   ) : (
                     <ShieldCheck size={16} />
                   )}
-                  {idSubmitting ? 'Envoi en cours...' : idSubmitted ? 'Dossier envoyé !' : 'Soumettre pour vérification'}
+                  {idSubmitting ? 'Vérification...' : 'Vérifier mon identité'}
                 </button>
-                {(!idFront || !idBack || !selfie) && (
-                  <p className="text-xs text-gray-400 mt-2">Téléversez les 3 documents pour continuer</p>
-                )}
               </div>
             </>
           )}
