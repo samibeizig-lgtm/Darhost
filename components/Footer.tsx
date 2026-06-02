@@ -78,10 +78,10 @@ export default function Footer() {
         <div className="border-t border-gray-800 mt-10 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
           <p>© 2024 Hostn, Inc. Tous droits réservés. 🇹🇳 Tunisie</p>
           <div className="flex flex-wrap justify-center gap-4">
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="/confidentialite" className="hover:text-white transition-colors">
               Confidentialité
             </Link>
-            <Link href="#" className="hover:text-white transition-colors">
+            <Link href="/conditions" className="hover:text-white transition-colors">
               Conditions d&apos;utilisation
             </Link>
             <Link href="#" className="hover:text-white transition-colors">
