@@ -282,6 +282,8 @@ const translationsData: Record<Locale, Translations> = {
     'footer.privacy': 'Confidentialité',
     'footer.terms': "Conditions d'utilisation",
     'footer.sitemap': 'Plan du site',
+    'footer.contact': 'Contact',
+    'footer.legal': 'Légal',
   },
 
   en: {
@@ -559,6 +561,8 @@ const translationsData: Record<Locale, Translations> = {
     'footer.privacy': 'Privacy',
     'footer.terms': 'Terms of use',
     'footer.sitemap': 'Sitemap',
+    'footer.contact': 'Contact',
+    'footer.legal': 'Legal',
   },
 
   ar: {
@@ -836,6 +840,8 @@ const translationsData: Record<Locale, Translations> = {
     'footer.privacy': 'الخصوصية',
     'footer.terms': 'شروط الاستخدام',
     'footer.sitemap': 'خريطة الموقع',
+    'footer.contact': 'تواصل معنا',
+    'footer.legal': 'قانوني',
   },
 };
 

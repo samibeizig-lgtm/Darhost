@@ -23,7 +23,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <LanguageSync />
           <Header />
           <main className="flex-1 pb-16 md:pb-0">{children}</main>
-          <div className="hidden md:block"><Footer /></div>
+          <Footer />
           <MobileTabBar />
           <NavigationLoader />
         </LanguageProvider>
