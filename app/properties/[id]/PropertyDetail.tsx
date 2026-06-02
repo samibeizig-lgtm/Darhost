@@ -9,7 +9,7 @@ import {
   Share, Heart, Shield, Clock, MessageSquare, Award, X, AlertCircle,
 } from 'lucide-react';
 import { properties } from '@/lib/data';
-import { getSubmittedProperties, getUser, saveBooking, getBookings, cancelExpiredBookings } from '@/lib/store';
+import { syncPropertiesFromRemote, getUser, saveBooking, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
 
 const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
@@ -330,11 +330,24 @@ export default function PropertyDetail({ id }: { id: string }) {
   useEffect(() => {
     const mock = properties.find((p) => p.id === id);
     if (mock) { setProperty(mock); return; }
-    const submitted = getSubmittedProperties();
-    const found = submitted.find((p) => p.id === id);
-    setProperty(found ?? null);
-    const user = getUser();
-    if (found && user && found.host.id === user.id) setIsOwnProperty(true);
+    syncPropertiesFromRemote().then((submitted) => {
+      const found = submitted.find((p) => p.id === id);
+      if (found) {
+        // Ensure required arrays are never undefined (defensive guard)
+        const safe = {
+          ...found,
+          images: found.images ?? [],
+          amenities: found.amenities ?? [],
+          houseRules: found.houseRules ?? [],
+          reviews: found.reviews ?? [],
+        };
+        setProperty(safe);
+        const user = getUser();
+        if (user && safe.host?.id === user.id) setIsOwnProperty(true);
+      } else {
+        setProperty(null);
+      }
+    });
   }, [id]);
 
   if (property === undefined) return null;
