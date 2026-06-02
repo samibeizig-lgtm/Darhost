@@ -293,9 +293,21 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
     const res = await fetch(`${firebaseUrl}/annonces.json`);
     if (!res.ok) return local;
     const data: Record<string, Property> | null = await res.json();
-    if (!data) return local;
-    const remote = Object.values(data);
+    const remote = data ? Object.values(data) : [];
     const remoteIds = new Set(remote.map((p) => p.id));
+
+    // Push local-only properties to Firebase (bidirectional sync)
+    for (const p of local) {
+      if (!remoteIds.has(p.id)) {
+        const safe = stripBase64Images(p);
+        fetch(`${firebaseUrl}/annonces/${p.id}.json`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(safe),
+        }).catch(() => {});
+      }
+    }
+
     const merged = [...remote, ...local.filter((p) => !remoteIds.has(p.id))];
     if (typeof window !== 'undefined') {
       localStorage.setItem('darhost_submitted_properties', JSON.stringify(merged));
