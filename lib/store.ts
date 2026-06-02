@@ -295,6 +295,7 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
     const data: Record<string, Property> | null = await res.json();
     const remote = data ? Object.values(data) : [];
     const remoteIds = new Set(remote.map((p) => p.id));
+    const localById = new Map(local.map((p) => [p.id, p]));
 
     // Push local-only properties to Firebase (bidirectional sync)
     for (const p of local) {
@@ -308,7 +309,11 @@ export async function syncPropertiesFromRemote(): Promise<Property[]> {
       }
     }
 
-    const merged = [...remote, ...local.filter((p) => !remoteIds.has(p.id))];
+    // Prefer local version when it exists (local has real photos, remote has placeholders)
+    const merged = [
+      ...remote.map((p) => localById.get(p.id) ?? p),
+      ...local.filter((p) => !remoteIds.has(p.id)),
+    ];
     if (typeof window !== 'undefined') {
       localStorage.setItem('darhost_submitted_properties', JSON.stringify(merged));
     }
