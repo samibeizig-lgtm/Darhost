@@ -16,7 +16,6 @@ const TEAL = 'rgb(10, 186, 181)';
 const LANG_OPTIONS: { locale: Locale; label: string }[] = [
   { locale: 'fr', label: 'Fr' },
   { locale: 'en', label: 'Eng' },
-  { locale: 'ar', label: 'Ar' },
 ];
 
 function HostnLogo() {

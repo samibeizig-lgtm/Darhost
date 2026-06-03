@@ -109,7 +109,7 @@ export default function HostListingsPage() {
                       <span className="font-semibold text-gray-800">{property.rating > 0 ? property.rating : '—'}</span>
                       <span>({property.reviewCount})</span>
                     </div>
-                    <span className="font-bold text-[#0F4C8A] text-sm">{property.price} DT/nuit</span>
+                    <span className="font-bold text-[#0F4C8A] text-sm">{property.price} DT/{t('common.night')}</span>
                   </div>
                 </div>
               </div>

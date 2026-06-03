@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Settings } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, getBookings, cancelExpiredBookings } from '@/lib/store';
 import { Property } from '@/lib/types';
+import { useLanguage } from '@/lib/i18n';
 
 const MONTH_NAMES = [
   'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
@@ -273,6 +274,7 @@ function PropertyCalendarInner() {
   const router = useRouter();
   const params = useSearchParams();
   const id = params.get('id') ?? '';
+  const { t } = useLanguage();
 
   const [property, setProperty] = useState<Property | null>(null);
   const [calData, setCalData] = useState<CalendarData>(EMPTY_CAL);
@@ -445,10 +447,10 @@ function PropertyCalendarInner() {
       </div>
 
       <div className="fixed bottom-16 md:bottom-0 left-0 right-0 z-10 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-2 flex gap-4 text-[10px] text-gray-600 justify-center items-center">
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-100 inline-block" /> Réservé (à venir)</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200 inline-block" /> Réservé (passé)</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-50 border border-red-200 inline-block" /> Bloqué</span>
-        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-gray-300 inline-block" /> Libre</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-blue-100 inline-block" /> {t('host.booked_upcoming')}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-gray-200 inline-block" /> {t('host.booked_past')}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-50 border border-red-200 inline-block" /> {t('host.cal_blocked')}</span>
+        <span className="flex items-center gap-1"><span className="w-3 h-3 rounded border border-gray-300 inline-block" /> {t('host.cal_free')}</span>
       </div>
 
       {pendingRange && (

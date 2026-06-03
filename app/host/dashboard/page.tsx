@@ -135,7 +135,7 @@ export default function HostDashboardPage() {
             <span className="text-xs font-medium opacity-80">{t('host.this_month')}</span>
           </div>
           <div className="text-2xl font-extrabold">{monthRevenue.toLocaleString('fr-TN')} DT</div>
-          <div className="text-xs opacity-60 mt-0.5">{reservations.filter(r => r.checkIn.startsWith(monthPrefix)).length} réservation(s)</div>
+          <div className="text-xs opacity-60 mt-0.5">{reservations.filter(r => r.checkIn.startsWith(monthPrefix)).length} {t('common.bookings_count')}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
@@ -143,7 +143,7 @@ export default function HostDashboardPage() {
             <span className="text-xs font-medium text-gray-500">{t('host.active_listings')}</span>
           </div>
           <div className="text-2xl font-extrabold text-gray-900">{activeListings}</div>
-          <Link href="/host/listings" className="text-xs text-[#0F4C8A] font-semibold mt-0.5 block hover:underline">Voir mes annonces →</Link>
+          <Link href="/host/listings" className="text-xs text-[#0F4C8A] font-semibold mt-0.5 block hover:underline">{t('host.view_listings')}</Link>
         </div>
       </div>
 
@@ -151,7 +151,7 @@ export default function HostDashboardPage() {
         <section>
           <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
             <Clock size={16} className="text-[#0F4C8A]" />
-            Aujourd&apos;hui
+            {t('host.today')}
           </h2>
           <div className="space-y-2">
             {todayEvents.map(r => (
@@ -184,7 +184,7 @@ export default function HostDashboardPage() {
         <section>
           <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
             <Users size={16} className="text-[#0F4C8A]" />
-            En cours
+            {t('host.ongoing')}
             <span className="ml-auto text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full">{ongoing.length}</span>
           </h2>
           <div className="space-y-2">
@@ -199,7 +199,7 @@ export default function HostDashboardPage() {
         <section>
           <h2 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
             <ChevronRight size={16} className="text-[#0F4C8A]" />
-            À venir
+            {t('host.upcoming')}
             <span className="ml-auto text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full">{upcoming.length}</span>
           </h2>
           <div className="space-y-2">
