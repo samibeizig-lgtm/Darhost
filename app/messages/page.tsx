@@ -29,6 +29,10 @@ function UserAvatar({ src, name, size = 'md' }: { src?: string; name: string; si
   );
 }
 
+function sortByRecent(list: Conversation[]): Conversation[] {
+  return [...list].sort((a, b) => (b.lastMessageAt ?? b.createdAt ?? 0) - (a.lastMessageAt ?? a.createdAt ?? 0));
+}
+
 function MessagesInner() {
   const { t } = useLanguage();
   const params = useSearchParams();
@@ -52,22 +56,22 @@ function MessagesInner() {
   // Load + sync on mount
   useEffect(() => {
     if (!currentUser) return;
-    const local = getConversations().filter(
+    const local = sortByRecent(getConversations().filter(
       c => c.hostId === currentUser.id || c.guestId === currentUser.id
-    );
-    // Sort: most recent activity first
-    local.sort((a, b) => (b.lastMessageAt ?? b.createdAt ?? 0) - (a.lastMessageAt ?? a.createdAt ?? 0));
+    ));
     setConvs(local);
 
-    const openId = convIdParam ?? local[0]?.id ?? null;
+    // On mobile don't auto-open — show the list. On desktop or with explicit convId, open.
+    const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+    const openId = convIdParam ?? (isDesktop ? local[0]?.id ?? null : null);
     if (openId) {
       markConversationRead(openId);
       setActiveId(openId);
     }
 
     syncConversationsFromRemote(currentUser.id).then((synced) => {
-      setConvs(synced);
-      if (!convIdParam && !activeId && synced.length > 0) {
+      setConvs(sortByRecent(synced));
+      if (!convIdParam && !activeId && synced.length > 0 && isDesktop) {
         markConversationRead(synced[0].id);
         setActiveId(synced[0].id);
       } else if (convIdParam) {
@@ -82,7 +86,7 @@ function MessagesInner() {
   useEffect(() => {
     if (!activeId || !currentUser) return;
     pollRef.current = setInterval(() => {
-      syncConversationsFromRemote(currentUser.id).then(setConvs);
+      syncConversationsFromRemote(currentUser.id).then(s => setConvs(sortByRecent(s)));
     }, 6000);
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [activeId, currentUser]);
@@ -126,7 +130,7 @@ function MessagesInner() {
       isOwn: true,
     };
     const updated = addMessageToConversation(activeId, msg);
-    if (updated) setConvs(prev => prev.map(c => c.id === activeId ? updated : c));
+    if (updated) setConvs(prev => sortByRecent(prev.map(c => c.id === activeId ? updated : c)));
     setInput('');
     // Scroll after state update
     setTimeout(scrollToBottom, 50);
