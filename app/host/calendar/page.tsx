@@ -83,7 +83,7 @@ export default function CalendarListPage() {
                       </div>
                       <span className="text-xs font-bold text-[#0F4C8A]">{occupancy}%</span>
                     </div>
-                    <span className="text-xs text-gray-500">{count} rés. ce mois</span>
+                    <span className="text-xs text-gray-500">{count} {t('host.bookings_this_month')}</span>
                   </div>
                 </div>
                 <ChevronRight size={18} className="text-gray-400 group-hover:text-[#0F4C8A] transition-colors shrink-0" />

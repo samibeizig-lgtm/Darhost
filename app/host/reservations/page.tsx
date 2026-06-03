@@ -19,8 +19,6 @@ function fmtDate(s: string) {
 
 type Tab = 'pending' | 'confirmed' | 'past';
 
-const TAB_LABELS: Record<Tab, string> = { pending: 'En attente', confirmed: 'Confirmées', past: 'Passées' };
-
 function BookingCard({
   booking: b,
   onValidate,
@@ -30,12 +28,13 @@ function BookingCard({
   onValidate?: () => void;
   onRefuse?: () => void;
 }) {
+  const { t } = useLanguage();
   const STATUS = {
-    pending:   { label: 'En attente', cls: 'bg-orange-100 text-orange-700' },
-    confirmed: { label: 'Confirmée',  cls: 'bg-green-100 text-green-700' },
-    refused:   { label: 'Refusée',    cls: 'bg-red-100 text-red-600' },
-    cancelled: { label: 'Annulée',    cls: 'bg-gray-100 text-gray-500' },
-    paid:      { label: 'Payée',      cls: 'bg-blue-100 text-blue-700' },
+    pending:   { label: t('host.status_pending'),   cls: 'bg-orange-100 text-orange-700' },
+    confirmed: { label: t('host.status_confirmed'), cls: 'bg-green-100 text-green-700' },
+    refused:   { label: t('host.status_refused'),   cls: 'bg-red-100 text-red-600' },
+    cancelled: { label: t('host.status_cancelled'), cls: 'bg-gray-100 text-gray-500' },
+    paid:      { label: t('host.status_paid'),      cls: 'bg-blue-100 text-blue-700' },
   };
   const cfg = STATUS[b.status];
   const createdAt = new Date(b.createdAt);
@@ -59,13 +58,13 @@ function BookingCard({
           <div className="flex items-center gap-1 text-xs text-[#0F4C8A] font-medium mb-1">
             <Calendar size={11} className="shrink-0" />
             <span>{fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}</span>
-            <span className="text-gray-400 font-normal">· {b.nights} nuit{b.nights > 1 ? 's' : ''}</span>
+            <span className="text-gray-400 font-normal">· {b.nights} {b.nights > 1 ? t('common.nights') : t('common.night')}</span>
           </div>
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1 text-xs text-gray-500">
               <Users size={11} className="shrink-0" />
-              <span>{b.guests} voyageur{b.guests > 1 ? 's' : ''}</span>
+              <span>{b.guests} {b.guests > 1 ? t('common.guest_plural') : t('common.guest')}</span>
             </div>
             <span className="font-bold text-gray-900 text-sm">{b.total} DT</span>
           </div>
@@ -73,7 +72,7 @@ function BookingCard({
       </div>
 
       <div className="px-4 pb-3 text-[10px] text-gray-400">
-        Reçue le {createdStr}
+        {t('host.received')} {createdStr}
       </div>
 
       {onValidate && onRefuse && (
@@ -82,13 +81,13 @@ function BookingCard({
             onClick={onRefuse}
             className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
           >
-            <XCircle size={15} className="text-red-500" /> Refuser
+            <XCircle size={15} className="text-red-500" /> {t('host.refuse')}
           </button>
           <button
             onClick={onValidate}
             className="flex-1 py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold hover:bg-green-600 transition-colors flex items-center justify-center gap-1.5"
           >
-            <CheckCircle size={15} /> Valider
+            <CheckCircle size={15} /> {t('host.validate')}
           </button>
         </div>
       )}
@@ -97,8 +96,8 @@ function BookingCard({
         <div className="mx-4 mb-4 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2">
           <Clock size={13} className="shrink-0" />
           {b.paymentDeadline > Date.now()
-            ? 'En attente de paiement du voyageur (6h)'
-            : 'Délai de paiement expiré'}
+            ? t('host.payment_awaiting')
+            : t('host.payment_expired')}
         </div>
       )}
     </div>
@@ -164,21 +163,21 @@ export default function HostReservationsPage() {
       </div>
 
       <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1">
-        {(['pending', 'confirmed', 'past'] as Tab[]).map(t => (
+        {(['pending', 'confirmed', 'past'] as Tab[]).map(tabKey => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
+            key={tabKey}
+            onClick={() => setTab(tabKey)}
             className={`flex-1 py-2 px-1 rounded-lg text-xs font-semibold transition-colors ${
-              tab === t ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === tabKey ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {TAB_LABELS[t]}
-            {counts[t] > 0 && (
+            {t(`host.tab_${tabKey}`)}
+            {counts[tabKey] > 0 && (
               <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                t === 'pending' ? 'bg-orange-100 text-orange-600' :
-                t === 'confirmed' ? 'bg-green-100 text-green-600' :
+                tabKey === 'pending' ? 'bg-orange-100 text-orange-600' :
+                tabKey === 'confirmed' ? 'bg-green-100 text-green-600' :
                 'bg-gray-200 text-gray-500'
-              }`}>{counts[t]}</span>
+              }`}>{counts[tabKey]}</span>
             )}
           </button>
         ))}
@@ -188,10 +187,10 @@ export default function HostReservationsPage() {
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <BookOpen size={36} className="text-gray-300 mx-auto mb-3" />
           <p className="font-semibold text-gray-600 mb-1">
-            Aucune réservation {tab === 'pending' ? 'en attente' : tab === 'confirmed' ? 'confirmée' : 'passée'}
+            {t(`host.no_bookings_${tab}`)}
           </p>
           {tab === 'pending' && (
-            <p className="text-sm text-gray-400 mt-1">Les nouvelles demandes apparaîtront ici</p>
+            <p className="text-sm text-gray-400 mt-1">{t('host.new_requests')}</p>
           )}
         </div>
       ) : (

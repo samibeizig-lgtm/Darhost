@@ -5,33 +5,37 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Home, Calendar, MessageSquare, Menu, Search,
-  BookOpen, User, LogOut, ArrowLeftRight, X,
+  BookOpen, User, LogOut, ArrowLeftRight, X, Info, ChevronDown, ChevronUp,
+  FileText, Shield, Mail, HelpCircle,
 } from 'lucide-react';
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
-
-const HOST_TABS = [
-  { href: '/host/dashboard', icon: LayoutDashboard, label: 'Accueil' },
-  { href: '/host/listings', icon: Building2, label: 'Annonces' },
-  { href: '/host/reservations', icon: BookOpen, label: 'Réserv.' },
-  { href: '/host/calendar', icon: Calendar, label: 'Agenda' },
-  { href: '/messages', icon: MessageSquare, label: 'Messages' },
-];
-
-const GUEST_TABS = [
-  { href: '/reservations', icon: BookOpen, label: 'Réservations' },
-  { href: '/properties', icon: Search, label: 'Recherche' },
-  { href: '/messages', icon: MessageSquare, label: 'Messages' },
-];
+import { useLanguage } from '@/lib/i18n';
 
 export default function MobileTabBar() {
   const [user, setUserState] = useState<StoredUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
 
   useEffect(() => { setUserState(getUser()); }, [pathname]);
 
   if (!user) return null;
+
+  const HOST_TABS = [
+    { href: '/host/dashboard', icon: LayoutDashboard, label: t('tab.home') },
+    { href: '/host/listings', icon: Building2, label: t('tab.listings') },
+    { href: '/host/reservations', icon: BookOpen, label: t('tab.bookings') },
+    { href: '/host/calendar', icon: Calendar, label: t('tab.calendar') },
+    { href: '/messages', icon: MessageSquare, label: t('tab.messages') },
+  ];
+
+  const GUEST_TABS = [
+    { href: '/reservations', icon: BookOpen, label: t('tab.bookings') },
+    { href: '/properties', icon: Search, label: t('tab.search') },
+    { href: '/messages', icon: MessageSquare, label: t('tab.messages') },
+  ];
 
   const tabs = user.role === 'host' ? HOST_TABS : GUEST_TABS;
 
@@ -82,7 +86,7 @@ export default function MobileTabBar() {
             }`}
           >
             <Menu size={22} strokeWidth={1.8} />
-            <span className="text-[10px] font-semibold">Menu</span>
+            <span className="text-[10px] font-semibold">{t('tab.menu')}</span>
           </button>
         </div>
       </div>
@@ -112,7 +116,7 @@ export default function MobileTabBar() {
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                     user.role === 'host' ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'bg-gray-100 text-gray-500'
                   }`}>
-                    {user.role === 'host' ? 'Hôte' : 'Voyageur'}
+                    {user.role === 'host' ? t('nav.role_host') : t('nav.role_guest')}
                   </span>
                 </div>
               </div>
@@ -128,7 +132,7 @@ export default function MobileTabBar() {
                 className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
               >
                 <User size={20} className="text-[#0F4C8A] shrink-0" />
-                <span className="font-medium">Mon profil</span>
+                <span className="font-medium">{t('nav.profile')}</span>
               </Link>
               <button
                 onClick={handleSwitchRole}
@@ -136,15 +140,53 @@ export default function MobileTabBar() {
               >
                 <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
                 <span className="font-medium">
-                  Passer en mode {user.role === 'host' ? 'Voyageur' : 'Hôte'}
+                  {user.role === 'host' ? t('nav.switch_guest') : t('nav.switch_host')}
                 </span>
               </button>
+
+              <button
+                onClick={() => setAboutOpen(o => !o)}
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+              >
+                <Info size={20} className="text-[#0F4C8A] shrink-0" />
+                <span className="font-medium flex-1 text-left">{t('menu.about')}</span>
+                {aboutOpen ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+              </button>
+
+              {aboutOpen && (
+                <div className="ml-10 space-y-0.5">
+                  <Link href="/conditions" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <FileText size={16} className="text-gray-400 shrink-0" />
+                    {t('footer.terms')}
+                  </Link>
+                  <Link href="/confidentialite" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <Shield size={16} className="text-gray-400 shrink-0" />
+                    {t('footer.privacy')}
+                  </Link>
+                  <Link href="mailto:support@hostn.tn" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <Mail size={16} className="text-gray-400 shrink-0" />
+                    {t('footer.contact')} · support@hostn.tn
+                  </Link>
+                  <Link href="#" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <HelpCircle size={16} className="text-gray-400 shrink-0" />
+                    {t('footer.help')}
+                  </Link>
+                  <p className="px-4 py-2 text-xs text-gray-400">© 2025 Hostn · +216 70 000 000</p>
+                </div>
+              )}
+
+              <div className="h-px bg-gray-100 mx-2 my-1" />
+
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors w-full"
               >
                 <LogOut size={20} className="shrink-0" />
-                <span className="font-medium">Se déconnecter</span>
+                <span className="font-medium">{t('nav.logout')}</span>
               </button>
             </div>
 
