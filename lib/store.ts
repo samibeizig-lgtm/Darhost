@@ -64,25 +64,23 @@ export function setHostBank(data: HostBankData): void {
 
 export type IdentityStatus = 'none' | 'pending' | 'verified';
 
-export function getIdentityStatus(): IdentityStatus {
+export function getIdentityStatus(userId: string): IdentityStatus {
   if (typeof window === 'undefined') return 'none';
-  const v = localStorage.getItem('darhost_identity_status');
+  const v = localStorage.getItem(`darhost_identity_status_${userId}`);
   if (v === 'verified' || v === 'pending') return v;
-
-  if (localStorage.getItem('darhost_identity_verified') === 'true') return 'verified';
   return 'none';
 }
 
-export function setIdentityStatus(status: IdentityStatus): void {
-  localStorage.setItem('darhost_identity_status', status);
+export function setIdentityStatus(userId: string, status: IdentityStatus): void {
+  localStorage.setItem(`darhost_identity_status_${userId}`, status);
 }
 
-export function getIdentityVerified(): boolean {
-  return getIdentityStatus() === 'verified';
+export function getIdentityVerified(userId: string): boolean {
+  return getIdentityStatus(userId) === 'verified';
 }
 
-export function setIdentityVerified(v: boolean): void {
-  setIdentityStatus(v ? 'verified' : 'none');
+export function setIdentityVerified(userId: string, v: boolean): void {
+  setIdentityStatus(userId, v ? 'verified' : 'none');
 }
 
 export async function submitIdentityForReview(userId: string, userName: string): Promise<void> {

@@ -230,7 +230,8 @@ export default function HostSubmitPage() {
 
   async function handleSubmit() {
     if (submitting) return;
-    const idStatus = getIdentityStatus();
+    const currentUserId = getUser()?.id ?? '';
+    const idStatus = getIdentityStatus(currentUserId);
     if (idStatus === 'pending') {
       alert("Votre dossier de vérification d'identité est en cours d'examen par un administrateur (délai max 48h). Vous pourrez publier dès validation.");
       return;

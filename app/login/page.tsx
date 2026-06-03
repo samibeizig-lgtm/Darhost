@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Eye, EyeOff, Mail, Lock, Fingerprint } from 'lucide-react';
 import { setUser, findAccount, syncAccountsFromRemote, fetchAccountFromRemote, saveAccount, isRemoteConnected, getAccounts } from '@/lib/store';
 import { useLanguage } from '@/lib/i18n';
-import { isBiometricSupported, getBiometricCredential, authenticateBiometric } from '@/lib/biometric';
+import { isBiometricSupported, hasAnyBiometric, authenticateBiometric } from '@/lib/biometric';
 
 export default function LoginPage() {
   const { t } = useLanguage();
@@ -23,7 +23,7 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setRedirect(params.get('redirect') ?? '/');
-    setHasBiometric(isBiometricSupported() && !!getBiometricCredential());
+    setHasBiometric(isBiometricSupported() && hasAnyBiometric());
     if (!isRemoteConnected()) { setSyncStatus('no-firebase'); return; }
     setSyncStatus('syncing');
     syncAccountsFromRemote().then((n) => { setRemoteCount(n); setSyncStatus('ok'); });
