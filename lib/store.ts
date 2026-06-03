@@ -504,7 +504,16 @@ export async function syncBookingsFromRemote(): Promise<Booking[]> {
 // ── Conversations / Messages ──────────────────────────────────────────────────
 
 function normalizeConv(c: Conversation): Conversation {
-  return { ...c, messages: Array.isArray(c.messages) ? c.messages : [], unread: c.unread ?? 0 };
+  const messages = Array.isArray(c.messages) ? c.messages : [];
+  let lastMessageAt = c.lastMessageAt;
+  if (!lastMessageAt && messages.length > 0) {
+    const lastId = messages[messages.length - 1]?.id ?? '';
+    if (lastId.startsWith('m-')) {
+      const ts = parseInt(lastId.slice(2), 10);
+      if (!isNaN(ts) && ts > 0) lastMessageAt = ts;
+    }
+  }
+  return { ...c, messages, unread: c.unread ?? 0, lastMessageAt };
 }
 
 export function getConversations(): Conversation[] {
