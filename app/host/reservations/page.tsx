@@ -125,8 +125,8 @@ function BookingDetailModal({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
-      <div className="fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+      <div className="fixed inset-0 bg-black/50 z-[60]" onClick={onClose} />
+      <div className="fixed bottom-0 inset-x-0 z-[60] bg-white rounded-t-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
         <div className="flex justify-center pt-3 pb-1">
           <div className="w-10 h-1 bg-gray-300 rounded-full" />
         </div>
@@ -138,7 +138,7 @@ function BookingDetailModal({
           <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><X size={20} className="text-gray-400" /></button>
         </div>
 
-        <div className="px-5 py-4 space-y-4 pb-10">
+        <div className="px-5 py-4 space-y-4 pb-24">
           {/* Property */}
           <div className="flex gap-3">
             <img src={b.propertyImage} alt={b.propertyTitle} className="w-20 h-20 rounded-xl object-cover shrink-0" />
