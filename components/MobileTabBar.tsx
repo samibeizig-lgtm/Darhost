@@ -6,20 +6,25 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Home, Calendar, MessageSquare, Menu, Search,
   BookOpen, User, LogOut, ArrowLeftRight, X, Info, ChevronDown, ChevronUp,
-  FileText, Shield, Mail, HelpCircle,
+  FileText, Shield, Mail, HelpCircle, Plus,
 } from 'lucide-react';
-import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
+import { getUser, clearUser, setUser as persistUser, StoredUser, getUserListings } from '@/lib/store';
 import { useLanguage } from '@/lib/i18n';
 
 export default function MobileTabBar() {
   const [user, setUserState] = useState<StoredUser | null>(null);
+  const [hasListings, setHasListings] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLanguage();
 
-  useEffect(() => { setUserState(getUser()); }, [pathname]);
+  useEffect(() => {
+    const u = getUser();
+    setUserState(u);
+    if (u) setHasListings(getUserListings(u.id).length > 0);
+  }, [pathname]);
 
   if (!user) return null;
 
@@ -134,15 +139,32 @@ export default function MobileTabBar() {
                 <User size={20} className="text-[#0F4C8A] shrink-0" />
                 <span className="font-medium">{t('nav.profile')}</span>
               </Link>
-              <button
-                onClick={handleSwitchRole}
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-              >
-                <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
-                <span className="font-medium">
-                  {user.role === 'host' ? t('nav.switch_guest') : t('nav.switch_host')}
-                </span>
-              </button>
+              {user.role === 'host' ? (
+                <button
+                  onClick={handleSwitchRole}
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                >
+                  <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                  <span className="font-medium">{t('nav.switch_guest')}</span>
+                </button>
+              ) : hasListings ? (
+                <button
+                  onClick={handleSwitchRole}
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                >
+                  <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                  <span className="font-medium">{t('nav.switch_host')}</span>
+                </button>
+              ) : (
+                <Link
+                  href="/host/submit"
+                  onClick={() => setMenuOpen(false)}
+                  className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                >
+                  <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                  <span className="font-medium">{t('nav.publish_listing')}</span>
+                </Link>
+              )}
 
               <button
                 onClick={() => setAboutOpen(o => !o)}

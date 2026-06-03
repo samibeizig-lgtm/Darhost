@@ -7,7 +7,7 @@ import {
   Menu, X, MessageSquare, User, Home, Search,
   LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight, Building2, MapPin,
 } from 'lucide-react';
-import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
+import { getUser, clearUser, setUser as persistUser, StoredUser, getUserListings } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
 import { useLanguage, Locale } from '@/lib/i18n';
 
@@ -38,6 +38,7 @@ export default function Header() {
   const [user, setUser] = useState<StoredUser | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
+  const [hasListings, setHasListings] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -64,7 +65,11 @@ export default function Header() {
     { href: '/properties', label: t('nav.listings'), icon: Search },
   ];
 
-  useEffect(() => { setUser(getUser()); }, [pathname]);
+  useEffect(() => {
+    const u = getUser();
+    setUser(u);
+    if (u) setHasListings(getUserListings(u.id).length > 0);
+  }, [pathname]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -289,10 +294,21 @@ export default function Header() {
                         <Plus size={15} className="text-[#0F4C8A]" /> {t('nav.publish_listing')}
                       </Link>
                     )}
-                    <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
-                      <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
-                      {user.role === 'host' ? t('nav.switch_guest') : t('nav.switch_host')}
-                    </button>
+                    {user.role === 'host' ? (
+                      <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                        <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
+                        {t('nav.switch_guest')}
+                      </button>
+                    ) : hasListings ? (
+                      <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                        <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
+                        {t('nav.switch_host')}
+                      </button>
+                    ) : (
+                      <Link href="/host/submit" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                        <Plus size={15} className="text-[#0F4C8A]" /> {t('nav.publish_listing')}
+                      </Link>
+                    )}
                     <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t border-gray-100 transition-colors">
                       <LogOut size={15} /> {t('nav.logout')}
                     </button>

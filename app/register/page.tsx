@@ -8,7 +8,6 @@ import { useLanguage } from '@/lib/i18n';
 
 export default function RegisterPage() {
   const { t } = useLanguage();
-  const [role, setRole] = useState<'guest' | 'host'>('guest');
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '', phone: '', password: '', confirm: '',
   });
@@ -23,7 +22,6 @@ export default function RegisterPage() {
     const params = new URLSearchParams(window.location.search);
     const r = params.get('redirect') ?? '/';
     setRedirect(r);
-    if (r.includes('host')) setRole('host');
   }, []);
 
   const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
@@ -74,12 +72,12 @@ export default function RegisterPage() {
       id: `u-${Date.now()}`,
       name: `${form.firstName} ${form.lastName}`,
       email: form.email,
-      role,
+      role: 'guest' as const,
       avatar,
       password: form.password,
     };
     saveAccount(account);
-    setUser({ id: account.id, name: account.name, email: account.email, role, avatar });
+    setUser({ id: account.id, name: account.name, email: account.email, role: 'guest', avatar });
     window.location.href = redirect;
   }
 
@@ -100,31 +98,6 @@ export default function RegisterPage() {
         </div>
 
         <div className="bg-white rounded-2xl border border-gray-200 p-8 shadow-sm">
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-gray-100 rounded-xl">
-            <button
-              onClick={() => setRole('guest')}
-              className={`py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                role === 'guest' ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              {t('auth.role_guest')}
-            </button>
-            <button
-              onClick={() => setRole('host')}
-              className={`py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                role === 'host' ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-600 hover:text-gray-800'
-              }`}
-            >
-              {t('auth.role_host')}
-            </button>
-          </div>
-
-          {role === 'host' && (
-            <div className="bg-[#E8F0FB] rounded-xl p-3 mb-5 text-sm text-[#0F4C8A]">
-              En tant qu&apos;hôte, vous pourrez publier votre logement après l&apos;inscription.
-            </div>
-          )}
-
           <div className="flex flex-col items-center mb-6">
             <label className="relative cursor-pointer group">
               <div className={`w-24 h-24 rounded-full overflow-hidden border-2 flex items-center justify-center transition-colors ${

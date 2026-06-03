@@ -12,7 +12,7 @@ import { useRouter } from 'next/navigation';
 import { wilayasTunisie, CATEGORIES, localitesTunisie } from '@/lib/data';
 import { AMENITY_CATEGORIES } from '@/lib/amenities';
 import { getIdentityStatus } from '@/lib/store';
-import { getUser, addSubmittedProperty, savePropertyRemote, uploadImage, StoredUser } from '@/lib/store';
+import { getUser, setUser as persistUser, addSubmittedProperty, savePropertyRemote, uploadImage, StoredUser } from '@/lib/store';
 import { Property, PropertyType } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
 
@@ -222,6 +222,9 @@ export default function HostSubmitPage() {
     const draftProperty = await buildProperty(seed, images, { available: false, isDraft: true });
     addSubmittedProperty(draftProperty);
     await savePropertyRemote(draftProperty);
+    // Switch to host mode now that the user has a listing
+    const currentUser = getUser();
+    if (currentUser && currentUser.role !== 'host') persistUser({ ...currentUser, role: 'host' });
     router.push('/host/listings');
   }
 
@@ -251,6 +254,9 @@ export default function HostSubmitPage() {
       const newProperty = await buildProperty(seed, images);
       addSubmittedProperty(newProperty);
       await savePropertyRemote(newProperty);
+      // Switch to host mode now that the user has a listing
+      const currentUser = getUser();
+      if (currentUser && currentUser.role !== 'host') persistUser({ ...currentUser, role: 'host' });
 
       try {
         const shareable: Property = {

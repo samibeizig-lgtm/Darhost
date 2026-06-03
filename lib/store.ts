@@ -180,6 +180,10 @@ export function importSharedProperty(property: Property): void {
   }
 }
 
+export function getUserListings(userId: string): Property[] {
+  return getSubmittedProperties().filter(p => p.host?.id === userId);
+}
+
 const firebaseUrl = (process.env.NEXT_PUBLIC_FIREBASE_DB_URL ?? '').trim().replace(/\/$/, '');
 const imgbbKey = (process.env.NEXT_PUBLIC_IMGBB_API_KEY ?? '').trim();
 
