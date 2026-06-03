@@ -94,12 +94,77 @@ export interface ChatMessage {
 
 export interface Conversation {
   id: string;
-  participantName: string;
-  participantAvatar: string;
+  hostId: string;
+  guestId: string;
+  hostName: string;
+  hostAvatar: string;
+  guestName: string;
+  guestAvatar: string;
+  // participantName/Avatar: kept for backwards compat, computed per viewer in UI
+  propertyId?: string;
   propertyTitle?: string;
   propertyImage?: string;
   lastMessage: string;
   lastTime: string;
+  lastMessageAt?: number;
   unread: number;
   messages: ChatMessage[];
+  createdAt: number;
+}
+
+export type ServiceType = 'transfert' | 'voiture' | 'guide' | 'activite' | 'autre';
+
+export interface Service {
+  id: string;
+  type: ServiceType;
+  title: string;
+  description: string;
+  images: string[];
+  price: number;
+  priceUnit: 'trajet' | 'jour' | 'heure' | 'personne' | 'forfait';
+  location: string;
+  wilaya: string;
+  providerId: string;
+  providerName: string;
+  providerAvatar: string;
+  rating: number;
+  reviewCount: number;
+  available: boolean;
+  maxPersons?: number;
+  languages?: string[];
+  vehicleType?: string;
+  includes?: string[];
+  createdAt: number;
+}
+
+export type ServiceBookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled' | 'paid';
+
+export interface ServiceBooking {
+  id: string;
+  serviceId: string;
+  serviceTitle: string;
+  serviceType: ServiceType;
+  serviceImage: string;
+  serviceLocation: string;
+  providerId: string;
+  providerName: string;
+  providerAvatar: string;
+  guestId: string;
+  guestName: string;
+  guestAvatar: string;
+  date: string;
+  time?: string;
+  endDate?: string;
+  persons: number;
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  flightNumber?: string;
+  vehicleType?: string;
+  language?: string;
+  duration?: string;
+  interests?: string;
+  notes?: string;
+  total: number;
+  status: ServiceBookingStatus;
+  createdAt: number;
 }

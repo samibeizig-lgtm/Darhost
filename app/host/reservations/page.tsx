@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Calendar, CheckCircle, XCircle, Users, Clock, BookOpen } from 'lucide-react';
 import {
   getUser, syncPropertiesFromRemote, syncBookingsFromRemote, updateBookingStatus, cancelExpiredBookings,
@@ -17,7 +16,15 @@ function fmtDate(s: string) {
   return `${d} ${MONTHS_FR[m - 1]}`;
 }
 
-type Tab = 'pending' | 'confirmed' | 'past';
+type Tab = 'all' | 'pending' | 'confirmed' | 'past';
+
+const STATUS_CFG: Record<string, { label: string; cls: string }> = {
+  pending:   { label: 'En attente',  cls: 'bg-orange-100 text-orange-700' },
+  confirmed: { label: 'Confirmée',   cls: 'bg-green-100 text-green-700' },
+  refused:   { label: 'Refusée',     cls: 'bg-red-100 text-red-600' },
+  cancelled: { label: 'Annulée',     cls: 'bg-gray-100 text-gray-500' },
+  paid:      { label: 'Payée',       cls: 'bg-blue-100 text-blue-700' },
+};
 
 function BookingCard({
   booking: b,
@@ -29,14 +36,7 @@ function BookingCard({
   onRefuse?: () => void;
 }) {
   const { t } = useLanguage();
-  const STATUS = {
-    pending:   { label: t('host.status_pending'),   cls: 'bg-orange-100 text-orange-700' },
-    confirmed: { label: t('host.status_confirmed'), cls: 'bg-green-100 text-green-700' },
-    refused:   { label: t('host.status_refused'),   cls: 'bg-red-100 text-red-600' },
-    cancelled: { label: t('host.status_cancelled'), cls: 'bg-gray-100 text-gray-500' },
-    paid:      { label: t('host.status_paid'),      cls: 'bg-blue-100 text-blue-700' },
-  };
-  const cfg = STATUS[b.status];
+  const cfg = STATUS_CFG[b.status] ?? STATUS_CFG.cancelled;
   const createdAt = new Date(b.createdAt);
   const createdStr = `${createdAt.getDate()} ${MONTHS_FR[createdAt.getMonth()]} à ${String(createdAt.getHours()).padStart(2, '0')}:${String(createdAt.getMinutes()).padStart(2, '0')}`;
 
@@ -51,7 +51,11 @@ function BookingCard({
           </div>
 
           <div className="flex items-center gap-1.5 mb-1.5">
-            <img src={b.guestAvatar} alt={b.guestName} className="w-4 h-4 rounded-full object-cover" />
+            {b.guestAvatar ? (
+              <img src={b.guestAvatar} alt={b.guestName} className="w-4 h-4 rounded-full object-cover" />
+            ) : (
+              <div className="w-4 h-4 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center text-[8px] font-bold">{b.guestName.charAt(0)}</div>
+            )}
             <span className="text-xs font-medium text-gray-700">{b.guestName}</span>
           </div>
 
@@ -71,9 +75,16 @@ function BookingCard({
         </div>
       </div>
 
-      <div className="px-4 pb-3 text-[10px] text-gray-400">
+      <div className="px-4 pb-2 text-[10px] text-gray-400">
         {t('host.received')} {createdStr}
       </div>
+
+      {b.status === 'confirmed' && b.paymentDeadline && (
+        <div className="mx-4 mb-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2">
+          <Clock size={13} className="shrink-0" />
+          {b.paymentDeadline > Date.now() ? t('host.payment_awaiting') : t('host.payment_expired')}
+        </div>
+      )}
 
       {onValidate && onRefuse && (
         <div className="flex gap-2 px-4 pb-4">
@@ -91,15 +102,6 @@ function BookingCard({
           </button>
         </div>
       )}
-
-      {b.status === 'confirmed' && b.paymentDeadline && (
-        <div className="mx-4 mb-4 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2">
-          <Clock size={13} className="shrink-0" />
-          {b.paymentDeadline > Date.now()
-            ? t('host.payment_awaiting')
-            : t('host.payment_expired')}
-        </div>
-      )}
     </div>
   );
 }
@@ -107,7 +109,7 @@ function BookingCard({
 export default function HostReservationsPage() {
   const router = useRouter();
   const { t } = useLanguage();
-  const [tab, setTab] = useState<Tab>('pending');
+  const [tab, setTab] = useState<Tab>('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -116,8 +118,11 @@ export default function HostReservationsPage() {
     if (!user || user.role !== 'host') { router.push('/'); return; }
     cancelExpiredBookings();
     Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
-      const myIds = new Set(props.map(p => p.id));
-      setBookings(allBookings.filter(b => myIds.has(b.propertyId)));
+      const myIds = new Set(props.filter(p => p.host?.id === user.id).map(p => p.id));
+      const sorted = allBookings
+        .filter(b => myIds.has(b.propertyId))
+        .sort((a, b) => b.createdAt - a.createdAt);
+      setBookings(sorted);
       setLoading(false);
     });
   }, [router]);
@@ -140,12 +145,26 @@ export default function HostReservationsPage() {
     ));
   }
 
-  const pending   = bookings.filter(b => b.status === 'pending');
-  const confirmed = bookings.filter(b => b.status === 'confirmed');
-  const past      = bookings.filter(b => b.status === 'refused' || b.status === 'cancelled');
+  const today = new Date().toISOString().slice(0, 10);
 
-  const counts: Record<Tab, number> = { pending: pending.length, confirmed: confirmed.length, past: past.length };
-  const tabBookings = tab === 'pending' ? pending : tab === 'confirmed' ? confirmed : past;
+  const counts = {
+    all: bookings.length,
+    pending: bookings.filter(b => b.status === 'pending').length,
+    confirmed: bookings.filter(b => b.status === 'confirmed' || b.status === 'paid').length,
+    past: bookings.filter(b => b.status === 'refused' || b.status === 'cancelled' || ((b.status === 'confirmed' || b.status === 'paid') && b.checkOut < today)).length,
+  };
+
+  const tabBookings = tab === 'all' ? bookings
+    : tab === 'pending' ? bookings.filter(b => b.status === 'pending')
+    : tab === 'confirmed' ? bookings.filter(b => (b.status === 'confirmed' || b.status === 'paid') && b.checkOut >= today)
+    : bookings.filter(b => b.status === 'refused' || b.status === 'cancelled' || ((b.status === 'confirmed' || b.status === 'paid') && b.checkOut < today));
+
+  const TABS: { key: Tab; label: string }[] = [
+    { key: 'all', label: 'Toutes' },
+    { key: 'pending', label: t('host.tab_pending') },
+    { key: 'confirmed', label: t('host.tab_confirmed') },
+    { key: 'past', label: t('host.tab_past') },
+  ];
 
   if (loading) {
     return (
@@ -159,25 +178,26 @@ export default function HostReservationsPage() {
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{t('host.reservations_title')}</h1>
-        <p className="text-sm text-gray-500 mt-0.5">{t('host.guest')}</p>
+        <p className="text-sm text-gray-500 mt-0.5">{bookings.length} réservation{bookings.length !== 1 ? 's' : ''} au total</p>
       </div>
 
       <div className="flex gap-1 mb-5 bg-gray-100 rounded-xl p-1">
-        {(['pending', 'confirmed', 'past'] as Tab[]).map(tabKey => (
+        {TABS.map(({ key, label }) => (
           <button
-            key={tabKey}
-            onClick={() => setTab(tabKey)}
+            key={key}
+            onClick={() => setTab(key)}
             className={`flex-1 py-2 px-1 rounded-lg text-xs font-semibold transition-colors ${
-              tab === tabKey ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-500 hover:text-gray-700'
+              tab === key ? 'bg-white text-[#0F4C8A] shadow-sm' : 'text-gray-500 hover:text-gray-700'
             }`}
           >
-            {t(`host.tab_${tabKey}`)}
-            {counts[tabKey] > 0 && (
+            {label}
+            {counts[key] > 0 && (
               <span className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
-                tabKey === 'pending' ? 'bg-orange-100 text-orange-600' :
-                tabKey === 'confirmed' ? 'bg-green-100 text-green-600' :
+                key === 'pending' ? 'bg-orange-100 text-orange-600' :
+                key === 'confirmed' ? 'bg-green-100 text-green-600' :
+                key === 'all' ? 'bg-[#E8F0FB] text-[#0F4C8A]' :
                 'bg-gray-200 text-gray-500'
-              }`}>{counts[tabKey]}</span>
+              }`}>{counts[key]}</span>
             )}
           </button>
         ))}
@@ -187,7 +207,7 @@ export default function HostReservationsPage() {
         <div className="text-center py-16 bg-white border border-gray-200 rounded-2xl shadow-sm">
           <BookOpen size={36} className="text-gray-300 mx-auto mb-3" />
           <p className="font-semibold text-gray-600 mb-1">
-            {t(`host.no_bookings_${tab}`)}
+            {tab === 'all' ? 'Aucune réservation' : t(`host.no_bookings_${tab === 'past' ? 'past' : tab}`)}
           </p>
           {tab === 'pending' && (
             <p className="text-sm text-gray-400 mt-1">{t('host.new_requests')}</p>

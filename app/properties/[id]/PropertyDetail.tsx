@@ -9,7 +9,7 @@ import {
   Share, Heart, Shield, Clock, MessageSquare, Award, X, AlertCircle,
 } from 'lucide-react';
 import { properties } from '@/lib/data';
-import { syncPropertiesFromRemote, getUser, saveBooking, getBookings, cancelExpiredBookings } from '@/lib/store';
+import { syncPropertiesFromRemote, getUser, saveBooking, getBookings, cancelExpiredBookings, makeConvId, upsertConversation } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
 
@@ -322,6 +322,49 @@ function BookingForm({ property }: { property: Property }) {
   );
 }
 
+function ContactHostButton({ property, t }: { property: Property; t: (k: string) => string }) {
+  const router = useRouter();
+
+  function handleContact() {
+    const currentUser = getUser();
+    if (!currentUser) {
+      router.push(`/login?redirect=/properties/${property.id}`);
+      return;
+    }
+    if (currentUser.id === property.host.id) return;
+
+    const convId = makeConvId(currentUser.id, property.host.id, property.id);
+    upsertConversation({
+      id: convId,
+      hostId: property.host.id,
+      guestId: currentUser.id,
+      hostName: property.host.name,
+      hostAvatar: property.host.avatar,
+      guestName: currentUser.name,
+      guestAvatar: currentUser.avatar,
+      propertyId: property.id,
+      propertyTitle: property.title,
+      propertyImage: property.images[0] ?? '',
+      lastMessage: '',
+      lastTime: '',
+      unread: 0,
+      messages: [],
+      createdAt: Date.now(),
+    });
+    router.push(`/messages?convId=${convId}`);
+  }
+
+  return (
+    <button
+      onClick={handleContact}
+      className="inline-flex items-center gap-2 px-5 py-3 border border-gray-900 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors"
+    >
+      <MessageSquare size={16} />
+      {t('property.contact_host')}
+    </button>
+  );
+}
+
 export default function PropertyDetail({ id }: { id: string }) {
   const { t } = useLanguage();
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -554,10 +597,7 @@ export default function PropertyDetail({ id }: { id: string }) {
                 <span>{t('property.response_rate')} : <strong>{property.host.responseRate}%</strong></span>
                 <span>{t('property.response_time')} : <strong>{property.host.responseTime}</strong></span>
               </div>
-              <Link href="/messages" className="inline-flex items-center gap-2 px-5 py-3 border border-gray-900 rounded-xl font-semibold text-sm hover:bg-gray-50 transition-colors">
-                <MessageSquare size={16} />
-                {t('property.contact_host')}
-              </Link>
+              <ContactHostButton property={property} t={t} />
             </div>
           </div>
 

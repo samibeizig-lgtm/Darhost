@@ -6,20 +6,29 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Home, Calendar, MessageSquare, Menu, Search,
   BookOpen, User, LogOut, ArrowLeftRight, X, Info, ChevronDown, ChevronUp,
-  FileText, Shield, Mail, HelpCircle,
+  FileText, Shield, Mail, HelpCircle, Plus, Package,
 } from 'lucide-react';
-import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
+import { getUser, clearUser, setUser as persistUser, StoredUser, getUserListings, getUserServices } from '@/lib/store';
 import { useLanguage } from '@/lib/i18n';
 
 export default function MobileTabBar() {
   const [user, setUserState] = useState<StoredUser | null>(null);
+  const [hasListings, setHasListings] = useState(false);
+  const [hasServices, setHasServices] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { t } = useLanguage();
 
-  useEffect(() => { setUserState(getUser()); }, [pathname]);
+  useEffect(() => {
+    const u = getUser();
+    setUserState(u);
+    if (u) {
+      setHasListings(getUserListings(u.id).length > 0);
+      setHasServices(getUserServices(u.id).length > 0);
+    }
+  }, [pathname]);
 
   if (!user) return null;
 
@@ -34,17 +43,25 @@ export default function MobileTabBar() {
   const GUEST_TABS = [
     { href: '/reservations', icon: BookOpen, label: t('tab.bookings') },
     { href: '/properties', icon: Search, label: t('tab.search') },
+    { href: '/services', icon: Package, label: t('tab.services') },
     { href: '/messages', icon: MessageSquare, label: t('tab.messages') },
   ];
 
-  const tabs = user.role === 'host' ? HOST_TABS : GUEST_TABS;
+  const PRESTATAIRE_TABS = [
+    { href: '/prestataire/dashboard', icon: LayoutDashboard, label: t('tab.home') },
+    { href: '/prestataire/services', icon: Package, label: t('tab.services') },
+    { href: '/prestataire/reservations', icon: BookOpen, label: t('tab.bookings') },
+    { href: '/messages', icon: MessageSquare, label: t('tab.messages') },
+  ];
 
-  function handleSwitchRole() {
-    const updated = { ...user!, role: user!.role === 'host' ? 'guest' as const : 'host' as const };
+  const tabs = user.role === 'host' ? HOST_TABS : user.role === 'prestataire' ? PRESTATAIRE_TABS : GUEST_TABS;
+
+  function switchTo(role: 'guest' | 'host' | 'prestataire') {
+    const updated = { ...user!, role };
     persistUser(updated);
     setUserState(updated);
     setMenuOpen(false);
-    router.push(updated.role === 'host' ? '/host/listings' : '/properties');
+    router.push(role === 'host' ? '/host/dashboard' : role === 'prestataire' ? '/prestataire/dashboard' : '/properties');
   }
 
   function handleLogout() {
@@ -114,9 +131,9 @@ export default function MobileTabBar() {
                 <div>
                   <p className="font-bold text-gray-900 text-sm">{user.name}</p>
                   <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                    user.role === 'host' ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'bg-gray-100 text-gray-500'
+                    user.role === 'host' ? 'bg-[#E8F0FB] text-[#0F4C8A]' : user.role === 'prestataire' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
                   }`}>
-                    {user.role === 'host' ? t('nav.role_host') : t('nav.role_guest')}
+                    {user.role === 'host' ? t('nav.role_host') : user.role === 'prestataire' ? t('nav.role_prestataire') : t('nav.role_guest')}
                   </span>
                 </div>
               </div>
@@ -134,15 +151,93 @@ export default function MobileTabBar() {
                 <User size={20} className="text-[#0F4C8A] shrink-0" />
                 <span className="font-medium">{t('nav.profile')}</span>
               </Link>
-              <button
-                onClick={handleSwitchRole}
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-              >
-                <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
-                <span className="font-medium">
-                  {user.role === 'host' ? t('nav.switch_guest') : t('nav.switch_host')}
-                </span>
-              </button>
+              {user.role === 'host' ? (
+                <>
+                  <button
+                    onClick={() => switchTo('guest')}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                  >
+                    <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                    <span className="font-medium">{t('nav.switch_guest')}</span>
+                  </button>
+                  {hasServices ? (
+                    <button
+                      onClick={() => switchTo('prestataire')}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                    >
+                      <Package size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.switch_prestataire')}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href="/prestataire/submit"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                    >
+                      <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.propose_service')}</span>
+                    </Link>
+                  )}
+                </>
+              ) : user.role === 'prestataire' ? (
+                <>
+                  <button
+                    onClick={() => switchTo('guest')}
+                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                  >
+                    <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                    <span className="font-medium">{t('nav.switch_guest')}</span>
+                  </button>
+                  {hasListings && (
+                    <button
+                      onClick={() => switchTo('host')}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                    >
+                      <Building2 size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.switch_host')}</span>
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  {hasListings ? (
+                    <button
+                      onClick={() => switchTo('host')}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                    >
+                      <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.switch_host')}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href="/host/submit"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                    >
+                      <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.publish_listing')}</span>
+                    </Link>
+                  )}
+                  {hasServices ? (
+                    <button
+                      onClick={() => switchTo('prestataire')}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                    >
+                      <Package size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.switch_prestataire')}</span>
+                    </button>
+                  ) : (
+                    <Link
+                      href="/prestataire/submit"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                    >
+                      <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                      <span className="font-medium">{t('nav.propose_service')}</span>
+                    </Link>
+                  )}
+                </>
+              )}
 
               <button
                 onClick={() => setAboutOpen(o => !o)}
