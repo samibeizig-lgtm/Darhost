@@ -15,7 +15,7 @@ import {
 } from '@/lib/store';
 import { TUNISIAN_BANKS, validateRib, formatRibDisplay } from '@/lib/banks';
 import { useLanguage } from '@/lib/i18n';
-import { isBiometricSupported, getBiometricCredential, registerBiometric, removeBiometric } from '@/lib/biometric';
+import { isBiometricSupported, isBiometricEnabledForUser, registerBiometric, removeBiometric } from '@/lib/biometric';
 
 const HOBBIES_LIST = [
   'Voyages', 'Cuisine', 'Sport', 'Lecture', 'Musique', 'Cinéma',
@@ -102,10 +102,10 @@ export default function ProfilePage() {
 
     const bank = getHostBank();
     setBankForm({ bankHolder: bank.bankHolder, bankName: bank.bankName, rib: bank.rib });
-    setIdStatus(getIdentityStatus());
+    setIdStatus(getIdentityStatus(u.id));
 
     setBiometricSupported(isBiometricSupported());
-    setBiometricEnabled(isBiometricSupported() && !!getBiometricCredential());
+    setBiometricEnabled(isBiometricSupported() && isBiometricEnabledForUser(u.id));
 
     // Auto-sync account to Firebase silently (covers accounts created before the fix)
     if (isRemoteConnected()) {
@@ -195,7 +195,7 @@ export default function ProfilePage() {
     if (!user) return;
     setBiometricLoading(true);
     setBiometricMsg('');
-    const ok = await registerBiometric(user.email);
+    const ok = await registerBiometric(user.email, user.id);
     setBiometricLoading(false);
     if (ok) {
       setBiometricEnabled(true);
@@ -206,7 +206,7 @@ export default function ProfilePage() {
   }
 
   function handleDisableBiometric() {
-    removeBiometric();
+    if (user) removeBiometric(user.id);
     setBiometricEnabled(false);
     setBiometricMsg('');
   }
@@ -215,7 +215,7 @@ export default function ProfilePage() {
     if (!user) return;
     setIdSubmitting(true);
     await new Promise(r => setTimeout(r, 800));
-    setIdentityStatus('verified');
+    setIdentityStatus(user.id, 'verified');
     setIdStatus('verified');
     setIdSubmitting(false);
   }
