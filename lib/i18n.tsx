@@ -295,7 +295,7 @@ const translationsData: Record<Locale, Translations> = {
     'tab.home': 'Accueil',
     'tab.listings': 'Annonces',
     'tab.bookings': 'Réserv.',
-    'tab.calendar': 'Agenda',
+    'tab.calendar': 'Calendrier',
     'tab.messages': 'Messages',
     'tab.search': 'Recherche',
     'tab.menu': 'Menu',
