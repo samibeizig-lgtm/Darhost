@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { ArrowLeft, Settings } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote, getBookings, cancelExpiredBookings } from '@/lib/store';
+import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
 import { Property } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
 
@@ -84,11 +84,8 @@ function loadSettings(id: string, property: Property): PropertySettings {
 function toStr(d: Date) { return d.toISOString().slice(0, 10); }
 function addDays(d: Date, n: number) { const r = new Date(d); r.setDate(r.getDate() + n); return r; }
 
-function getRealReservations(propertyId: string): MockReservation[] {
-  cancelExpiredBookings();
-  return getBookings()
-    .filter(b => b.propertyId === propertyId && (b.status === 'confirmed' || b.status === 'pending'))
-    .map(b => ({ id: b.id, guestName: b.guestName, checkIn: b.checkIn, checkOut: b.checkOut, totalAmount: b.total }));
+function bookingsToReservations(bookings: { id: string; guestName: string; checkIn: string; checkOut: string; total: number }[]): MockReservation[] {
+  return bookings.map(b => ({ id: b.id, guestName: b.guestName, checkIn: b.checkIn, checkOut: b.checkOut, totalAmount: b.total }));
 }
 
 function formatDateFr(s: string) {
@@ -296,11 +293,14 @@ function PropertyCalendarInner() {
     const user = getUser();
     if (!user || user.role !== 'host') { router.push('/host/calendar'); return; }
     if (!id) { router.push('/host/calendar'); return; }
-    syncPropertiesFromRemote().then(props => {
+    cancelExpiredBookings();
+    Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
       const prop = props.find(p => p.id === id && p.host?.id === user.id);
       if (!prop) { router.push('/host/calendar'); return; }
       setProperty(prop);
-      setReservations(getRealReservations(id));
+      setReservations(bookingsToReservations(
+        allBookings.filter(b => b.propertyId === id && (b.status === 'confirmed' || b.status === 'paid'))
+      ));
       const cal = loadCal(id);
       setCalData(cal);
       setSettings(loadSettings(id, prop));

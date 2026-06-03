@@ -89,7 +89,7 @@ export default function HostDashboardPage() {
       setProperties(myProps);
       const myIds = new Set(myProps.map(p => p.id));
       const confirmed = allBookings
-        .filter(b => b.status === 'confirmed' && myIds.has(b.propertyId))
+        .filter(b => (b.status === 'confirmed' || b.status === 'paid') && myIds.has(b.propertyId))
         .map(bookingToReservation);
       setReservations(confirmed);
       setLoading(false);
