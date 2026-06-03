@@ -483,11 +483,27 @@ export async function syncConversationsFromRemote(userId: string): Promise<Conve
     const remote = Object.values(data)
       .filter(c => c.hostId === userId || c.guestId === userId)
       .map(normalizeConv);
+
+    const localMap = new Map(local.map(c => [c.id, c]));
+    const merged = remote.map(remoteConv => {
+      const localConv = localMap.get(remoteConv.id);
+      const localMsgCount = localConv?.messages.length ?? 0;
+      const newMsgs = remoteConv.messages.slice(localMsgCount);
+      // Count messages from the other party (not sent by current user)
+      const newUnread = newMsgs.filter(m => m.senderId !== userId).length;
+      return {
+        ...remoteConv,
+        // Preserve existing unread + new ones; reset only via markConversationRead
+        unread: (localConv?.unread ?? 0) + newUnread,
+      };
+    });
+    // Add local-only conversations not yet in Firebase
     const remoteIds = new Set(remote.map(c => c.id));
-    const merged = [...remote, ...local.filter(c => !remoteIds.has(c.id))];
-    merged.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-    saveConversations(merged);
-    return merged;
+    const localOnly = local.filter(c => !remoteIds.has(c.id));
+    const all = [...merged, ...localOnly];
+    all.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    saveConversations(all);
+    return all;
   } catch {
     return local;
   }
