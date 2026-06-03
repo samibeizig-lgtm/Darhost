@@ -4,8 +4,8 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Calendar, ChevronRight, Plus } from 'lucide-react';
-import { getUser, syncPropertiesFromRemote, getBookings, cancelExpiredBookings } from '@/lib/store';
-import { Property } from '@/lib/types';
+import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
+import { Booking, Property } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
 
 function toStr(d: Date) { return d.toISOString().slice(0, 10); }
@@ -29,6 +29,7 @@ export default function CalendarListPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
+  const [allBookings, setAllBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const today = new Date();
 
@@ -36,12 +37,15 @@ export default function CalendarListPage() {
     const user = getUser();
     if (!user) { router.push('/login?redirect=/host/calendar'); return; }
     if (user.role !== 'host') { router.push('/'); return; }
-    syncPropertiesFromRemote().then(props => { setProperties(props.filter(p => p.host?.id === user.id)); setLoading(false); });
+    cancelExpiredBookings();
+    Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, bookings]) => {
+      setProperties(props.filter(p => p.host?.id === user.id));
+      setAllBookings(bookings.filter(b => b.status === 'confirmed' || b.status === 'paid'));
+      setLoading(false);
+    });
   }, [router]);
 
   const active = properties.filter(p => p.available && !p.isDraft);
-  cancelExpiredBookings();
-  const allBookings = getBookings().filter(b => b.status === 'confirmed' || b.status === 'pending');
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
