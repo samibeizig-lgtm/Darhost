@@ -5,75 +5,34 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import {
   TrendingUp, Home, LogIn, LogOut, Clock, Users, ChevronRight, Plus,
+  X, Calendar, CheckCircle,
 } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, syncBookingsFromRemote, cancelExpiredBookings } from '@/lib/store';
 import { Property, Booking } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
 
-const MONTHS_FR = [
-  'jan', 'fév', 'mars', 'avr', 'mai', 'juin',
-  'juil', 'août', 'sep', 'oct', 'nov', 'déc',
-];
-const MONTH_NAMES_FR = [
-  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
-  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
-];
+const MONTHS_FR = ['jan','fév','mars','avr','mai','juin','juil','août','sep','oct','nov','déc'];
+const MONTH_NAMES_FR = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
 
-interface Reservation {
-  id: string;
-  propertyId: string;
-  propertyTitle: string;
-  propertyImage: string;
-  guestName: string;
-  guestAvatar: string;
-  checkIn: string;
-  checkOut: string;
-  nights: number;
-  guests: number;
-  totalAmount: number;
-  paymentPending?: boolean;
-}
+function toStr(d: Date) { return d.toISOString().slice(0, 10); }
+function fmtDate(s: string) { const [,m,d] = s.split('-').map(Number); return `${d} ${MONTHS_FR[m-1]}`; }
 
-function toStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
-}
-
-function addDays(d: Date, n: number): Date {
-  const r = new Date(d);
-  r.setDate(r.getDate() + n);
-  return r;
-}
-
-function formatDate(s: string): string {
-  const [, m, d] = s.split('-').map(Number);
-  return `${d} ${MONTHS_FR[m - 1]}`;
-}
-
-
-function bookingToReservation(b: Booking): Reservation {
-  return {
-    id: b.id,
-    propertyId: b.propertyId,
-    propertyTitle: b.propertyTitle,
-    propertyImage: b.propertyImage,
-    guestName: b.guestName,
-    guestAvatar: b.guestAvatar,
-    checkIn: b.checkIn,
-    checkOut: b.checkOut,
-    nights: b.nights,
-    guests: b.guests,
-    totalAmount: b.total,
-    paymentPending: b.status !== 'paid' && !!(b.paymentDeadline && b.paymentDeadline > Date.now()),
-  };
-}
+const STATUS_CFG: Record<string, { label: string; cls: string }> = {
+  pending:   { label: 'En attente',  cls: 'bg-orange-100 text-orange-700' },
+  confirmed: { label: 'Confirmée',   cls: 'bg-green-100 text-green-700' },
+  refused:   { label: 'Refusée',     cls: 'bg-red-100 text-red-600' },
+  cancelled: { label: 'Annulée',     cls: 'bg-gray-100 text-gray-500' },
+  paid:      { label: 'Payée',       cls: 'bg-blue-100 text-blue-700' },
+};
 
 export default function HostDashboardPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [properties, setProperties] = useState<Property[]>([]);
-  const [reservations, setReservations] = useState<Reservation[]>([]);
+  const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
   const [hostName, setHostName] = useState('');
+  const [selected, setSelected] = useState<Booking | null>(null);
 
   const todayStr = toStr(new Date());
   const today = new Date();
@@ -88,34 +47,29 @@ export default function HostDashboardPage() {
       const myProps = props.filter(p => p.host?.id === user.id);
       setProperties(myProps);
       const myIds = new Set(myProps.map(p => p.id));
-      const confirmed = allBookings
-        .filter(b => (b.status === 'confirmed' || b.status === 'paid') && myIds.has(b.propertyId))
-        .map(bookingToReservation);
-      setReservations(confirmed);
+      setBookings(allBookings.filter(b => (b.status === 'confirmed' || b.status === 'paid') && myIds.has(b.propertyId)));
       setLoading(false);
     });
   }, [router]);
 
   const activeListings = properties.filter(p => p.available && !p.isDraft).length;
-
-  const ongoing = reservations.filter(r => r.checkIn < todayStr && r.checkOut > todayStr);
-  const checkInToday = reservations.filter(r => r.checkIn === todayStr);
-  const checkOutToday = reservations.filter(r => r.checkOut === todayStr);
-  const upcoming = reservations
-    .filter(r => r.checkIn > todayStr)
-    .sort((a, b) => a.checkIn.localeCompare(b.checkIn));
-
+  const ongoing = bookings.filter(b => b.checkIn < todayStr && b.checkOut > todayStr);
+  const checkInToday = bookings.filter(b => b.checkIn === todayStr);
+  const checkOutToday = bookings.filter(b => b.checkOut === todayStr);
+  const upcoming = bookings.filter(b => b.checkIn > todayStr).sort((a, b) => a.checkIn.localeCompare(b.checkIn));
   const monthPrefix = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-  const monthRevenue = reservations
-    .filter(r => r.checkIn.startsWith(monthPrefix) || r.checkOut > monthPrefix + '-01')
-    .reduce((sum, r) => sum + r.totalAmount, 0);
-
-  const todayEvents = [...checkInToday.map(r => ({ ...r, type: 'in' as const })), ...checkOutToday.map(r => ({ ...r, type: 'out' as const }))];
+  const monthRevenue = bookings
+    .filter(b => b.checkIn.startsWith(monthPrefix) || b.checkOut > monthPrefix + '-01')
+    .reduce((sum, b) => sum + b.total, 0);
+  const todayEvents = [
+    ...checkInToday.map(b => ({ ...b, evType: 'in' as const })),
+    ...checkOutToday.map(b => ({ ...b, evType: 'out' as const })),
+  ];
 
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-8 space-y-4">
-        {[1, 2, 3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />)}
+        {[1,2,3].map(i => <div key={i} className="h-24 bg-gray-100 rounded-2xl animate-pulse" />)}
       </div>
     );
   }
@@ -135,7 +89,7 @@ export default function HostDashboardPage() {
             <span className="text-xs font-medium opacity-80">{t('host.this_month')}</span>
           </div>
           <div className="text-2xl font-extrabold">{monthRevenue.toLocaleString('fr-TN')} DT</div>
-          <div className="text-xs opacity-60 mt-0.5">{reservations.filter(r => r.checkIn.startsWith(monthPrefix)).length} {t('common.bookings_count')}</div>
+          <div className="text-xs opacity-60 mt-0.5">{bookings.filter(b => b.checkIn.startsWith(monthPrefix)).length} {t('common.bookings_count')}</div>
         </div>
         <div className="bg-white border border-gray-200 rounded-2xl p-4 shadow-sm">
           <div className="flex items-center gap-2 mb-2">
@@ -154,27 +108,27 @@ export default function HostDashboardPage() {
             {t('host.today')}
           </h2>
           <div className="space-y-2">
-            {todayEvents.map(r => (
-              <div key={r.id + r.type} className={`flex items-center gap-3 p-3.5 rounded-xl border ${
-                r.type === 'in'
-                  ? 'bg-green-50 border-green-200'
-                  : 'bg-orange-50 border-orange-200'
-              }`}>
-                {r.type === 'in'
-                  ? <LogIn size={18} className="text-green-600 shrink-0" />
-                  : <LogOut size={18} className="text-orange-500 shrink-0" />
+            {todayEvents.map(b => (
+              <button
+                key={b.id + b.evType}
+                onClick={() => setSelected(b)}
+                className={`w-full flex items-center gap-3 p-3.5 rounded-xl border text-left transition-opacity hover:opacity-80 ${
+                  b.evType === 'in' ? 'bg-green-50 border-green-200' : 'bg-orange-50 border-orange-200'
+                }`}
+              >
+                {b.evType === 'in' ? <LogIn size={18} className="text-green-600 shrink-0" /> : <LogOut size={18} className="text-orange-500 shrink-0" />}
+                {b.guestAvatar
+                  ? <img src={b.guestAvatar} alt={b.guestName} className="w-9 h-9 rounded-full object-cover shrink-0" />
+                  : <div className="w-9 h-9 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center font-bold shrink-0">{b.guestName.charAt(0)}</div>
                 }
-                <img src={r.guestAvatar} alt={r.guestName} className="w-9 h-9 rounded-full object-cover shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-gray-900 text-sm truncate">{r.guestName}</p>
-                  <p className="text-xs text-gray-500 truncate">{r.propertyTitle}</p>
+                  <p className="font-semibold text-gray-900 text-sm truncate">{b.guestName}</p>
+                  <p className="text-xs text-gray-500 truncate">{b.propertyTitle}</p>
                 </div>
                 <span className={`text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${
-                  r.type === 'in' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
-                }`}>
-                  {r.type === 'in' ? 'Check-in' : 'Check-out'}
-                </span>
-              </div>
+                  b.evType === 'in' ? 'bg-green-100 text-green-700' : 'bg-orange-100 text-orange-700'
+                }`}>{b.evType === 'in' ? 'Check-in' : 'Check-out'}</span>
+              </button>
             ))}
           </div>
         </section>
@@ -188,9 +142,7 @@ export default function HostDashboardPage() {
             <span className="ml-auto text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full">{ongoing.length}</span>
           </h2>
           <div className="space-y-2">
-            {ongoing.map(r => (
-              <ReservationCard key={r.id} r={r} />
-            ))}
+            {ongoing.map(b => <DashboardBookingCard key={b.id} b={b} onClick={() => setSelected(b)} />)}
           </div>
         </section>
       )}
@@ -203,9 +155,7 @@ export default function HostDashboardPage() {
             <span className="ml-auto text-xs font-semibold bg-[#E8F0FB] text-[#0F4C8A] px-2 py-0.5 rounded-full">{upcoming.length}</span>
           </h2>
           <div className="space-y-2">
-            {upcoming.map(r => (
-              <ReservationCard key={r.id} r={r} />
-            ))}
+            {upcoming.map(b => <DashboardBookingCard key={b.id} b={b} onClick={() => setSelected(b)} />)}
           </div>
         </section>
       )}
@@ -215,46 +165,140 @@ export default function HostDashboardPage() {
           <Home size={40} className="text-gray-300 mx-auto mb-3" />
           <p className="font-semibold text-gray-700 mb-1">{t('host.no_listings')}</p>
           <p className="text-sm text-gray-400 mb-5">{t('submit.identity_required')}</p>
-          <Link
-            href="/host/submit"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-full font-semibold text-sm hover:bg-[#0A3566] transition-colors"
-          >
-            <Plus size={15} />
-            {t('host.new_listing')}
+          <Link href="/host/submit" className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0F4C8A] text-white rounded-full font-semibold text-sm hover:bg-[#0A3566] transition-colors">
+            <Plus size={15} />{t('host.new_listing')}
           </Link>
         </div>
       )}
+
+      {selected && <BookingDetailModal booking={selected} onClose={() => setSelected(null)} />}
     </div>
   );
 }
 
-function ReservationCard({ r }: { r: Reservation }) {
+function DashboardBookingCard({ b, onClick }: { b: Booking; onClick: () => void }) {
+  const isPaid = b.status === 'paid';
+  const isPendingPayment = b.status === 'confirmed' && !!(b.paymentDeadline && b.paymentDeadline > Date.now());
   return (
-    <div className={`flex items-center gap-3 p-3.5 bg-white border rounded-xl shadow-sm ${
-      r.paymentPending ? 'border-amber-200 bg-amber-50/40' : 'border-gray-200'
-    }`}>
-      <img src={r.propertyImage} alt={r.propertyTitle} className="w-12 h-12 rounded-xl object-cover shrink-0" />
+    <button
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 p-3.5 bg-white border rounded-xl shadow-sm text-left transition-colors hover:border-[#0F4C8A]/40 ${
+        isPendingPayment ? 'border-amber-200 bg-amber-50/30' : 'border-gray-200'
+      }`}
+    >
+      <img src={b.propertyImage} alt={b.propertyTitle} className="w-12 h-12 rounded-xl object-cover shrink-0" />
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="font-semibold text-gray-900 text-sm truncate">{r.propertyTitle}</p>
-          {r.paymentPending && (
+        <div className="flex items-center gap-2 mb-0.5">
+          <p className="font-semibold text-gray-900 text-sm truncate">{b.propertyTitle}</p>
+          {isPaid && (
+            <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">Payée</span>
+          )}
+          {isPendingPayment && (
             <span className="shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 flex items-center gap-1">
-              <Clock size={9} /> Paiement en cours
+              <Clock size={9} />En attente
             </span>
           )}
         </div>
-        <div className="flex items-center gap-1.5 mt-0.5">
-          <img src={r.guestAvatar} alt={r.guestName} className="w-4 h-4 rounded-full object-cover" />
-          <p className="text-xs text-gray-500 truncate">{r.guestName} · {r.guests} voy.</p>
+        <div className="flex items-center gap-1.5">
+          {b.guestAvatar
+            ? <img src={b.guestAvatar} alt={b.guestName} className="w-4 h-4 rounded-full object-cover" />
+            : <div className="w-4 h-4 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center text-[8px] font-bold">{b.guestName.charAt(0)}</div>
+          }
+          <p className="text-xs text-gray-500 truncate">{b.guestName} · {b.guests} voy.</p>
         </div>
-        <p className="text-xs text-[#0F4C8A] font-medium mt-0.5">
-          {formatDate(r.checkIn)} → {formatDate(r.checkOut)}
-        </p>
+        <p className="text-xs text-[#0F4C8A] font-medium mt-0.5">{fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}</p>
       </div>
       <div className="text-right shrink-0">
-        <p className="font-bold text-gray-900 text-sm">{r.totalAmount} DT</p>
-        <p className="text-xs text-gray-400">{r.nights} nuit{r.nights > 1 ? 's' : ''}</p>
+        <p className="font-bold text-gray-900 text-sm">{b.total} DT</p>
+        <p className="text-xs text-gray-400">{b.nights} nuit{b.nights > 1 ? 's' : ''}</p>
       </div>
-    </div>
+    </button>
+  );
+}
+
+function BookingDetailModal({ booking: b, onClose }: { booking: Booking; onClose: () => void }) {
+  const createdAt = new Date(b.createdAt);
+  const createdStr = `${createdAt.getDate()} ${MONTHS_FR[createdAt.getMonth()]} à ${String(createdAt.getHours()).padStart(2,'0')}:${String(createdAt.getMinutes()).padStart(2,'0')}`;
+  const cfg = STATUS_CFG[b.status] ?? STATUS_CFG.cancelled;
+  const isPaid = b.status === 'paid';
+  const isConfirmedPending = b.status === 'confirmed' && !!(b.paymentDeadline && b.paymentDeadline > Date.now());
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <div>
+            <h2 className="font-bold text-gray-900">Détails de la réservation</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Reçue le {createdStr}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><X size={20} className="text-gray-400" /></button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4 pb-10">
+          <div className="flex gap-3">
+            <img src={b.propertyImage} alt={b.propertyTitle} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-gray-900">{b.propertyTitle}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{b.propertyLocation}</p>
+              <span className={`mt-1.5 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.cls}`}>{cfg.label}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+            {b.guestAvatar
+              ? <img src={b.guestAvatar} alt={b.guestName} className="w-10 h-10 rounded-full object-cover" />
+              : <div className="w-10 h-10 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center font-bold text-base">{b.guestName.charAt(0)}</div>
+            }
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">{b.guestName}</p>
+              <p className="text-xs text-gray-500">{b.guests} voyageur{b.guests > 1 ? 's' : ''}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+            <Calendar size={18} className="text-[#0F4C8A] shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}</p>
+              <p className="text-xs text-gray-500">{b.nights} nuit{b.nights > 1 ? 's' : ''}</p>
+            </div>
+          </div>
+
+          <div className="pt-3 border-t border-gray-100 space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>{b.pricePerNight} DT × {b.nights} nuit{b.nights > 1 ? 's' : ''}</span>
+              <span>{b.pricePerNight * b.nights} DT</span>
+            </div>
+            {b.cleaningFee > 0 && (
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Frais de ménage</span><span>{b.cleaningFee} DT</span>
+              </div>
+            )}
+            {b.serviceFee > 0 && (
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Frais de service</span><span>{b.serviceFee} DT</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-100">
+              <span>Total</span><span>{b.total} DT</span>
+            </div>
+          </div>
+
+          {isPaid && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+              <CheckCircle size={15} className="shrink-0" />Paiement reçu — séjour confirmé
+            </div>
+          )}
+          {isConfirmedPending && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-700">
+              <Clock size={15} className="shrink-0" />En attente de paiement du voyageur
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }

@@ -2,19 +2,16 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Calendar, CheckCircle, XCircle, Users, Clock, BookOpen } from 'lucide-react';
+import { Calendar, CheckCircle, XCircle, Users, Clock, BookOpen, X } from 'lucide-react';
 import {
   getUser, syncPropertiesFromRemote, syncBookingsFromRemote, updateBookingStatus, cancelExpiredBookings,
 } from '@/lib/store';
 import { Booking } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
 
-const MONTHS_FR = ['jan', 'fév', 'mars', 'avr', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov', 'déc'];
+const MONTHS_FR = ['jan','fév','mars','avr','mai','juin','juil','août','sep','oct','nov','déc'];
 
-function fmtDate(s: string) {
-  const [, m, d] = s.split('-').map(Number);
-  return `${d} ${MONTHS_FR[m - 1]}`;
-}
+function fmtDate(s: string) { const [,m,d] = s.split('-').map(Number); return `${d} ${MONTHS_FR[m-1]}`; }
 
 type Tab = 'all' | 'pending' | 'confirmed' | 'past';
 
@@ -28,20 +25,25 @@ const STATUS_CFG: Record<string, { label: string; cls: string }> = {
 
 function BookingCard({
   booking: b,
+  onSelect,
   onValidate,
   onRefuse,
 }: {
   booking: Booking;
+  onSelect: () => void;
   onValidate?: () => void;
   onRefuse?: () => void;
 }) {
   const { t } = useLanguage();
   const cfg = STATUS_CFG[b.status] ?? STATUS_CFG.cancelled;
   const createdAt = new Date(b.createdAt);
-  const createdStr = `${createdAt.getDate()} ${MONTHS_FR[createdAt.getMonth()]} à ${String(createdAt.getHours()).padStart(2, '0')}:${String(createdAt.getMinutes()).padStart(2, '0')}`;
+  const createdStr = `${createdAt.getDate()} ${MONTHS_FR[createdAt.getMonth()]} à ${String(createdAt.getHours()).padStart(2,'0')}:${String(createdAt.getMinutes()).padStart(2,'0')}`;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm">
+    <div
+      className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-sm cursor-pointer hover:border-[#0F4C8A]/40 transition-colors"
+      onClick={onSelect}
+    >
       <div className="flex gap-3 p-4">
         <img src={b.propertyImage} alt={b.propertyTitle} className="w-16 h-16 rounded-xl object-cover shrink-0" />
         <div className="flex-1 min-w-0">
@@ -51,11 +53,10 @@ function BookingCard({
           </div>
 
           <div className="flex items-center gap-1.5 mb-1.5">
-            {b.guestAvatar ? (
-              <img src={b.guestAvatar} alt={b.guestName} className="w-4 h-4 rounded-full object-cover" />
-            ) : (
-              <div className="w-4 h-4 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center text-[8px] font-bold">{b.guestName.charAt(0)}</div>
-            )}
+            {b.guestAvatar
+              ? <img src={b.guestAvatar} alt={b.guestName} className="w-4 h-4 rounded-full object-cover" />
+              : <div className="w-4 h-4 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center text-[8px] font-bold">{b.guestName.charAt(0)}</div>
+            }
             <span className="text-xs font-medium text-gray-700">{b.guestName}</span>
           </div>
 
@@ -75,9 +76,7 @@ function BookingCard({
         </div>
       </div>
 
-      <div className="px-4 pb-2 text-[10px] text-gray-400">
-        {t('host.received')} {createdStr}
-      </div>
+      <div className="px-4 pb-2 text-[10px] text-gray-400">{t('host.received')} {createdStr}</div>
 
       {b.status === 'confirmed' && b.paymentDeadline && (
         <div className="mx-4 mb-3 px-3 py-2 bg-amber-50 border border-amber-100 rounded-xl text-xs text-amber-700 flex items-center gap-2">
@@ -89,13 +88,13 @@ function BookingCard({
       {onValidate && onRefuse && (
         <div className="flex gap-2 px-4 pb-4">
           <button
-            onClick={onRefuse}
+            onClick={e => { e.stopPropagation(); onRefuse(); }}
             className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors flex items-center justify-center gap-1.5"
           >
             <XCircle size={15} className="text-red-500" /> {t('host.refuse')}
           </button>
           <button
-            onClick={onValidate}
+            onClick={e => { e.stopPropagation(); onValidate(); }}
             className="flex-1 py-2.5 bg-green-500 text-white rounded-xl text-sm font-bold hover:bg-green-600 transition-colors flex items-center justify-center gap-1.5"
           >
             <CheckCircle size={15} /> {t('host.validate')}
@@ -106,12 +105,134 @@ function BookingCard({
   );
 }
 
+function BookingDetailModal({
+  booking: b,
+  onClose,
+  onValidate,
+  onRefuse,
+}: {
+  booking: Booking;
+  onClose: () => void;
+  onValidate?: () => void;
+  onRefuse?: () => void;
+}) {
+  const { t } = useLanguage();
+  const createdAt = new Date(b.createdAt);
+  const createdStr = `${createdAt.getDate()} ${MONTHS_FR[createdAt.getMonth()]} à ${String(createdAt.getHours()).padStart(2,'0')}:${String(createdAt.getMinutes()).padStart(2,'0')}`;
+  const cfg = STATUS_CFG[b.status] ?? STATUS_CFG.cancelled;
+  const isPaid = b.status === 'paid';
+  const isConfirmedPending = b.status === 'confirmed' && !!(b.paymentDeadline && b.paymentDeadline > Date.now());
+
+  return (
+    <>
+      <div className="fixed inset-0 bg-black/50 z-50" onClick={onClose} />
+      <div className="fixed bottom-0 inset-x-0 z-50 bg-white rounded-t-2xl shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 bg-gray-300 rounded-full" />
+        </div>
+        <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+          <div>
+            <h2 className="font-bold text-gray-900">Détails de la réservation</h2>
+            <p className="text-xs text-gray-400 mt-0.5">Reçue le {createdStr}</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-full hover:bg-gray-100"><X size={20} className="text-gray-400" /></button>
+        </div>
+
+        <div className="px-5 py-4 space-y-4 pb-10">
+          {/* Property */}
+          <div className="flex gap-3">
+            <img src={b.propertyImage} alt={b.propertyTitle} className="w-20 h-20 rounded-xl object-cover shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-gray-900">{b.propertyTitle}</p>
+              <p className="text-xs text-gray-500 mt-0.5">{b.propertyLocation}</p>
+              <span className={`mt-1.5 inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.cls}`}>{cfg.label}</span>
+            </div>
+          </div>
+
+          {/* Guest */}
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+            {b.guestAvatar
+              ? <img src={b.guestAvatar} alt={b.guestName} className="w-10 h-10 rounded-full object-cover" />
+              : <div className="w-10 h-10 rounded-full bg-[#0F4C8A] text-white flex items-center justify-center font-bold text-base">{b.guestName.charAt(0)}</div>
+            }
+            <div>
+              <p className="font-semibold text-gray-900 text-sm">{b.guestName}</p>
+              <p className="text-xs text-gray-500">{b.guests} {b.guests > 1 ? t('common.guest_plural') : t('common.guest')}</p>
+            </div>
+          </div>
+
+          {/* Dates */}
+          <div className="flex items-center gap-3 pt-3 border-t border-gray-100">
+            <Calendar size={18} className="text-[#0F4C8A] shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{fmtDate(b.checkIn)} → {fmtDate(b.checkOut)}</p>
+              <p className="text-xs text-gray-500">{b.nights} {b.nights > 1 ? t('common.nights') : t('common.night')}</p>
+            </div>
+          </div>
+
+          {/* Price breakdown */}
+          <div className="pt-3 border-t border-gray-100 space-y-2">
+            <div className="flex justify-between text-sm text-gray-600">
+              <span>{b.pricePerNight} DT × {b.nights} nuit{b.nights > 1 ? 's' : ''}</span>
+              <span>{b.pricePerNight * b.nights} DT</span>
+            </div>
+            {b.cleaningFee > 0 && (
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Frais de ménage</span><span>{b.cleaningFee} DT</span>
+              </div>
+            )}
+            {b.serviceFee > 0 && (
+              <div className="flex justify-between text-sm text-gray-600">
+                <span>Frais de service</span><span>{b.serviceFee} DT</span>
+              </div>
+            )}
+            <div className="flex justify-between font-bold text-gray-900 pt-2 border-t border-gray-100">
+              <span>Total</span><span>{b.total} DT</span>
+            </div>
+          </div>
+
+          {/* Payment status */}
+          {isPaid && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
+              <CheckCircle size={15} className="shrink-0" />Paiement reçu — séjour confirmé
+            </div>
+          )}
+          {isConfirmedPending && (
+            <div className="flex items-center gap-2 px-3 py-2.5 bg-amber-50 border border-amber-100 rounded-xl text-sm text-amber-700">
+              <Clock size={15} className="shrink-0" />En attente de paiement du voyageur
+            </div>
+          )}
+
+          {/* Actions for pending */}
+          {b.status === 'pending' && onValidate && onRefuse && (
+            <div className="flex gap-2 pt-2">
+              <button
+                onClick={() => { onRefuse(); onClose(); }}
+                className="flex-1 py-3 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 flex items-center justify-center gap-1.5"
+              >
+                <XCircle size={15} className="text-red-500" /> {t('host.refuse')}
+              </button>
+              <button
+                onClick={() => { onValidate(); onClose(); }}
+                className="flex-1 py-3 bg-green-500 text-white rounded-xl text-sm font-bold hover:bg-green-600 flex items-center justify-center gap-1.5"
+              >
+                <CheckCircle size={15} /> {t('host.validate')}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
 export default function HostReservationsPage() {
   const router = useRouter();
   const { t } = useLanguage();
   const [tab, setTab] = useState<Tab>('all');
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<Booking | null>(null);
 
   useEffect(() => {
     const user = getUser();
@@ -119,9 +240,7 @@ export default function HostReservationsPage() {
     cancelExpiredBookings();
     Promise.all([syncPropertiesFromRemote(), syncBookingsFromRemote()]).then(([props, allBookings]) => {
       const myIds = new Set(props.filter(p => p.host?.id === user.id).map(p => p.id));
-      const sorted = allBookings
-        .filter(b => myIds.has(b.propertyId))
-        .sort((a, b) => b.createdAt - a.createdAt);
+      const sorted = allBookings.filter(b => myIds.has(b.propertyId)).sort((a, b) => b.createdAt - a.createdAt);
       setBookings(sorted);
       setLoading(false);
     });
@@ -130,19 +249,15 @@ export default function HostReservationsPage() {
   function handleValidate(id: string) {
     const now = Date.now();
     updateBookingStatus(id, 'confirmed', { paymentDeadline: now + 6 * 3600000 });
-    setBookings(prev => prev.map(b => b.id === id
-      ? { ...b, status: 'confirmed' as const, paymentDeadline: now + 6 * 3600000, respondedAt: now }
-      : b
-    ));
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'confirmed' as const, paymentDeadline: now + 6 * 3600000, respondedAt: now } : b));
+    setSelected(prev => prev?.id === id ? { ...prev, status: 'confirmed', paymentDeadline: now + 6 * 3600000, respondedAt: now } : prev);
   }
 
   function handleRefuse(id: string) {
     const now = Date.now();
     updateBookingStatus(id, 'refused');
-    setBookings(prev => prev.map(b => b.id === id
-      ? { ...b, status: 'refused' as const, respondedAt: now }
-      : b
-    ));
+    setBookings(prev => prev.map(b => b.id === id ? { ...b, status: 'refused' as const, respondedAt: now } : b));
+    setSelected(prev => prev?.id === id ? { ...prev, status: 'refused', respondedAt: now } : prev);
   }
 
   const today = new Date().toISOString().slice(0, 10);
@@ -209,9 +324,7 @@ export default function HostReservationsPage() {
           <p className="font-semibold text-gray-600 mb-1">
             {tab === 'all' ? 'Aucune réservation' : t(`host.no_bookings_${tab === 'past' ? 'past' : tab}`)}
           </p>
-          {tab === 'pending' && (
-            <p className="text-sm text-gray-400 mt-1">{t('host.new_requests')}</p>
-          )}
+          {tab === 'pending' && <p className="text-sm text-gray-400 mt-1">{t('host.new_requests')}</p>}
         </div>
       ) : (
         <div className="space-y-3">
@@ -219,11 +332,21 @@ export default function HostReservationsPage() {
             <BookingCard
               key={b.id}
               booking={b}
+              onSelect={() => setSelected(b)}
               onValidate={b.status === 'pending' ? () => handleValidate(b.id) : undefined}
               onRefuse={b.status === 'pending' ? () => handleRefuse(b.id) : undefined}
             />
           ))}
         </div>
+      )}
+
+      {selected && (
+        <BookingDetailModal
+          booking={selected}
+          onClose={() => setSelected(null)}
+          onValidate={selected.status === 'pending' ? () => handleValidate(selected.id) : undefined}
+          onRefuse={selected.status === 'pending' ? () => handleRefuse(selected.id) : undefined}
+        />
       )}
     </div>
   );
