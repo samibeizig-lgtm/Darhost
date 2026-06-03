@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   LayoutDashboard, Building2, Home, Calendar, MessageSquare, Menu, Search,
-  BookOpen, User, LogOut, ArrowLeftRight, X,
+  BookOpen, User, LogOut, ArrowLeftRight, X, Info, ChevronDown, ChevronUp,
+  FileText, Shield, Mail, HelpCircle,
 } from 'lucide-react';
 import { getUser, clearUser, setUser as persistUser, StoredUser } from '@/lib/store';
 
@@ -26,6 +27,7 @@ const GUEST_TABS = [
 export default function MobileTabBar() {
   const [user, setUserState] = useState<StoredUser | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
 
@@ -139,6 +141,44 @@ export default function MobileTabBar() {
                   Passer en mode {user.role === 'host' ? 'Voyageur' : 'Hôte'}
                 </span>
               </button>
+              {/* À propos */}
+              <button
+                onClick={() => setAboutOpen(o => !o)}
+                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+              >
+                <Info size={20} className="text-[#0F4C8A] shrink-0" />
+                <span className="font-medium flex-1 text-left">À propos</span>
+                {aboutOpen ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
+              </button>
+
+              {aboutOpen && (
+                <div className="ml-10 space-y-0.5">
+                  <Link href="/conditions" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <FileText size={16} className="text-gray-400 shrink-0" />
+                    Conditions d&apos;utilisation
+                  </Link>
+                  <Link href="/confidentialite" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <Shield size={16} className="text-gray-400 shrink-0" />
+                    Politique de confidentialité
+                  </Link>
+                  <Link href="mailto:support@hostn.tn" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <Mail size={16} className="text-gray-400 shrink-0" />
+                    Contact · support@hostn.tn
+                  </Link>
+                  <Link href="#" onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
+                    <HelpCircle size={16} className="text-gray-400 shrink-0" />
+                    Aide
+                  </Link>
+                  <p className="px-4 py-2 text-xs text-gray-400">© 2025 Hostn · +216 70 000 000</p>
+                </div>
+              )}
+
+              <div className="h-px bg-gray-100 mx-2 my-1" />
+
               <button
                 onClick={handleLogout}
                 className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors w-full"

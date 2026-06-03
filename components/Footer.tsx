@@ -92,28 +92,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* ── Mobile footer (< md) ── */}
-      <div className="md:hidden px-4 py-6 pb-20">
-        <div className="flex items-center gap-2 mb-5">
-          <DoorLogo />
-          <span className="text-lg font-bold text-white">Hostn</span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm mb-6">
-          <Link href="/properties" className="hover:text-white transition-colors">{t('nav.explore')}</Link>
-          <Link href="/host/submit" className="hover:text-white transition-colors">{t('footer.become_host')}</Link>
-          <Link href="/conditions" className="hover:text-white transition-colors">{t('footer.terms')}</Link>
-          <Link href="/confidentialite" className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
-          <Link href="mailto:support@hostn.tn" className="hover:text-white transition-colors">{t('footer.contact')}</Link>
-          <Link href="#" className="hover:text-white transition-colors">{t('footer.help')}</Link>
-        </div>
-
-        <div className="border-t border-gray-800 pt-4">
-          <p className="text-xs text-gray-500 text-center">{t('footer.copyright')}</p>
-          <p className="text-xs text-gray-600 text-center mt-1">support@hostn.tn · +216 70 000 000</p>
-        </div>
-      </div>
-
     </footer>
   );
 }
