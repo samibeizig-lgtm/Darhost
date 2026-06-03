@@ -1,0 +1,43 @@
+{
+  "packageId": "tn.hostn.app",
+  "host": "darhost.pages.dev",
+  "name": "Hostn",
+  "launcherName": "Hostn",
+  "display": "standalone",
+  "themeColor": "#0F4C8A",
+  "navigationColor": "#0F4C8A",
+  "navigationColorDark": "#0A3566",
+  "navigationDividerColor": "#0F4C8A",
+  "navigationDividerColorDark": "#0A3566",
+  "backgroundColor": "#ffffff",
+  "enableNotifications": false,
+  "startUrl": "/",
+  "iconUrl": "https://darhost.pages.dev/icon-512.png",
+  "maskableIconUrl": "https://darhost.pages.dev/icon-512.png",
+  "monochromeIconUrl": "https://darhost.pages.dev/icon-512.png",
+  "appVersion": "1",
+  "appVersionCode": 1,
+  "signingKey": {
+    "path": "./hostn.keystore",
+    "alias": "hostn"
+  },
+  "splashScreenFadeOutDuration": 300,
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+  "fullScopeUrl": "https://darhost.pages.dev/",
+  "minSdkVersion": 21,
+  "orientation": "default",
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "https://darhost.pages.dev/manifest.json",
+  "fallbackType": "customtabs",
+  "features": {},
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "enableSideNavigation": false,
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "serviceAccountJsonFile": ""
+}

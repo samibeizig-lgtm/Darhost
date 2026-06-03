@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "tn.hostn.app",
+      "sha256_cert_fingerprints": [
+        "46:B4:45:AA:41:99:8A:65:22:87:DE:7E:BE:F9:47:21:4A:13:B1:72:A2:E8:33:79:52:F8:62:56:F4:7A:D7:E5"
+      ]
+    }
+  }
+]
