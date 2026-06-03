@@ -17,11 +17,11 @@ const TYPE_COLORS: Record<ServiceType, string> = {
   autre: 'bg-gray-100 text-gray-600',
 };
 
-export default function ServiceDetail() {
+export default function ServiceDetail({ id: idProp }: { id?: string }) {
   const { t } = useLanguage();
   const router = useRouter();
   const params = useParams();
-  const id = params?.id as string;
+  const id = idProp ?? (params?.id as string);
 
   const [service, setService] = useState<Service | null>(null);
   const [loading, setLoading] = useState(true);

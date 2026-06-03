@@ -1,1 +1,2 @@
 /properties/user-* /properties/fallback 200
+/services/svc-* /services/fallback 200
