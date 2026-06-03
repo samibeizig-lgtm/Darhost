@@ -1,10 +1,10 @@
-import { Property, Booking, Conversation, ChatMessage } from './types';
+import { Property, Booking, Conversation, ChatMessage, Service, ServiceBooking } from './types';
 
 export interface StoredUser {
   id: string;
   name: string;
   email: string;
-  role: 'guest' | 'host';
+  role: 'guest' | 'host' | 'prestataire';
   avatar: string;
 }
 
@@ -100,7 +100,7 @@ export interface StoredAccount {
   id: string;
   name: string;
   email: string;
-  role: 'guest' | 'host';
+  role: 'guest' | 'host' | 'prestataire';
   avatar: string;
   password: string;
 }
@@ -185,6 +185,101 @@ export function getUserListings(userId: string): Property[] {
 }
 
 const firebaseUrl = (process.env.NEXT_PUBLIC_FIREBASE_DB_URL ?? '').trim().replace(/\/$/, '');
+
+// ── Services ──────────────────────────────────────────────────────────────────
+
+export function getServices(): Service[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('darhost_services');
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+export function getUserServices(userId: string): Service[] {
+  return getServices().filter(s => s.providerId === userId);
+}
+
+export function addService(service: Service): void {
+  const existing = getServices();
+  localStorage.setItem('darhost_services', JSON.stringify([service, ...existing]));
+  if (firebaseUrl) {
+    fetch(`${firebaseUrl}/services/${service.id}.json`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(service),
+    }).catch(() => {});
+  }
+}
+
+export async function syncServicesFromRemote(): Promise<Service[]> {
+  const local = getServices();
+  if (!firebaseUrl) return local;
+  try {
+    const res = await fetch(`${firebaseUrl}/services.json`);
+    if (!res.ok) return local;
+    const data: Record<string, Service> | null = await res.json();
+    const remote = data ? Object.values(data) : [];
+    const remoteIds = new Set(remote.map(s => s.id));
+    const merged = [...remote, ...local.filter(s => !remoteIds.has(s.id))];
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('darhost_services', JSON.stringify(merged));
+    }
+    return merged;
+  } catch { return local; }
+}
+
+// ── Service Bookings ───────────────────────────────────────────────────────────
+
+export function getServiceBookings(): ServiceBooking[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('darhost_service_bookings');
+    return raw ? JSON.parse(raw) : [];
+  } catch { return []; }
+}
+
+export function saveServiceBooking(booking: ServiceBooking): void {
+  if (typeof window === 'undefined') return;
+  const all = getServiceBookings();
+  const idx = all.findIndex(b => b.id === booking.id);
+  const next = idx === -1 ? [booking, ...all] : all.map((b, i) => i === idx ? booking : b);
+  localStorage.setItem('darhost_service_bookings', JSON.stringify(next));
+  if (firebaseUrl) {
+    fetch(`${firebaseUrl}/service_bookings/${booking.id}.json`, {
+      method: 'PUT', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(booking),
+    }).catch(() => {});
+  }
+}
+
+export function updateServiceBookingStatus(id: string, status: ServiceBooking['status']): void {
+  if (typeof window === 'undefined') return;
+  const all = getServiceBookings();
+  const idx = all.findIndex(b => b.id === id);
+  if (idx === -1) return;
+  const updated: ServiceBooking = { ...all[idx], status };
+  saveServiceBooking(updated);
+}
+
+export async function syncServiceBookingsFromRemote(userId: string): Promise<ServiceBooking[]> {
+  const local = getServiceBookings();
+  if (!firebaseUrl) return local.filter(b => b.guestId === userId || b.providerId === userId);
+  try {
+    const res = await fetch(`${firebaseUrl}/service_bookings.json`);
+    if (!res.ok) return local;
+    const data: Record<string, ServiceBooking> | null = await res.json();
+    if (!data) return local;
+    const remote = Object.values(data);
+    const remoteIds = new Set(remote.map(b => b.id));
+    const merged = [...remote, ...local.filter(b => !remoteIds.has(b.id))];
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('darhost_service_bookings', JSON.stringify(merged));
+    }
+    return merged.filter(b => b.guestId === userId || b.providerId === userId);
+  } catch {
+    return local.filter(b => b.guestId === userId || b.providerId === userId);
+  }
+}
 const imgbbKey = (process.env.NEXT_PUBLIC_IMGBB_API_KEY ?? '').trim();
 
 export async function uploadImage(base64: string): Promise<string> {

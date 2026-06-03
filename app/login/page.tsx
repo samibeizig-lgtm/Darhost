@@ -29,7 +29,7 @@ export default function LoginPage() {
     syncAccountsFromRemote().then((n) => { setRemoteCount(n); setSyncStatus('ok'); });
   }, []);
 
-  function loginUser(account: { id: string; name: string; email: string; role: 'host' | 'guest'; avatar: string }) {
+  function loginUser(account: { id: string; name: string; email: string; role: 'host' | 'guest' | 'prestataire'; avatar: string }) {
     setUser({ id: account.id, name: account.name, email: account.email, role: account.role, avatar: account.avatar });
     window.location.href = redirect;
   }

@@ -111,3 +111,60 @@ export interface Conversation {
   messages: ChatMessage[];
   createdAt: number;
 }
+
+export type ServiceType = 'transfert' | 'voiture' | 'guide' | 'activite' | 'autre';
+
+export interface Service {
+  id: string;
+  type: ServiceType;
+  title: string;
+  description: string;
+  images: string[];
+  price: number;
+  priceUnit: 'trajet' | 'jour' | 'heure' | 'personne' | 'forfait';
+  location: string;
+  wilaya: string;
+  providerId: string;
+  providerName: string;
+  providerAvatar: string;
+  rating: number;
+  reviewCount: number;
+  available: boolean;
+  maxPersons?: number;
+  languages?: string[];
+  vehicleType?: string;
+  includes?: string[];
+  createdAt: number;
+}
+
+export type ServiceBookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled';
+
+export interface ServiceBooking {
+  id: string;
+  serviceId: string;
+  serviceTitle: string;
+  serviceType: ServiceType;
+  serviceImage: string;
+  serviceLocation: string;
+  providerId: string;
+  providerName: string;
+  providerAvatar: string;
+  guestId: string;
+  guestName: string;
+  guestAvatar: string;
+  date: string;
+  time?: string;
+  endDate?: string;
+  persons: number;
+  pickupLocation?: string;
+  dropoffLocation?: string;
+  flightNumber?: string;
+  vehicleType?: string;
+  language?: string;
+  duration?: string;
+  interests?: string;
+  notes?: string;
+  total: number;
+  status: ServiceBookingStatus;
+  createdAt: number;
+}
