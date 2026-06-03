@@ -106,6 +106,7 @@ export interface Conversation {
   propertyImage?: string;
   lastMessage: string;
   lastTime: string;
+  lastMessageAt?: number;
   unread: number;
   messages: ChatMessage[];
   createdAt: number;

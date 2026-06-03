@@ -459,6 +459,7 @@ export function addMessageToConversation(convId: string, msg: ChatMessage): Conv
     messages: [...(conv.messages ?? []), msg],
     lastMessage: msg.content,
     lastTime: msg.timestamp,
+    lastMessageAt: Date.now(),
   };
   return upsertConversation(updated);
 }
@@ -501,7 +502,7 @@ export async function syncConversationsFromRemote(userId: string): Promise<Conve
     const remoteIds = new Set(remote.map(c => c.id));
     const localOnly = local.filter(c => !remoteIds.has(c.id));
     const all = [...merged, ...localOnly];
-    all.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
+    all.sort((a, b) => (b.lastMessageAt ?? b.createdAt ?? 0) - (a.lastMessageAt ?? a.createdAt ?? 0));
     saveConversations(all);
     return all;
   } catch {

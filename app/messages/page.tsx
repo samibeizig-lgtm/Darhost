@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, Suspense } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { Send, Search, ArrowLeft, MessageSquare } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
 import { Conversation } from '@/lib/types';
@@ -13,12 +13,10 @@ import {
   syncConversationsFromRemote,
 } from '@/lib/store';
 
-// Avatar with letter fallback when image URL is empty/broken
 function UserAvatar({ src, name, size = 'md' }: { src?: string; name: string; size?: 'sm' | 'md' | 'lg' }) {
   const [broken, setBroken] = useState(false);
   const sizeClass = size === 'sm' ? 'w-8 h-8 text-xs' : size === 'lg' ? 'w-12 h-12 text-base' : 'w-10 h-10 text-sm';
   const initial = (name || '?').charAt(0).toUpperCase();
-
   if (!src || broken) {
     return (
       <div className={`${sizeClass} rounded-full bg-[#0F4C8A] flex items-center justify-center shrink-0 font-bold text-white`}>
@@ -27,12 +25,7 @@ function UserAvatar({ src, name, size = 'md' }: { src?: string; name: string; si
     );
   }
   return (
-    <img
-      src={src}
-      alt={name}
-      className={`${sizeClass} rounded-full object-cover shrink-0`}
-      onError={() => setBroken(true)}
-    />
+    <img src={src} alt={name} className={`${sizeClass} rounded-full object-cover shrink-0`} onError={() => setBroken(true)} />
   );
 }
 
@@ -46,27 +39,38 @@ function MessagesInner() {
   const [activeId, setActiveId] = useState<string | null>(null);
   const [input, setInput] = useState('');
   const [search, setSearch] = useState('');
-  const bottomRef = useRef<HTMLDivElement>(null);
+
+  // Ref on the messages container — scroll within it, never the page
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Load conversations on mount — filter by userId only (not role)
+  const scrollToBottom = useCallback(() => {
+    const el = messagesContainerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, []);
+
+  // Load + sync on mount
   useEffect(() => {
     if (!currentUser) return;
-
     const local = getConversations().filter(
       c => c.hostId === currentUser.id || c.guestId === currentUser.id
     );
+    // Sort: most recent activity first
+    local.sort((a, b) => (b.lastMessageAt ?? b.createdAt ?? 0) - (a.lastMessageAt ?? a.createdAt ?? 0));
     setConvs(local);
 
-    if (convIdParam) {
-      const found = local.find(c => c.id === convIdParam);
-      if (found) { markConversationRead(convIdParam); setActiveId(convIdParam); }
+    const openId = convIdParam ?? local[0]?.id ?? null;
+    if (openId) {
+      markConversationRead(openId);
+      setActiveId(openId);
     }
 
-    // Sync from Firebase
     syncConversationsFromRemote(currentUser.id).then((synced) => {
       setConvs(synced);
-      if (convIdParam) {
+      if (!convIdParam && !activeId && synced.length > 0) {
+        markConversationRead(synced[0].id);
+        setActiveId(synced[0].id);
+      } else if (convIdParam) {
         const found = synced.find(c => c.id === convIdParam);
         if (found) { markConversationRead(convIdParam); setActiveId(convIdParam); }
       }
@@ -74,7 +78,7 @@ function MessagesInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Poll for new messages every 6s when conversation is open
+  // Poll every 6s when a conversation is open
   useEffect(() => {
     if (!activeId || !currentUser) return;
     pollRef.current = setInterval(() => {
@@ -83,20 +87,14 @@ function MessagesInner() {
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [activeId, currentUser]);
 
-  // Scroll to bottom on new messages
+  // Scroll to bottom inside the chat container (NOT the page) when messages update
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeId, convs]);
+    scrollToBottom();
+  }, [activeId, convs, scrollToBottom]);
 
-  // Returns the OTHER person's info from the current user's perspective
-  // Works regardless of current role (mode hôte or mode voyageur)
   function participantOf(c: Conversation): { name: string; avatar: string } {
     if (!currentUser) return { name: '', avatar: '' };
-    // If current user is the host of this conversation → show guest info
-    if (c.hostId === currentUser.id) {
-      return { name: c.guestName || '', avatar: c.guestAvatar || '' };
-    }
-    // Current user is the guest → show host info
+    if (c.hostId === currentUser.id) return { name: c.guestName || '', avatar: c.guestAvatar || '' };
     return { name: c.hostName || '', avatar: c.hostAvatar || '' };
   }
 
@@ -130,6 +128,8 @@ function MessagesInner() {
     const updated = addMessageToConversation(activeId, msg);
     if (updated) setConvs(prev => prev.map(c => c.id === activeId ? updated : c));
     setInput('');
+    // Scroll after state update
+    setTimeout(scrollToBottom, 50);
   }
 
   const totalUnread = convs.reduce((sum, c) => sum + (c.unread ?? 0), 0);
@@ -148,9 +148,7 @@ function MessagesInner() {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">{t('messages.title')}</h1>
         {totalUnread > 0 && (
-          <p className="text-sm text-[#0F4C8A] font-medium">
-            {totalUnread} non lu{totalUnread > 1 ? 's' : ''}
-          </p>
+          <p className="text-sm text-[#0F4C8A] font-medium">{totalUnread} non lu{totalUnread > 1 ? 's' : ''}</p>
         )}
       </div>
 
@@ -218,8 +216,7 @@ function MessagesInner() {
           {/* ── Chat panel ── */}
           {active && activeParticipant ? (
             <div className="flex-1 flex flex-col bg-gray-50 min-w-0">
-              {/* Header */}
-              <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3">
+              <div className="bg-white border-b border-gray-200 p-4 flex items-center gap-3 shrink-0">
                 <button onClick={() => setActiveId(null)} className="md:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-full">
                   <ArrowLeft size={20} />
                 </button>
@@ -232,8 +229,8 @@ function MessagesInner() {
                 </div>
               </div>
 
-              {/* Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* Messages — scroll INSIDE this div only */}
+              <div ref={messagesContainerRef} className="flex-1 overflow-y-auto p-4 space-y-4">
                 {(active.messages ?? []).length === 0 && (
                   <div className="text-center text-gray-400 text-sm py-8">
                     {t('messages.no_messages_sub')}
@@ -261,11 +258,9 @@ function MessagesInner() {
                     </div>
                   );
                 })}
-                <div ref={bottomRef} />
               </div>
 
-              {/* Input */}
-              <div className="bg-white border-t border-gray-200 p-4">
+              <div className="bg-white border-t border-gray-200 p-4 shrink-0">
                 <div className="flex items-center gap-3">
                   <input
                     value={input}
