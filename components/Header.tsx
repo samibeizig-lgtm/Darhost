@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu, X, MessageSquare, User, Home, Search,
-  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight, Building2, MapPin,
+  LogOut, ChevronDown, Calendar, BookOpen, Plus, ArrowLeftRight, Building2, MapPin, Package,
 } from 'lucide-react';
-import { getUser, clearUser, setUser as persistUser, StoredUser, getUserListings } from '@/lib/store';
+import { getUser, clearUser, setUser as persistUser, StoredUser, getUserListings, getUserServices } from '@/lib/store';
 import { localitesTunisie } from '@/lib/data';
 import { useLanguage, Locale } from '@/lib/i18n';
 
@@ -39,6 +39,7 @@ export default function Header() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [langDropdownOpen, setLangDropdownOpen] = useState(false);
   const [hasListings, setHasListings] = useState(false);
+  const [hasServices, setHasServices] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -58,6 +59,14 @@ export default function Header() {
   const guestLinks = [
     { href: '/reservations', label: t('nav.reservations'), icon: BookOpen },
     { href: '/properties', label: t('nav.explore'), icon: Search },
+    { href: '/services', label: t('nav.explore_services'), icon: Package },
+    { href: '/messages', label: t('nav.messages'), icon: MessageSquare },
+  ];
+
+  const prestataireLinks = [
+    { href: '/prestataire/dashboard', label: t('nav.home'), icon: Home },
+    { href: '/prestataire/services', label: t('prestataire.my_services'), icon: Package },
+    { href: '/prestataire/reservations', label: t('nav.reservations'), icon: BookOpen },
     { href: '/messages', label: t('nav.messages'), icon: MessageSquare },
   ];
 
@@ -68,7 +77,10 @@ export default function Header() {
   useEffect(() => {
     const u = getUser();
     setUser(u);
-    if (u) setHasListings(getUserListings(u.id).length > 0);
+    if (u) {
+      setHasListings(getUserListings(u.id).length > 0);
+      setHasServices(getUserServices(u.id).length > 0);
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -121,18 +133,18 @@ export default function Header() {
     router.push('/');
   }
 
-  function handleSwitchRole() {
+  function switchTo(role: 'guest' | 'host' | 'prestataire') {
     if (!user) return;
-    const updated = { ...user, role: user.role === 'host' ? 'guest' as const : 'host' as const };
+    const updated = { ...user, role };
     persistUser(updated);
     setUser(updated);
     setDropdownOpen(false);
     setMenuOpen(false);
-    router.push('/');
+    router.push(role === 'host' ? '/host/dashboard' : role === 'prestataire' ? '/prestataire/dashboard' : '/properties');
   }
 
   const navLinks = user
-    ? user.role === 'host' ? hostLinks : guestLinks
+    ? user.role === 'host' ? hostLinks : user.role === 'prestataire' ? prestataireLinks : guestLinks
     : publicLinks;
 
   function navClass(href: string) {
@@ -269,7 +281,7 @@ export default function Header() {
                   <div className="hidden xl:flex flex-col items-start leading-none">
                     <span className="text-xs font-semibold text-white max-w-[100px] truncate">{user.name.split(' ')[0]}</span>
                     <span className="text-[10px] font-medium mt-0.5 text-white/70">
-                      {user.role === 'host' ? t('nav.role_host') : t('nav.role_guest')}
+                      {user.role === 'host' ? t('nav.role_host') : user.role === 'prestataire' ? t('nav.role_prestataire') : t('nav.role_guest')}
                     </span>
                   </div>
                   <ChevronDown size={14} className="text-white/70 shrink-0" />
@@ -281,9 +293,9 @@ export default function Header() {
                       <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
                       <span className={`inline-block mt-1 text-[10px] font-semibold px-2 py-0.5 rounded-full ${
-                        user.role === 'host' ? 'bg-[#E8F0FB] text-[#0F4C8A]' : 'bg-gray-100 text-gray-500'
+                        user.role === 'host' ? 'bg-[#E8F0FB] text-[#0F4C8A]' : user.role === 'prestataire' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-500'
                       }`}>
-                        {user.role === 'host' ? t('nav.role_host') : t('nav.role_guest')}
+                        {user.role === 'host' ? t('nav.role_host') : user.role === 'prestataire' ? t('nav.role_prestataire') : t('nav.role_guest')}
                       </span>
                     </div>
                     <Link href="/profile" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
@@ -295,19 +307,58 @@ export default function Header() {
                       </Link>
                     )}
                     {user.role === 'host' ? (
-                      <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
-                        <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
-                        {t('nav.switch_guest')}
-                      </button>
-                    ) : hasListings ? (
-                      <button onClick={handleSwitchRole} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
-                        <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
-                        {t('nav.switch_host')}
-                      </button>
+                      <>
+                        <button onClick={() => switchTo('guest')} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                          <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
+                          {t('nav.switch_guest')}
+                        </button>
+                        {hasServices ? (
+                          <button onClick={() => switchTo('prestataire')} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                            <Package size={15} className="text-[#0F4C8A]" />
+                            {t('nav.switch_prestataire')}
+                          </button>
+                        ) : (
+                          <Link href="/prestataire/submit" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                            <Plus size={15} className="text-[#0F4C8A]" /> {t('nav.propose_service')}
+                          </Link>
+                        )}
+                      </>
+                    ) : user.role === 'prestataire' ? (
+                      <>
+                        <button onClick={() => switchTo('guest')} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                          <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
+                          {t('nav.switch_guest')}
+                        </button>
+                        {hasListings && (
+                          <button onClick={() => switchTo('host')} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                            <Building2 size={15} className="text-[#0F4C8A]" />
+                            {t('nav.switch_host')}
+                          </button>
+                        )}
+                      </>
                     ) : (
-                      <Link href="/host/submit" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
-                        <Plus size={15} className="text-[#0F4C8A]" /> {t('nav.publish_listing')}
-                      </Link>
+                      <>
+                        {hasListings ? (
+                          <button onClick={() => switchTo('host')} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                            <ArrowLeftRight size={15} className="text-[#0F4C8A]" />
+                            {t('nav.switch_host')}
+                          </button>
+                        ) : (
+                          <Link href="/host/submit" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                            <Plus size={15} className="text-[#0F4C8A]" /> {t('nav.publish_listing')}
+                          </Link>
+                        )}
+                        {hasServices ? (
+                          <button onClick={() => switchTo('prestataire')} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 w-full transition-colors">
+                            <Package size={15} className="text-[#0F4C8A]" />
+                            {t('nav.switch_prestataire')}
+                          </button>
+                        ) : (
+                          <Link href="/prestataire/submit" onClick={() => setDropdownOpen(false)} className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 text-sm text-gray-700 transition-colors">
+                            <Plus size={15} className="text-[#0F4C8A]" /> {t('nav.propose_service')}
+                          </Link>
+                        )}
+                      </>
                     )}
                     <button onClick={handleLogout} className="flex items-center gap-3 px-4 py-3 hover:bg-red-50 text-sm text-red-600 w-full border-t border-gray-100 transition-colors">
                       <LogOut size={15} /> {t('nav.logout')}
