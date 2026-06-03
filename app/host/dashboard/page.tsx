@@ -63,7 +63,7 @@ function bookingToReservation(b: Booking): Reservation {
     nights: b.nights,
     guests: b.guests,
     totalAmount: b.total,
-    paymentPending: !!(b.paymentDeadline && b.paymentDeadline > Date.now()),
+    paymentPending: b.status !== 'paid' && !!(b.paymentDeadline && b.paymentDeadline > Date.now()),
   };
 }
 
