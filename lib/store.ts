@@ -1,4 +1,4 @@
-import { Property, Booking } from './types';
+import { Property, Booking, Conversation, ChatMessage } from './types';
 
 export interface StoredUser {
   id: string;
@@ -402,6 +402,88 @@ export async function syncBookingsFromRemote(): Promise<Booking[]> {
   } catch {
     return local;
   }
+}
+
+// ── Conversations / Messages ──────────────────────────────────────────────────
+
+export function getConversations(): Conversation[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem('darhost_conversations') ?? '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveConversations(convs: Conversation[]) {
+  if (typeof window === 'undefined') return;
+  localStorage.setItem('darhost_conversations', JSON.stringify(convs));
+}
+
+export function upsertConversation(conv: Conversation): Conversation {
+  const convs = getConversations();
+  const idx = convs.findIndex(c => c.id === conv.id);
+  // When creating/opening a conversation that already exists, preserve its messages
+  const merged: Conversation = idx >= 0
+    ? { ...convs[idx], ...conv, messages: conv.messages.length > 0 ? conv.messages : convs[idx].messages }
+    : conv;
+  const updated = idx >= 0 ? [...convs.slice(0, idx), merged, ...convs.slice(idx + 1)] : [merged, ...convs];
+  saveConversations(updated);
+  if (firebaseUrl) {
+    fetch(`${firebaseUrl}/conversations/${conv.id}.json`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(conv),
+    }).catch(() => {});
+  }
+  return conv;
+}
+
+export function addMessageToConversation(convId: string, msg: ChatMessage): Conversation | null {
+  const convs = getConversations();
+  const conv = convs.find(c => c.id === convId);
+  if (!conv) return null;
+  const updated: Conversation = {
+    ...conv,
+    messages: [...conv.messages, msg],
+    lastMessage: msg.content,
+    lastTime: msg.timestamp,
+  };
+  return upsertConversation(updated);
+}
+
+export function markConversationRead(convId: string) {
+  const convs = getConversations();
+  const conv = convs.find(c => c.id === convId);
+  if (!conv || conv.unread === 0) return;
+  upsertConversation({ ...conv, unread: 0 });
+}
+
+export async function syncConversationsFromRemote(userId: string): Promise<Conversation[]> {
+  const local = getConversations().filter(
+    c => c.hostId === userId || c.guestId === userId
+  );
+  if (!firebaseUrl) return local;
+  try {
+    const res = await fetch(`${firebaseUrl}/conversations.json`);
+    if (!res.ok) return local;
+    const data: Record<string, Conversation> | null = await res.json();
+    if (!data) return local;
+    const remote = Object.values(data).filter(
+      c => c.hostId === userId || c.guestId === userId
+    );
+    const remoteIds = new Set(remote.map(c => c.id));
+    const merged = [...remote, ...local.filter(c => !remoteIds.has(c.id))];
+    merged.sort((a, b) => b.createdAt - a.createdAt);
+    saveConversations(merged);
+    return merged;
+  } catch {
+    return local;
+  }
+}
+
+export function makeConvId(guestId: string, hostId: string, propertyId: string) {
+  return `conv_${guestId}_${hostId}_${propertyId}`;
 }
 
 export function generateShareLink(property: Property): string {

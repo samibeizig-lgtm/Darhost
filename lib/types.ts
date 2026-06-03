@@ -94,12 +94,19 @@ export interface ChatMessage {
 
 export interface Conversation {
   id: string;
-  participantName: string;
-  participantAvatar: string;
+  hostId: string;
+  guestId: string;
+  hostName: string;
+  hostAvatar: string;
+  guestName: string;
+  guestAvatar: string;
+  // participantName/Avatar: kept for backwards compat, computed per viewer in UI
+  propertyId?: string;
   propertyTitle?: string;
   propertyImage?: string;
   lastMessage: string;
   lastTime: string;
   unread: number;
   messages: ChatMessage[];
+  createdAt: number;
 }
