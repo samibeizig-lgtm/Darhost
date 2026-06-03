@@ -7,6 +7,7 @@ import { Plus, Star, Eye, Share2, Check, Pencil, Trash2 } from 'lucide-react';
 import { getUser, syncPropertiesFromRemote, generateShareLink, deleteProperty } from '@/lib/store';
 import { Property } from '@/lib/types';
 import { useLanguage } from '@/lib/i18n';
+import ConfirmModal from '@/components/ConfirmModal';
 
 export default function HostListingsPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function HostListingsPage() {
   const [loading, setLoading] = useState(true);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmProp, setConfirmProp] = useState<Property | null>(null);
 
   useEffect(() => {
     const user = getUser();
@@ -26,11 +28,17 @@ export default function HostListingsPage() {
     });
   }, [router]);
 
-  async function handleDelete(property: Property) {
-    if (!confirm(`Supprimer "${property.title}" ? Cette action est irréversible.`)) return;
-    setDeletingId(property.id);
-    await deleteProperty(property.id);
-    setProperties(prev => prev.filter(p => p.id !== property.id));
+  async function confirmDelete(property: Property) {
+    setConfirmProp(property);
+  }
+
+  async function handleDelete() {
+    if (!confirmProp) return;
+    const id = confirmProp.id;
+    setConfirmProp(null);
+    setDeletingId(id);
+    await deleteProperty(id);
+    setProperties(prev => prev.filter(p => p.id !== id));
     setDeletingId(null);
   }
 
@@ -43,6 +51,15 @@ export default function HostListingsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-24 md:pb-8">
+      {confirmProp && (
+        <ConfirmModal
+          message={`Supprimer "${confirmProp.title}" ? Cette action est irréversible.`}
+          confirmLabel="Supprimer"
+          danger
+          onConfirm={handleDelete}
+          onCancel={() => setConfirmProp(null)}
+        />
+      )}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{t('host.active_listings')}</h1>
@@ -140,7 +157,7 @@ export default function HostListingsPage() {
                 </button>
                 <div className="w-px bg-gray-100" />
                 <button
-                  onClick={() => handleDelete(property)}
+                  onClick={() => confirmDelete(property)}
                   disabled={deletingId === property.id}
                   className="flex-1 flex items-center justify-center gap-1.5 py-3 text-sm font-medium text-red-500 hover:bg-red-50 disabled:opacity-50 transition-colors"
                 >
