@@ -137,7 +137,7 @@ export interface Service {
   createdAt: number;
 }
 
-export type ServiceBookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled';
+export type ServiceBookingStatus = 'pending' | 'confirmed' | 'refused' | 'cancelled' | 'paid';
 
 export interface ServiceBooking {
   id: string;

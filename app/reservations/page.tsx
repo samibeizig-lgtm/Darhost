@@ -45,9 +45,11 @@ function ServiceBookingCard({ b }: { b: ServiceBooking }) {
   const colorCls = SERVICE_TYPE_COLORS[b.serviceType];
   const statusCls = b.status === 'pending' ? 'bg-orange-100 text-orange-700'
     : b.status === 'confirmed' ? 'bg-green-100 text-green-700'
+    : b.status === 'paid' ? 'bg-blue-100 text-blue-700'
     : 'bg-gray-100 text-gray-500';
   const statusLabel = b.status === 'pending' ? 'En attente'
     : b.status === 'confirmed' ? 'Confirmée'
+    : b.status === 'paid' ? 'Payée'
     : b.status === 'refused' ? 'Refusée'
     : 'Annulée';
 
@@ -83,6 +85,21 @@ function ServiceBookingCard({ b }: { b: ServiceBooking }) {
           </div>
         </div>
       </div>
+      {b.status === 'confirmed' && (
+        <div className="mx-3.5 mb-3 px-3 py-2.5 bg-amber-50 border border-amber-200 rounded-xl">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-1.5 text-xs text-amber-800 font-semibold">
+              <Clock size={13} /> Paiement requis
+            </div>
+            <Link
+              href={`/payment?id=${b.id}`}
+              className="text-xs bg-[#0F4C8A] text-white px-3 py-1.5 rounded-lg font-bold hover:bg-[#0A3566] transition-colors"
+            >
+              Procéder au paiement
+            </Link>
+          </div>
+        </div>
+      )}
       <div className="flex items-center justify-between px-3.5 py-2.5 border-t border-gray-100 bg-gray-50">
         <Link href={`/services/${b.serviceId}`} className="text-xs text-[#0F4C8A] font-medium hover:underline">
           Voir le service
