@@ -233,12 +233,12 @@ function MessagesInner() {
               </div>
 
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {active.messages.length === 0 && (
+                {(active.messages ?? []).length === 0 && (
                   <div className="text-center text-gray-400 text-sm py-8">
                     {t('messages.no_messages_sub')}
                   </div>
                 )}
-                {active.messages.map((msg) => (
+                {(active.messages ?? []).map((msg) => (
                   <div
                     key={msg.id}
                     className={`flex ${msg.senderId === currentUser.id ? 'justify-end' : 'justify-start'}`}

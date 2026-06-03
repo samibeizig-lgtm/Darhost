@@ -406,10 +406,15 @@ export async function syncBookingsFromRemote(): Promise<Booking[]> {
 
 // ── Conversations / Messages ──────────────────────────────────────────────────
 
+function normalizeConv(c: Conversation): Conversation {
+  return { ...c, messages: Array.isArray(c.messages) ? c.messages : [], unread: c.unread ?? 0 };
+}
+
 export function getConversations(): Conversation[] {
   if (typeof window === 'undefined') return [];
   try {
-    return JSON.parse(localStorage.getItem('darhost_conversations') ?? '[]');
+    const raw: Conversation[] = JSON.parse(localStorage.getItem('darhost_conversations') ?? '[]');
+    return raw.map(normalizeConv);
   } catch {
     return [];
   }
@@ -421,22 +426,28 @@ function saveConversations(convs: Conversation[]) {
 }
 
 export function upsertConversation(conv: Conversation): Conversation {
+  const safe = normalizeConv(conv);
   const convs = getConversations();
-  const idx = convs.findIndex(c => c.id === conv.id);
-  // When creating/opening a conversation that already exists, preserve its messages
-  const merged: Conversation = idx >= 0
-    ? { ...convs[idx], ...conv, messages: conv.messages.length > 0 ? conv.messages : convs[idx].messages }
-    : conv;
-  const updated = idx >= 0 ? [...convs.slice(0, idx), merged, ...convs.slice(idx + 1)] : [merged, ...convs];
+  const idx = convs.findIndex(c => c.id === safe.id);
+  const existing = idx >= 0 ? convs[idx] : null;
+  // Preserve existing messages when opening a conversation that already has history
+  const merged: Conversation = existing
+    ? { ...existing, ...safe, messages: safe.messages.length > 0 ? safe.messages : existing.messages }
+    : safe;
+  const updated = existing
+    ? [...convs.slice(0, idx), merged, ...convs.slice(idx + 1)]
+    : [merged, ...convs];
   saveConversations(updated);
   if (firebaseUrl) {
-    fetch(`${firebaseUrl}/conversations/${conv.id}.json`, {
+    // Store messages as an object (Firebase strips empty arrays) for reliability
+    const toStore = { ...merged, messages: merged.messages.length > 0 ? merged.messages : null };
+    fetch(`${firebaseUrl}/conversations/${merged.id}.json`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(conv),
+      body: JSON.stringify(toStore),
     }).catch(() => {});
   }
-  return conv;
+  return merged;
 }
 
 export function addMessageToConversation(convId: string, msg: ChatMessage): Conversation | null {
@@ -445,7 +456,7 @@ export function addMessageToConversation(convId: string, msg: ChatMessage): Conv
   if (!conv) return null;
   const updated: Conversation = {
     ...conv,
-    messages: [...conv.messages, msg],
+    messages: [...(conv.messages ?? []), msg],
     lastMessage: msg.content,
     lastTime: msg.timestamp,
   };
@@ -469,12 +480,12 @@ export async function syncConversationsFromRemote(userId: string): Promise<Conve
     if (!res.ok) return local;
     const data: Record<string, Conversation> | null = await res.json();
     if (!data) return local;
-    const remote = Object.values(data).filter(
-      c => c.hostId === userId || c.guestId === userId
-    );
+    const remote = Object.values(data)
+      .filter(c => c.hostId === userId || c.guestId === userId)
+      .map(normalizeConv);
     const remoteIds = new Set(remote.map(c => c.id));
     const merged = [...remote, ...local.filter(c => !remoteIds.has(c.id))];
-    merged.sort((a, b) => b.createdAt - a.createdAt);
+    merged.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
     saveConversations(merged);
     return merged;
   } catch {
