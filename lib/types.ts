@@ -134,6 +134,17 @@ export interface Service {
   languages?: string[];
   vehicleType?: string;
   includes?: string[];
+  // Car rental specific
+  carCategory?: 'compacte' | 'berline' | 'suv' | '4x4' | 'van' | 'luxe' | 'cabriolet' | 'autre';
+  transmission?: 'manuelle' | 'automatique';
+  fuelType?: 'essence' | 'diesel' | 'electrique' | 'hybride';
+  doors?: number;
+  withDriver?: boolean;
+  mileageLimit?: string;
+  insuranceIncluded?: boolean;
+  deposit?: number;
+  minAge?: number;
+  deliveryAvailable?: boolean;
   createdAt: number;
 }
 
@@ -160,6 +171,8 @@ export interface ServiceBooking {
   dropoffLocation?: string;
   flightNumber?: string;
   vehicleType?: string;
+  carCategory?: string;
+  withDriver?: boolean;
   language?: string;
   duration?: string;
   interests?: string;
