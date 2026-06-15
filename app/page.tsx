@@ -149,19 +149,19 @@ export default function Home() {
             style={{ opacity: i === heroIndex ? 1 : 0 }}
           />
         ))}
-        <div className="absolute inset-0 bg-black/35 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-b from-[#051C44]/40 via-black/25 to-[#051C44]/70 pointer-events-none" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-28">
           <div className="text-center mb-10">
-            <p className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-sm rounded-full px-4 py-1.5 text-sm font-medium mb-5">
-              {t('home.badge')}
+            <p className="inline-flex items-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 rounded-full px-4 py-1.5 text-sm font-medium mb-5 shadow-inner-white">
+              ✦ {t('home.badge')}
             </p>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-4">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight tracking-tight mb-4 drop-shadow-lg">
               {t('home.title')}
               <br />
-              <span className="text-[#F5E6C8]">{t('home.title2')}</span>
+              <span className="text-[#F5E6C8] drop-shadow-md">{t('home.title2')}</span>
             </h1>
-            <p className="text-lg sm:text-xl text-blue-100 max-w-2xl mx-auto">
+            <p className="text-lg sm:text-xl text-white/80 max-w-2xl mx-auto drop-shadow">
               {t('home.subtitle')}
             </p>
           </div>
@@ -327,10 +327,10 @@ export default function Home() {
               <button
                 key={cat.value}
                 onClick={() => handleCategoryClick(cat.value)}
-                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-full shrink-0 transition-all text-xs font-medium border ${
+                className={`flex flex-col items-center justify-center gap-1 px-4 py-2 rounded-full shrink-0 transition-all duration-200 text-xs font-medium border ${
                   activeCategory === cat.value
-                    ? 'bg-[#0F4C8A] text-white border-[#0F4C8A]'
-                    : 'bg-white text-gray-600 border-gray-200 hover:border-gray-400'
+                    ? 'bg-gradient-to-r from-[#0F4C8A] to-[#1B6FBF] text-white border-[#0F4C8A] shadow-brand'
+                    : 'bg-white text-gray-600 border-gray-200 hover:border-[#0F4C8A]/40 hover:shadow-sm hover:-translate-y-0.5'
                 }`}
               >
                 <cat.Icon
@@ -355,16 +355,16 @@ export default function Home() {
             </div>
             <div className="flex gap-3 overflow-x-auto px-4 scrollbar-hide">
               {section.properties.slice(0, 8).map((p) => (
-                <Link href={`/properties/${p.id}`} key={p.id} className="w-36 shrink-0 pb-1">
-                  <div className="w-36 h-36 rounded-2xl overflow-hidden bg-gray-100 mb-2">
+                <Link href={`/properties/${p.id}`} key={p.id} className="w-36 shrink-0 pb-1 group">
+                  <div className="w-36 h-36 rounded-2xl overflow-hidden bg-gray-100 mb-2 transition-all duration-300 group-hover:shadow-brand-lg group-hover:-translate-y-0.5">
                     <img
                       src={p.images?.[0]}
                       alt={p.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
                   </div>
                   <p className="text-xs font-semibold text-gray-800 truncate leading-tight">{p.title}</p>
-                  <p className="text-xs font-bold text-[#0F4C8A] mt-0.5">
+                  <p className="text-xs font-extrabold text-[#0F4C8A] mt-0.5">
                     {p.price} DT<span className="text-gray-400 font-normal">{t('common.per_night')}</span>
                   </p>
                 </Link>
@@ -397,11 +397,11 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {stats.map(({ icon: Icon, value, label }) => (
-              <div key={label} className="text-center">
-                <div className="w-12 h-12 bg-[#0F4C8A] rounded-2xl flex items-center justify-center mx-auto mb-3">
-                  <Icon size={22} className="text-white" />
+              <div key={label} className="text-center group cursor-default">
+                <div className="w-14 h-14 bg-gradient-to-br from-[#0F4C8A] to-[#1B6FBF] rounded-2xl flex items-center justify-center mx-auto mb-3 transition-all duration-300 group-hover:-translate-y-1.5 group-hover:shadow-brand-lg">
+                  <Icon size={24} className="text-white" />
                 </div>
-                <div className="text-2xl font-extrabold text-[#0F4C8A]">{value}</div>
+                <div className="text-2xl font-extrabold text-gradient">{value}</div>
                 <div className="text-gray-600 text-sm mt-0.5">{label}</div>
               </div>
             ))}
@@ -444,7 +444,7 @@ export default function Home() {
 
       <section className="bg-gradient-to-r from-[#0F4C8A] to-[#1B6FBF] text-white py-16">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="w-20 h-20 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="w-20 h-20 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 animate-float border border-white/20">
             <HomeIcon size={36} className="text-white" />
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold mb-4">
@@ -457,13 +457,13 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
               href="/host/submit"
-              className="px-8 py-4 bg-white text-[#0F4C8A] font-bold rounded-full hover:bg-gray-100 transition-colors text-lg"
+              className="px-8 py-4 bg-white text-[#0F4C8A] font-bold rounded-full hover:bg-white/95 transition-all text-lg btn-shine hover:-translate-y-0.5 hover:shadow-xl"
             >
               Publier mon logement
             </Link>
             <Link
               href="#"
-              className="px-8 py-4 border-2 border-white/60 text-white font-semibold rounded-full hover:border-white transition-colors text-lg"
+              className="px-8 py-4 border-2 border-white/50 text-white font-semibold rounded-full hover:border-white hover:bg-white/10 backdrop-blur-sm transition-all text-lg"
             >
               En savoir plus
             </Link>

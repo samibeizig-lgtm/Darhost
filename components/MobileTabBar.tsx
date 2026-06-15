@@ -77,7 +77,8 @@ export default function MobileTabBar() {
 
   return (
     <>
-      <div className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-200 z-50 safe-area-pb">
+      {/* Glass tab bar */}
+      <div className="md:hidden fixed bottom-0 inset-x-0 z-50 glass-white shadow-tab safe-area-pb">
         <div className="flex items-stretch h-16">
           {tabs.map((tab) => {
             const active = isActive(tab.href);
@@ -85,25 +86,33 @@ export default function MobileTabBar() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className={`relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-                  active ? 'text-[#0F4C8A]' : 'text-gray-400 hover:text-gray-600'
-                }`}
+                className="relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-all duration-200"
               >
-                <tab.icon size={22} strokeWidth={active ? 2.5 : 1.8} />
-                <span className="text-[10px] font-semibold">{tab.label}</span>
-                {active && <span className="absolute bottom-0 w-8 h-0.5 bg-[#0F4C8A] rounded-full" />}
+                {/* Active pill background */}
+                {active && (
+                  <span className="absolute inset-x-1.5 inset-y-1.5 bg-[#E8F0FB] rounded-2xl animate-fade-in-up" />
+                )}
+                <tab.icon
+                  size={active ? 22 : 21}
+                  strokeWidth={active ? 2.5 : 1.8}
+                  className={`relative z-10 transition-all duration-200 ${active ? 'text-[#0F4C8A]' : 'text-gray-400'}`}
+                />
+                <span className={`text-[10px] font-semibold relative z-10 transition-colors duration-200 ${active ? 'text-[#0F4C8A]' : 'text-gray-400'}`}>
+                  {tab.label}
+                </span>
               </Link>
             );
           })}
 
           <button
             onClick={() => setMenuOpen(true)}
-            className={`flex-1 flex flex-col items-center justify-center gap-0.5 transition-colors ${
-              menuOpen ? 'text-[#0F4C8A]' : 'text-gray-400 hover:text-gray-600'
-            }`}
+            className="relative flex-1 flex flex-col items-center justify-center gap-0.5 transition-all duration-200"
           >
-            <Menu size={22} strokeWidth={1.8} />
-            <span className="text-[10px] font-semibold">{t('tab.menu')}</span>
+            {menuOpen && (
+              <span className="absolute inset-x-1.5 inset-y-1.5 bg-[#E8F0FB] rounded-2xl" />
+            )}
+            <Menu size={21} strokeWidth={1.8} className={`relative z-10 ${menuOpen ? 'text-[#0F4C8A]' : 'text-gray-400'}`} />
+            <span className={`text-[10px] font-semibold relative z-10 ${menuOpen ? 'text-[#0F4C8A]' : 'text-gray-400'}`}>{t('tab.menu')}</span>
           </button>
         </div>
       </div>
@@ -111,20 +120,22 @@ export default function MobileTabBar() {
       {menuOpen && (
         <div className="md:hidden">
           <div
-            className="fixed inset-0 bg-black/40 z-50 transition-opacity"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50 transition-opacity"
             onClick={() => setMenuOpen(false)}
           />
-          <div className="fixed bottom-0 inset-x-0 bg-white rounded-t-2xl z-50 shadow-2xl overflow-hidden">
+          <div className="fixed bottom-0 inset-x-0 glass-white rounded-t-3xl z-50 shadow-2xl overflow-hidden animate-slide-down">
+            {/* Handle */}
             <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 bg-gray-300 rounded-full" />
+              <div className="w-10 h-1 bg-gray-200 rounded-full" />
             </div>
 
-            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100">
+            {/* User header */}
+            <div className="flex items-center justify-between px-5 py-3 border-b border-gray-100/80">
               <div className="flex items-center gap-3">
                 {user.avatar ? (
                   <img src={user.avatar} alt={user.name} className="w-11 h-11 rounded-full object-cover ring-2 ring-[#E8F0FB]" />
                 ) : (
-                  <div className="w-11 h-11 rounded-full bg-[#0F4C8A] flex items-center justify-center ring-2 ring-[#E8F0FB] text-white font-bold text-lg">
+                  <div className="w-11 h-11 rounded-full bg-gradient-to-br from-[#0F4C8A] to-[#1B6FBF] flex items-center justify-center ring-2 ring-[#E8F0FB] text-white font-bold text-lg shadow-brand">
                     {user.name.charAt(0).toUpperCase()}
                   </div>
                 )}
@@ -142,58 +153,54 @@ export default function MobileTabBar() {
               </button>
             </div>
 
-            <div className="px-3 py-3 space-y-1">
+            <div className="px-3 py-3 space-y-0.5">
               <Link
                 href="/profile"
                 onClick={() => setMenuOpen(false)}
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
               >
-                <User size={20} className="text-[#0F4C8A] shrink-0" />
+                <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                  <User size={16} className="text-[#0F4C8A]" />
+                </div>
                 <span className="font-medium">{t('nav.profile')}</span>
               </Link>
               {user.role === 'host' ? (
                 <>
-                  <button
-                    onClick={() => switchTo('guest')}
-                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-                  >
-                    <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                  <button onClick={() => switchTo('guest')} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                      <ArrowLeftRight size={16} className="text-[#0F4C8A]" />
+                    </div>
                     <span className="font-medium">{t('nav.switch_guest')}</span>
                   </button>
                   {hasServices ? (
-                    <button
-                      onClick={() => switchTo('prestataire')}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-                    >
-                      <Package size={20} className="text-[#0F4C8A] shrink-0" />
+                    <button onClick={() => switchTo('prestataire')} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full">
+                      <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                        <Package size={16} className="text-purple-600" />
+                      </div>
                       <span className="font-medium">{t('nav.switch_prestataire')}</span>
                     </button>
                   ) : (
-                    <Link
-                      href="/prestataire/submit"
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                    >
-                      <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                    <Link href="/prestataire/submit" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                      <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                        <Plus size={16} className="text-[#0F4C8A]" />
+                      </div>
                       <span className="font-medium">{t('nav.propose_service')}</span>
                     </Link>
                   )}
                 </>
               ) : user.role === 'prestataire' ? (
                 <>
-                  <button
-                    onClick={() => switchTo('guest')}
-                    className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-                  >
-                    <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                  <button onClick={() => switchTo('guest')} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full">
+                    <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                      <ArrowLeftRight size={16} className="text-[#0F4C8A]" />
+                    </div>
                     <span className="font-medium">{t('nav.switch_guest')}</span>
                   </button>
                   {hasListings && (
-                    <button
-                      onClick={() => switchTo('host')}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-                    >
-                      <Building2 size={20} className="text-[#0F4C8A] shrink-0" />
+                    <button onClick={() => switchTo('host')} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full">
+                      <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                        <Building2 size={16} className="text-[#0F4C8A]" />
+                      </div>
                       <span className="font-medium">{t('nav.switch_host')}</span>
                     </button>
                   )}
@@ -201,38 +208,32 @@ export default function MobileTabBar() {
               ) : (
                 <>
                   {hasListings ? (
-                    <button
-                      onClick={() => switchTo('host')}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-                    >
-                      <ArrowLeftRight size={20} className="text-[#0F4C8A] shrink-0" />
+                    <button onClick={() => switchTo('host')} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full">
+                      <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                        <ArrowLeftRight size={16} className="text-[#0F4C8A]" />
+                      </div>
                       <span className="font-medium">{t('nav.switch_host')}</span>
                     </button>
                   ) : (
-                    <Link
-                      href="/host/submit"
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                    >
-                      <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                    <Link href="/host/submit" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                      <div className="w-8 h-8 rounded-xl bg-[#E8F0FB] flex items-center justify-center shrink-0">
+                        <Plus size={16} className="text-[#0F4C8A]" />
+                      </div>
                       <span className="font-medium">{t('nav.publish_listing')}</span>
                     </Link>
                   )}
                   {hasServices ? (
-                    <button
-                      onClick={() => switchTo('prestataire')}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
-                    >
-                      <Package size={20} className="text-[#0F4C8A] shrink-0" />
+                    <button onClick={() => switchTo('prestataire')} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full">
+                      <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                        <Package size={16} className="text-purple-600" />
+                      </div>
                       <span className="font-medium">{t('nav.switch_prestataire')}</span>
                     </button>
                   ) : (
-                    <Link
-                      href="/prestataire/submit"
-                      onClick={() => setMenuOpen(false)}
-                      className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-                    >
-                      <Plus size={20} className="text-[#0F4C8A] shrink-0" />
+                    <Link href="/prestataire/submit" onClick={() => setMenuOpen(false)} className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors">
+                      <div className="w-8 h-8 rounded-xl bg-purple-100 flex items-center justify-center shrink-0">
+                        <Plus size={16} className="text-purple-600" />
+                      </div>
                       <span className="font-medium">{t('nav.propose_service')}</span>
                     </Link>
                   )}
@@ -241,33 +242,35 @@ export default function MobileTabBar() {
 
               <button
                 onClick={() => setAboutOpen(o => !o)}
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-gray-800 hover:bg-gray-50 active:bg-gray-100 transition-colors w-full"
               >
-                <Info size={20} className="text-[#0F4C8A] shrink-0" />
+                <div className="w-8 h-8 rounded-xl bg-gray-100 flex items-center justify-center shrink-0">
+                  <Info size={16} className="text-gray-500" />
+                </div>
                 <span className="font-medium flex-1 text-left">{t('menu.about')}</span>
                 {aboutOpen ? <ChevronUp size={16} className="text-gray-400" /> : <ChevronDown size={16} className="text-gray-400" />}
               </button>
 
               {aboutOpen && (
-                <div className="ml-10 space-y-0.5">
+                <div className="ml-11 space-y-0.5 animate-fade-in-up">
                   <Link href="/conditions" onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                    <FileText size={16} className="text-gray-400 shrink-0" />
+                    <FileText size={15} className="text-gray-400 shrink-0" />
                     {t('footer.terms')}
                   </Link>
                   <Link href="/confidentialite" onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                    <Shield size={16} className="text-gray-400 shrink-0" />
+                    <Shield size={15} className="text-gray-400 shrink-0" />
                     {t('footer.privacy')}
                   </Link>
                   <Link href="mailto:support@hostn.tn" onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                    <Mail size={16} className="text-gray-400 shrink-0" />
+                    <Mail size={15} className="text-gray-400 shrink-0" />
                     {t('footer.contact')} · support@hostn.tn
                   </Link>
                   <Link href="#" onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-gray-600 hover:bg-gray-50 text-sm transition-colors">
-                    <HelpCircle size={16} className="text-gray-400 shrink-0" />
+                    <HelpCircle size={15} className="text-gray-400 shrink-0" />
                     {t('footer.help')}
                   </Link>
                   <p className="px-4 py-2 text-xs text-gray-400">© 2025 Hostn · +216 70 000 000</p>
@@ -278,9 +281,11 @@ export default function MobileTabBar() {
 
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-4 px-4 py-3.5 rounded-xl text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors w-full"
+                className="flex items-center gap-4 px-4 py-3 rounded-xl text-red-600 hover:bg-red-50 active:bg-red-100 transition-colors w-full"
               >
-                <LogOut size={20} className="shrink-0" />
+                <div className="w-8 h-8 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
+                  <LogOut size={16} className="text-red-500" />
+                </div>
                 <span className="font-medium">{t('nav.logout')}</span>
               </button>
             </div>

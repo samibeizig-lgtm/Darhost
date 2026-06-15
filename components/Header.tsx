@@ -42,6 +42,7 @@ export default function Header() {
   const [hasServices, setHasServices] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const langDropdownRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLFormElement>(null);
@@ -73,6 +74,12 @@ export default function Header() {
   const publicLinks = [
     { href: '/properties', label: t('nav.listings'), icon: Search },
   ];
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
 
   useEffect(() => {
     const u = getUser();
@@ -164,14 +171,17 @@ export default function Header() {
   const currentLang = LANG_OPTIONS.find(l => l.locale === locale) ?? LANG_OPTIONS[0];
 
   return (
-    <header className="sticky top-0 z-50 shadow-md" style={{ background: TEAL }}>
+    <header
+      className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'shadow-2xl' : 'shadow-md'}`}
+      style={{ background: TEAL }}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-4">
           <HostnLogo />
 
           <form
             onSubmit={handleSearch}
-            className="hidden lg:flex items-center gap-3 rounded-full px-4 py-2 flex-1 max-w-md transition-shadow relative"
+            className="hidden lg:flex items-center gap-3 rounded-full px-4 py-2 flex-1 max-w-md transition-all duration-300 relative focus-within:shadow-glow"
             style={{ background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.35)' }}
             ref={searchRef}
           >
@@ -246,7 +256,7 @@ export default function Header() {
                 <ChevronDown size={11} className="text-white/70" />
               </button>
               {langDropdownOpen && (
-                <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-xl w-32 z-50 overflow-hidden">
+                <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-2xl w-32 z-50 overflow-hidden animate-slide-down origin-top">
                   {LANG_OPTIONS.map((opt) => (
                     <button
                       key={opt.locale}
@@ -288,7 +298,7 @@ export default function Header() {
                 </button>
 
                 {dropdownOpen && (
-                  <div className="absolute right-0 top-12 bg-white border border-gray-200 rounded-2xl shadow-xl w-56 z-50 overflow-hidden">
+                  <div className="absolute right-0 top-12 bg-white border border-gray-100 rounded-2xl shadow-2xl w-56 z-50 overflow-hidden animate-slide-down origin-top">
                     <div className="px-4 py-3 border-b border-gray-100">
                       <p className="font-semibold text-gray-900 text-sm truncate">{user.name}</p>
                       <p className="text-xs text-gray-500 truncate">{user.email}</p>
