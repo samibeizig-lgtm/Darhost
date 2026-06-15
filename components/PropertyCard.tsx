@@ -20,8 +20,7 @@ export default function PropertyCard({ property }: PropertyCardProps) {
           <img
             src={property.images[imgIdx]}
             alt={property.title}
-            className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-700"
-            style={{ transform: undefined }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
 
           {/* Gradient overlay on hover */}
